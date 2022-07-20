@@ -40,8 +40,6 @@ namespace DanTech.Controllers
             var typeCt = (from x in _db.dtTypes where 1 == 1 select x).ToList().Count;
             ViewBag.ipAddress = HttpContext.Connection.RemoteIpAddress;
 
-            //Test comment.
-            
             var v = VM;
             return View(VM);
         } 
