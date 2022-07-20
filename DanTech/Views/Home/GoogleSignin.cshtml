@@ -1,0 +1,15 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model DanTech.Models.DTViewModel
+
+@if (Model == null || Model.User == null)
+{
+    <p>The sign in was not successful</p>
+}
+else
+{
+    <p>You have signed in as <span>@Model.User.fName @Model.User.lName (@Model.User.email)</span></p>
+}

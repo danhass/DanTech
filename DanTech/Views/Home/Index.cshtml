@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model DanTech.Models.DTViewModel
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p><label>Total types:</label>@ViewBag.TypeCt</p>
+    <p><label>Caller:</label>@ViewBag.ipAddress</p>
+
+    @if (Model == null || Model.User == null)
+    {
+        <p>You are not currently signed in.</p>
+        <form action="/Home/Signin" method="post">
+            <button>Sign in with Google</button>
+        </form>
+    }
+    else
+    {
+        <p>You are signed in as <span>@Model.User.fName @Model.User.lName (@Model.User.email)</span></p>
+        <form action="/Home/Signin" method="post">
+            <button>Change sign in with google.</button>
+        </form>
+    }
+</div>
