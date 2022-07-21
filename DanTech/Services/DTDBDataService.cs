@@ -9,6 +9,9 @@ namespace DanTech.Services
     public class DTDBDataService
     {
         private dgdb _db = new dgdb();
+        private const string _testFlagKey = "Testing in progress";
+
+        public string TestFlagKey { get { return _testFlagKey; } }
 
         public static bool SetIfTesting(dgdb db, string key, string value)
         {
@@ -38,25 +41,19 @@ namespace DanTech.Services
             _db = db;
         }
 
-        public void SetTestFlag(bool clearPrev)
+        public void ToggleTestFlag()
         {
-            if (clearPrev)
+            var testFlag = (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
+            if (testFlag == null)
             {
-                var data = _db.dtTestData.ToList();
-                _db.dtTestData.RemoveRange(data);
-                _db.SaveChanges();
-            }
-
-            var TestingFlag = (from x in _db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
-            if (TestingFlag == null)
-            {
-                TestingFlag = new dtTestDatum() { title = "Testing in progress", value = "1" };
-                _db.dtTestData.Add(TestingFlag);
+                testFlag = new dtTestDatum() { title = _testFlagKey, value = "1" };
+                _db.dtTestData.Add(testFlag);
             }
             else
             {
-                TestingFlag.value = "1";
+                _db.dtTestData.Remove(testFlag);
             }
+
             _db.SaveChanges();
         }
 

@@ -42,28 +42,22 @@ namespace DanTech.Controllers
 
             var v = VM;
             return View(VM);
-        } 
+        }
 
+        [ServiceFilter(typeof(DTAuthenticate))]
         public IActionResult GoogleSignin(string code)
         {            
-            if (DTDBDataService.SetIfTesting(_db, "Google code", code)) return RedirectToAction("SetupTests");
-
+            if (VM.TestEnvironment && DTDBDataService.SetIfTesting(_db, "Google code", code)) return RedirectToAction("SetupTests");
             string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
-
             string accessToken = DTGoogleAuthService.AuthToken(code, domain, _configuration);
-
             var cred = GoogleCredential.FromAccessToken(accessToken, null);
-
             var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = cred,
             });
-
             var userInfo = oauthSerivce.Userinfo.Get().ExecuteAsync().Result;
-
             string sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, accessToken);
             SetVM(sessionId);
-
             Response.Cookies.Append("dtSessionId", sessionId);            
 
             return View(VM);
@@ -86,15 +80,18 @@ namespace DanTech.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public IActionResult AssembleTestData()
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public IActionResult ToggleTestState()
         {
-            if (Request.Headers["host"].ToString().Contains("localhost"))
+            
+            if (VM.TestEnvironment)
             {
                 DTDBDataService dataService = new DTDBDataService(_db);
-                dataService.SetTestFlag(true);
+                dataService.ToggleTestFlag();
                 string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
                 return Redirect(DTGoogleAuthService.AuthService(domain, "Home/GoogleSignin", _configuration));
             }
+            
             return RedirectToAction("Index");
         }
 

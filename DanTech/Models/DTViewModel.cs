@@ -10,5 +10,7 @@ namespace DanTech.Models
     public class DTViewModel
     {
         public  dtUserModel User { get; set; }
+
+        public bool TestEnvironment { get; set; }
     }
 }

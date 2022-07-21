@@ -22,4 +22,11 @@
             <button>Change sign in with google.</button>
         </form>
     }
+
+    @if (Model != null && Model.TestEnvironment)
+    {
+        <form action="/Home/ToggleTestState" method="post">
+            <button>Toggle Test State</button>
+        </form>
+    }
 </div>

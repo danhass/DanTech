@@ -13,6 +13,7 @@ namespace DanTechTests
     {
         private const string TEST_VALUE = "Test Value";
         private const string TRUE_STRING_VALUE = "1";
+        private const string TEST_KEY = "Test data element";
 
         [TestMethod]
         public void InstantiateDB()
@@ -87,14 +88,12 @@ namespace DanTechTests
             //Act
             dataService.ClearTestData();
             int countOnceClear = db.dtTestData.Count();
-            bool setTestElementWhenNotTestingResult = dataService.SetIfTesting("Test Data Element", TEST_VALUE);
-            var testDataFlagAfterNoSet = (from x in db.dtTestData where x.title == "Test Data Element" select x).FirstOrDefault();
-            dataService.SetTestFlag(true);
-            var testInProgressFlag = (from x in db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
-            bool setStaticTestDataElementResult = DTDBDataService.SetIfTesting(db, "Test Data Element--Static", TEST_VALUE);
-            var staticTestDataElementflag = (from x in db.dtTestData where x.title == "Test Data Element--Static" select x).FirstOrDefault();
-            bool setTestDataElementResult = dataService.SetIfTesting("Test Data Element", TEST_VALUE);
-            var testDataElementFlag = (from x in db.dtTestData where x.title == "Test Data Element" select x).FirstOrDefault();
+            bool setTestElementWhenNotTestingResult = dataService.SetIfTesting(TEST_KEY, TEST_VALUE);
+            var testDataFlagAfterNoSet = (from x in db.dtTestData where x.title == TEST_KEY select x).FirstOrDefault();
+            dataService.ToggleTestFlag();
+            var testInProgressFlag = (from x in db.dtTestData where x.title == dataService.TestFlagKey select x).FirstOrDefault();
+            bool setTestDataElementResult = dataService.SetIfTesting(TEST_KEY, TEST_VALUE);
+            var testDataElementFlag = (from x in db.dtTestData where x.title == TEST_KEY select x).FirstOrDefault();
             dataService.ClearTestData();
             var testElementsAfterClear = db.dtTestData.ToList().Count;
 
@@ -104,14 +103,10 @@ namespace DanTechTests
             Assert.IsNull(testDataFlagAfterNoSet, "Should not have set test element when not testing");
             Assert.IsNotNull(testInProgressFlag, "Failed to set test in progress element");
             Assert.AreEqual(testInProgressFlag.value, TRUE_STRING_VALUE, "Test in progress element has wrong value");
-            Assert.IsTrue(setStaticTestDataElementResult, "Setting static test data element failed.");
-            Assert.IsNotNull(staticTestDataElementflag, "Static test data element is null");
-            Assert.AreEqual(staticTestDataElementflag.value, TEST_VALUE, "Value of static test data element invalid");
             Assert.IsTrue(setTestDataElementResult);
             Assert.IsNotNull(testDataElementFlag);
             Assert.AreEqual(testDataElementFlag.value, TEST_VALUE);
-            Assert.AreEqual(testElementsAfterClear, 0, "Was not able to clear the final data elements");
-            
+            Assert.AreEqual(testElementsAfterClear, 0, "Was not able to clear the final data elements");            
         }
     }
 }

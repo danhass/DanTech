@@ -99,5 +99,48 @@ namespace DanTechTests
             Assert.IsNotNull(controller.VM.User, "User not set on VM.");
             Assert.AreEqual(controller.VM.User.email, _testUserEmail, "User set incorrectly");
         }
+
+        [TestMethod]
+        public void ActionExecutingTest_UserNotLoggedIn()
+        {
+            //Arrange
+
+            //Set up db
+            var db = DTDB.getDB();
+            var testUser = (from x in db.dtUsers where x.email == _testUserEmail select x).FirstOrDefault();
+            //Remove any session for this user
+            var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+            if (testSession != null)
+            {
+                db.dtSessions.Remove(testSession);
+                db.SaveChanges();
+            }
+
+            //Set up context
+            var httpContext = new DefaultHttpContext();
+            var requestFeature = new HttpRequestFeature();
+            var featureCollection = new FeatureCollection();
+            requestFeature.Headers = new HeaderDictionary();
+            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(_sessionCookieKey + "=" + _sessionGuid));
+            featureCollection.Set<IHttpRequestFeature>(requestFeature);
+            var cookiesFeature = new RequestCookiesFeature(featureCollection);
+            httpContext.Request.Cookies = cookiesFeature.Cookies;
+            httpContext.Connection.RemoteIpAddress = IPAddress.Loopback;
+
+            //Set up controller
+            var config = InitConfiguration();
+            var logger = InitLogger();
+            var controller = new DTController(config, logger, db);
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
+            var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
+            var actionFilter = new DTAuthenticate(config, db);
+
+            //Act
+            actionFilter.OnActionExecuting(ctx);
+
+            //Assert
+            Assert.IsNotNull(controller.VM, "Controller's VM not set.");
+            Assert.IsNull(controller.VM.User, "User should be null.");
+        }
     }
 }

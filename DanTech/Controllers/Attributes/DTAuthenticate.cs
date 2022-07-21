@@ -29,6 +29,10 @@ namespace DanTech.Controllers
         {
             var ipAddress = context.HttpContext.Connection.RemoteIpAddress.ToString();
             var session = context.HttpContext.Request.Cookies["dtSessionId"];
+            var controller = (DTController)context.Controller;
+            var host = context.HttpContext.Request.Host;
+            controller.VM = new DTViewModel();
+            controller.VM.TestEnvironment = host.ToString().StartsWith("localhost");
             if (!string.IsNullOrEmpty(session))
             {
                 var sessionRecord = (from x in _db.dtSessions where x.session == session select x).FirstOrDefault();
@@ -57,8 +61,6 @@ namespace DanTech.Controllers
                                 ForMember(dest => dest.session, act => act.MapFrom(src => src.dtSession));
                         });
                         var mapper = new Mapper(config);
-                        var controller = (DTController)context.Controller;
-                        controller.VM = new DTViewModel();
                         controller.VM.User = mapper.Map<dtUserModel>(user);
                         sessionRecord.expires = DateTime.Now.AddDays(1);
                     }
