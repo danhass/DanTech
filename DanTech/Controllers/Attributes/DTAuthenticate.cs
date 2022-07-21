@@ -12,6 +12,7 @@ using DanTech.Models.Data;
 using DanTech.Controllers;
 using Microsoft.AspNetCore.Http;
 using AutoMapper;
+using DanTech.Services;
 
 namespace DanTech.Controllers
 {     
@@ -33,40 +34,10 @@ namespace DanTech.Controllers
             var host = context.HttpContext.Request.Host;
             controller.VM = new DTViewModel();
             controller.VM.TestEnvironment = host.ToString().StartsWith("localhost");
-            if (!string.IsNullOrEmpty(session))
-            {
-                var sessionRecord = (from x in _db.dtSessions where x.session == session select x).FirstOrDefault();
-                if (sessionRecord == null || sessionRecord.expires < DateTime.Now || sessionRecord.hostAddress != ipAddress)
-                {
-                    context.HttpContext.Response.Cookies.Delete("dtSessionId");
-                    if (sessionRecord != null)
-                    {
-                        _db.dtSessions.Remove(sessionRecord);
-                    }
-                }
-                else
-                {
-                    var user = (from x in _db.dtUsers where x.id == sessionRecord.user select x).FirstOrDefault();
-                    if (user == null)
-                    {
-                        _db.dtSessions.Remove(sessionRecord);
-                        context.HttpContext.Response.Cookies.Delete("dtSessionId");
-                    }
-                    else
-                    {
-                        var config = new MapperConfiguration(cfg =>
-                        {
-                            cfg.CreateMap<dtSession, dtSessionModel>();
-                            cfg.CreateMap<dtUser, dtUserModel>().
-                                ForMember(dest => dest.session, act => act.MapFrom(src => src.dtSession));
-                        });
-                        var mapper = new Mapper(config);
-                        controller.VM.User = mapper.Map<dtUserModel>(user);
-                        sessionRecord.expires = DateTime.Now.AddDays(1);
-                    }
-                }
-                _db.SaveChanges();
-            }
+            var dataService = new DTDBDataService(_db);
+            controller.VM.IsTesting = dataService.InTesting;
+            controller.VM.User = dataService.UserModelForSession(session, ipAddress);
+            if (controller.VM.User == null) context.HttpContext.Response.Cookies.Delete("dtSessionId");
             base.OnActionExecuting(context);
         }
     }

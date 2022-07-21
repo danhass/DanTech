@@ -10,12 +10,6 @@ namespace DanTechTests.Data
     public class DTDB
     {
         private static string _conn = "server=162.241.218.73;user id=dimgaard_WPXTY;password=@TheMan001;database=dimgaard_WPXTY;port=3306";
-        private static string _testUserEmail = "t@t.com";
-        private static string _testUserOthername = "tester";
-        private static string _testUserFName = "A";
-        private static string _testUserLName = "Test";
-        private static string _testGoogleCodeTitle = "Google code";
-        private static string _testGoogleCodeMiscTitle = "Google code - testing";
         private dgdb _db = null;
 
         public dgdb DB { get { return _db; } }
@@ -40,8 +34,8 @@ namespace DanTechTests.Data
         {
             if (db == null) return false;
 
-            var googleCode = (from x in db.dtTestData where x.title == _testGoogleCodeTitle select x).FirstOrDefault();
-            var replacement = (from x in db.dtMiscs where x.title == _testGoogleCodeMiscTitle select x).FirstOrDefault();
+            var googleCode = (from x in db.dtTestData where x.title == DTTestConstants.TestGoogleCodeTitle select x).FirstOrDefault();
+            var replacement = (from x in db.dtMiscs where x.title == DTTestConstants.TestGoogleCodeMistTitle select x).FirstOrDefault();
 
             if (googleCode == null)
             {
@@ -58,10 +52,10 @@ namespace DanTechTests.Data
                 }
             }
 
-            var testUser = (from x in db.dtUsers where x.email == _testUserEmail select x).FirstOrDefault();
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             if (testUser == null)
             {
-                testUser = new dtUser() { email = _testUserEmail, fName = _testUserFName, lName = _testUserLName, otherName = _testUserOthername };
+                testUser = new dtUser() { email = DTTestConstants.TestUserEmail, fName = DTTestConstants.TestUserFName, lName = DTTestConstants.TestUserLName, otherName = DTTestConstants.TestUserOthername };
                 db.dtUsers.Add(testUser);
             }
 

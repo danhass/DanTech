@@ -15,7 +15,6 @@ namespace DanTechTests
     [TestClass]
     public class GoogleAuthServiceTests
     {
-        private const string localHostDomain = "localhost:44324";
         private const string TEST_USER_EMAIL = "testemail@email.com";
         private const string TEST_USER_FNAME = "Test Given Name";
         private const string TEST_USER_LNAME = "Test Family Name";
@@ -38,7 +37,7 @@ namespace DanTechTests
             var config = InitConfiguration();
 
             //Act
-            string url = DTGoogleAuthService.AuthService("localhost:44324", "Home/GoogleSignin", config);
+            string url = DTGoogleAuthService.AuthService(DTTestConstants.LocalHostDomain, DTTestConstants.GoogleSigninHandler, config);
 
             //Assert
             Assert.IsTrue(url.StartsWith("https://accounts.google.com/o/oauth2/v2/auth"), "Google auth url does not have proper beginning.");
@@ -55,8 +54,8 @@ namespace DanTechTests
             var datum = (from x in db.dtTestData where x.title == "Google code" select x).FirstOrDefault();
             
             //Act
-            string token = DTGoogleAuthService.AuthToken(datum.value, localHostDomain, config);
-            string badCodeToken = DTGoogleAuthService.AuthToken("1234", localHostDomain, config);
+            string token = DTGoogleAuthService.AuthToken(datum.value, DTTestConstants.LocalHostDomain, config);
+            string badCodeToken = DTGoogleAuthService.AuthToken("1234", DTTestConstants.LocalHostDomain, config);
 
             //Assert
             Assert.IsNotNull(datum, "Could not find Google code in test data (dtTextData).");

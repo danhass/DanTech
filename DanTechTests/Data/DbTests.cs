@@ -11,10 +11,6 @@ namespace DanTechTests
     [TestClass]
     public class DbTests
     {
-        private const string TEST_VALUE = "Test Value";
-        private const string TRUE_STRING_VALUE = "1";
-        private const string TEST_KEY = "Test data element";
-
         [TestMethod]
         public void InstantiateDB()
         {
@@ -88,13 +84,15 @@ namespace DanTechTests
             //Act
             dataService.ClearTestData();
             int countOnceClear = db.dtTestData.Count();
-            bool setTestElementWhenNotTestingResult = dataService.SetIfTesting(TEST_KEY, TEST_VALUE);
-            var testDataFlagAfterNoSet = (from x in db.dtTestData where x.title == TEST_KEY select x).FirstOrDefault();
+            bool setTestElementWhenNotTestingResult = dataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
+            var testDataFlagAfterNoSet = (from x in db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
             dataService.ToggleTestFlag();
+            bool testFlagShouldBeSet = dataService.InTesting;
             var testInProgressFlag = (from x in db.dtTestData where x.title == dataService.TestFlagKey select x).FirstOrDefault();
-            bool setTestDataElementResult = dataService.SetIfTesting(TEST_KEY, TEST_VALUE);
-            var testDataElementFlag = (from x in db.dtTestData where x.title == TEST_KEY select x).FirstOrDefault();
+            bool setTestDataElementResult = dataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
+            var testDataElementFlag = (from x in db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
             dataService.ClearTestData();
+            var testFlagShouldNotBeSet = dataService.InTesting;
             var testElementsAfterClear = db.dtTestData.ToList().Count;
 
             //Assert
@@ -102,11 +100,23 @@ namespace DanTechTests
             Assert.IsFalse(setTestElementWhenNotTestingResult, "Should not set test value when not testing");
             Assert.IsNull(testDataFlagAfterNoSet, "Should not have set test element when not testing");
             Assert.IsNotNull(testInProgressFlag, "Failed to set test in progress element");
-            Assert.AreEqual(testInProgressFlag.value, TRUE_STRING_VALUE, "Test in progress element has wrong value");
-            Assert.IsTrue(setTestDataElementResult);
-            Assert.IsNotNull(testDataElementFlag);
-            Assert.AreEqual(testDataElementFlag.value, TEST_VALUE);
-            Assert.AreEqual(testElementsAfterClear, 0, "Was not able to clear the final data elements");            
+            Assert.IsTrue(testFlagShouldBeSet, "Data service does not reflect db in test state.");
+            Assert.AreEqual(testInProgressFlag.value, DTTestConstants.TestStringTrueValue, "Test in progress element has wrong value");
+            Assert.IsTrue(setTestDataElementResult, "Failed to set test element.");
+            Assert.IsNotNull(testDataElementFlag, "Test data element not correctly set.");
+            Assert.AreEqual(testDataElementFlag.value, DTTestConstants.TestValue);
+            Assert.AreEqual(testElementsAfterClear, 0, "Was not able to clear the final data elements");
+            Assert.IsFalse(testFlagShouldNotBeSet, "Data service still reflects db in test state.");
+
+
+        }
+
+        [TestMethod]
+        public void UserModelForSession_NotLoggedIn()
+        {
+            //Arrange 
+            var db = DTDB.getDB();
+            var dataService = new DTDBDataService(db);
         }
     }
 }

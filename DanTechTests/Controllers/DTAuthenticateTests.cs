@@ -25,10 +25,6 @@ namespace DanTechTests
     [TestClass]
     public class DTAuthenticateTests
     {
-        private const string _sessionCookieKey = "dtSessionId";
-        private const string _sessionGuid = "01ddb399-850b-4111-a3e6-6afd1c30b605";
-        private const string _testUserEmail = "t@t.com"; //Permanent user in the user table that is reserved for testing.
-
         public static IConfiguration InitConfiguration()
         {
             var config = new ConfigurationBuilder()
@@ -50,14 +46,10 @@ namespace DanTechTests
             return logger;
         }
 
-        [TestMethod]
-        public void ActionExecutingTest_UserLoggedIn()
+        private DTController ExecuteWithLoggedInUser(dgdb db, string host)
         {
-            //Arrange
-
             //Set up db
-            var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == _testUserEmail select x).FirstOrDefault();
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
             if (testSession == null)
             {
@@ -65,15 +57,16 @@ namespace DanTechTests
                 db.dtSessions.Add(testSession);
             }
             testSession.expires = DateTime.Now.AddDays(1);
-            testSession.session = _sessionGuid;
+            testSession.session = DTTestConstants.TestSessionId;
             db.SaveChanges();
 
             //Set up context
             var httpContext = new DefaultHttpContext();
+            httpContext.Request.Host = new HostString(host);
             var requestFeature = new HttpRequestFeature();
             var featureCollection = new FeatureCollection();
             requestFeature.Headers = new HeaderDictionary();
-            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(_sessionCookieKey + "=" + _sessionGuid));
+            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.SessionCookieKey + "=" + DTTestConstants.TestSessionId));
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
@@ -90,14 +83,69 @@ namespace DanTechTests
             //Act
             actionFilter.OnActionExecuting(ctx);
 
+            return controller;
+        }
+
+        private void RemoveTestSession(dgdb db)
+        {
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+            if (testSession != null)
+            {
+                db.dtSessions.Remove(testSession);
+                db.SaveChanges();
+            }
+        }
+
+        [TestMethod]
+        public void ActionExecutingTest_SetTestEnv()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+
+            //Act
+            var controller = ExecuteWithLoggedInUser(db, DTTestConstants.LocalHostDomain);
+
+            //Clean up
+            RemoveTestSession(db);
+
+            //Assert
+            Assert.IsTrue(controller.VM.TestEnvironment, "path that begins with localhost should result in test env flag of true.");           
+        }
+
+        [TestMethod]
+        public void ActionExecutingTest_SetNotTestEnv()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+
+            //Act
+            var controller = ExecuteWithLoggedInUser(db, "dimgaard.com");
+
+            //Clean up
+            RemoveTestSession(db);
+
+            //Assert
+            Assert.IsFalse(controller.VM.TestEnvironment, "path that does not begin with localhost should result in test env flag of false.");
+        }
+
+
+        [TestMethod]
+        public void ActionExecutingTest_UserLoggedIn()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+
+            //Act
+            var controller = ExecuteWithLoggedInUser(db, DTTestConstants.LocalHostDomain);
+
             //Clean up db - test user is left in place
-            db.dtSessions.Remove(testSession);
-            db.SaveChanges();
+            RemoveTestSession(db);
 
             //Assert
             Assert.IsNotNull(controller.VM, "Controller's VM not set.");
             Assert.IsNotNull(controller.VM.User, "User not set on VM.");
-            Assert.AreEqual(controller.VM.User.email, _testUserEmail, "User set incorrectly");
+            Assert.AreEqual(controller.VM.User.email, DTTestConstants.TestUserEmail, "User set incorrectly");
         }
 
         [TestMethod]
@@ -107,7 +155,7 @@ namespace DanTechTests
 
             //Set up db
             var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == _testUserEmail select x).FirstOrDefault();
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             //Remove any session for this user
             var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
             if (testSession != null)
@@ -121,7 +169,7 @@ namespace DanTechTests
             var requestFeature = new HttpRequestFeature();
             var featureCollection = new FeatureCollection();
             requestFeature.Headers = new HeaderDictionary();
-            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(_sessionCookieKey + "=" + _sessionGuid));
+            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.TestSessionId + "=" + DTTestConstants.TestSessionId));
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
