@@ -9,6 +9,12 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <MSBuildWarningsAsMessages>
+      $(MSBuildWarningsAsMessages);MSB3277;NU1701
+    </MSBuildWarningsAsMessages>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="11.0.1" />
     <PackageReference Include="Google.Apis.Auth.AspNetCore3" Version="1.57.0" />

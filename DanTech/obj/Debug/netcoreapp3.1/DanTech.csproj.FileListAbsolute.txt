@@ -90,3 +90,4 @@ C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.C
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.dll
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.pdb
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.genruntimeconfig.cache
+C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.AssemblyReference.cache

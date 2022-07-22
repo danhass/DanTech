@@ -26,7 +26,7 @@ namespace DanTech.Controllers
         {
             _db = dgdb;
             _logger = logger;
-            _configuration = configuration;        
+            _configuration = configuration;
         }
 
         protected void SetVM(string sessionId)
