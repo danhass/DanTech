@@ -36,7 +36,6 @@
           "Google.Apis.Gmail.v1": "1.57.0.2650",
           "Google.Apis.Oauth2.v2": "1.57.0.1869",
           "Google.Apis.PeopleService.v1": "1.57.0.2707",
-          "Microsoft.AspNet.WebPages.WebData": "3.2.9",
           "Microsoft.AspNetCore.Authentication.Cookies": "2.2.0",
           "Microsoft.AspNetCore.Authentication.OpenIdConnect": "3.1.27",
           "Microsoft.EntityFrameworkCore": "5.0.17",
@@ -522,29 +521,29 @@
           "lib/netstandard2.0/K4os.Hash.xxHash.dll": {}
         }
       },
-      "Microsoft.AspNet.WebPages.Data/3.2.9": {
+      "Microsoft.AspNet.WebPages.Data/2.0.20710": {
         "runtime": {
-          "lib/net45/WebMatrix.Data.dll": {
-            "assemblyVersion": "3.0.0.0",
-            "fileVersion": "3.0.61129.10"
+          "lib/net40/WebMatrix.Data.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.20710.0"
           }
         },
         "compile": {
-          "lib/net45/WebMatrix.Data.dll": {}
+          "lib/net40/WebMatrix.Data.dll": {}
         }
       },
-      "Microsoft.AspNet.WebPages.WebData/3.2.9": {
+      "Microsoft.AspNet.WebPages.WebData/2.0.20710": {
         "dependencies": {
-          "Microsoft.AspNet.WebPages.Data": "3.2.9"
+          "Microsoft.AspNet.WebPages.Data": "2.0.20710"
         },
         "runtime": {
-          "lib/net45/WebMatrix.WebData.dll": {
-            "assemblyVersion": "3.0.0.0",
-            "fileVersion": "3.0.61129.10"
+          "lib/net40/WebMatrix.WebData.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.20710.0"
           }
         },
         "compile": {
-          "lib/net45/WebMatrix.WebData.dll": {}
+          "lib/net40/WebMatrix.WebData.dll": {}
         }
       },
       "Microsoft.AspNetCore.Authentication/2.2.0": {
@@ -1171,7 +1170,7 @@
       },
       "WebMatrix.WebData/2.0.30506": {
         "dependencies": {
-          "Microsoft.AspNet.WebPages.WebData": "3.2.9"
+          "Microsoft.AspNet.WebPages.WebData": "2.0.20710"
         }
       },
       "Microsoft.AspNetCore.Antiforgery/3.1.0.0": {
@@ -2894,19 +2893,19 @@
       "path": "k4os.hash.xxhash/1.0.6",
       "hashPath": "k4os.hash.xxhash.1.0.6.nupkg.sha512"
     },
-    "Microsoft.AspNet.WebPages.Data/3.2.9": {
+    "Microsoft.AspNet.WebPages.Data/2.0.20710": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-D6QnqWJ+d8Xr+M957eEECnY7gUPJmR+FLfn+L0hoCWrXQjNNmMnxGt8IVqXQAPlWJaJjrq6Kwh+9Eu3NvtxZMA==",
-      "path": "microsoft.aspnet.webpages.data/3.2.9",
-      "hashPath": "microsoft.aspnet.webpages.data.3.2.9.nupkg.sha512"
+      "sha512": "sha512-PTwS5C1vF69FDikWhUkJZ4qb96yxtdVuVR90Hjt7e/GDNVOeR7tXMYWHs9cPP0v35EiO+V6BUj1c8dNCUXW7Ag==",
+      "path": "microsoft.aspnet.webpages.data/2.0.20710",
+      "hashPath": "microsoft.aspnet.webpages.data.2.0.20710.nupkg.sha512"
     },
-    "Microsoft.AspNet.WebPages.WebData/3.2.9": {
+    "Microsoft.AspNet.WebPages.WebData/2.0.20710": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Rrwovp6Ue75a3CckDF70NoEvURCW/Hjlqrn1BhRmPX8mNrAPyQFmve9+xYEopdo/cjRd65w7tkklpD9XCftBBg==",
-      "path": "microsoft.aspnet.webpages.webdata/3.2.9",
-      "hashPath": "microsoft.aspnet.webpages.webdata.3.2.9.nupkg.sha512"
+      "sha512": "sha512-BZsx1iI2qZ9c21QKD3KAk7BGrGQ3gkGw8a7AdkmDNJoK+RyEcEy46lyzpyiD7BkVKvlszO7er2m2nR2NWK6u9Q==",
+      "path": "microsoft.aspnet.webpages.webdata/2.0.20710",
+      "hashPath": "microsoft.aspnet.webpages.webdata.2.0.20710.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Authentication/2.2.0": {
       "type": "package",

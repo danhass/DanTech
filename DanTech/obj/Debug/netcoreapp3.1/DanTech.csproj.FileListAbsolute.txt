@@ -58,7 +58,6 @@ C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Runtime.C
 C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Security.Cryptography.ProtectedData.dll
 C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.Common.dll
 C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.AssemblyReference.cache
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.GeneratedMSBuildEditorConfig.editorconfig
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.AssemblyInfoInputs.cache
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.AssemblyInfo.cs
@@ -68,6 +67,8 @@ C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.MvcAppli
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorAssemblyInfo.cache
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorAssemblyInfo.cs
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.Manifest.cache
+C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.xml
+C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\scopedcss\bundle\DanTech.styles.css
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.TagHelpers.input.cache
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.TagHelpers.output.cache
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorCoreGenerate.cache
@@ -89,5 +90,3 @@ C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.C
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.dll
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.pdb
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.genruntimeconfig.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.xml
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\scopedcss\bundle\DanTech.styles.css

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "oa99dwuRo7jX+zF6NPvspPFR7AdW5LQ+bU9PwpP0c6kf4WfKg0EUYX3P1lT7RQcNzx02phhkWFnnbWJP+R0P/Q==",
+  "dgSpecHash": "4I/ETKddX4LNbDpaNmV9yGDNUl20Zfbpf4Xi2KdkmwlD0zYCCQtJo3yU+owlf/T8mWh3Na4RGNPttqhofWTf4Q==",
   "success": true,
   "projectFilePath": "C:\\Dev\\Projects\\DanTech\\DanTech\\DanTech\\DanTech.csproj",
   "expectedPackageFiles": [
@@ -18,8 +18,8 @@
     "C:\\Users\\hassd\\.nuget\\packages\\k4os.compression.lz4\\1.2.6\\k4os.compression.lz4.1.2.6.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\k4os.compression.lz4.streams\\1.2.6\\k4os.compression.lz4.streams.1.2.6.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\k4os.hash.xxhash\\1.0.6\\k4os.hash.xxhash.1.0.6.nupkg.sha512",
-    "C:\\Users\\hassd\\.nuget\\packages\\microsoft.aspnet.webpages.data\\3.2.9\\microsoft.aspnet.webpages.data.3.2.9.nupkg.sha512",
-    "C:\\Users\\hassd\\.nuget\\packages\\microsoft.aspnet.webpages.webdata\\3.2.9\\microsoft.aspnet.webpages.webdata.3.2.9.nupkg.sha512",
+    "C:\\Users\\hassd\\.nuget\\packages\\microsoft.aspnet.webpages.data\\2.0.20710\\microsoft.aspnet.webpages.data.2.0.20710.nupkg.sha512",
+    "C:\\Users\\hassd\\.nuget\\packages\\microsoft.aspnet.webpages.webdata\\2.0.20710\\microsoft.aspnet.webpages.webdata.2.0.20710.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\microsoft.aspnetcore.authentication\\2.2.0\\microsoft.aspnetcore.authentication.2.2.0.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.2.0\\microsoft.aspnetcore.authentication.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\microsoft.aspnetcore.authentication.cookies\\2.2.0\\microsoft.aspnetcore.authentication.cookies.2.2.0.nupkg.sha512",
@@ -96,7 +96,7 @@
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'Microsoft.AspNet.WebPages.Data 3.2.9' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "message": "Package 'Microsoft.AspNet.WebPages.Data 2.0.20710' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
       "libraryId": "Microsoft.AspNet.WebPages.Data",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"
@@ -106,7 +106,7 @@
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'Microsoft.AspNet.WebPages.WebData 3.2.9' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "message": "Package 'Microsoft.AspNet.WebPages.WebData 2.0.20710' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
       "libraryId": "Microsoft.AspNet.WebPages.WebData",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"

@@ -183,25 +183,25 @@
           "lib/netstandard2.0/K4os.Hash.xxHash.dll": {}
         }
       },
-      "Microsoft.AspNet.WebPages.Data/3.2.9": {
+      "Microsoft.AspNet.WebPages.Data/2.0.20710": {
         "type": "package",
         "compile": {
-          "lib/net45/WebMatrix.Data.dll": {}
+          "lib/net40/WebMatrix.Data.dll": {}
         },
         "runtime": {
-          "lib/net45/WebMatrix.Data.dll": {}
+          "lib/net40/WebMatrix.Data.dll": {}
         }
       },
-      "Microsoft.AspNet.WebPages.WebData/3.2.9": {
+      "Microsoft.AspNet.WebPages.WebData/2.0.20710": {
         "type": "package",
         "dependencies": {
-          "Microsoft.AspNet.WebPages.Data": "3.2.9"
+          "Microsoft.AspNet.WebPages.Data": "[2.0.20710, 2.1.0)"
         },
         "compile": {
-          "lib/net45/WebMatrix.WebData.dll": {}
+          "lib/net40/WebMatrix.WebData.dll": {}
         },
         "runtime": {
-          "lib/net45/WebMatrix.WebData.dll": {}
+          "lib/net40/WebMatrix.WebData.dll": {}
         }
       },
       "Microsoft.AspNetCore.Authentication/2.2.0": {
@@ -2619,7 +2619,6 @@
           "Google.Apis.Gmail.v1": "1.57.0.2650",
           "Google.Apis.Oauth2.v2": "1.57.0.1869",
           "Google.Apis.PeopleService.v1": "1.57.0.2707",
-          "Microsoft.AspNet.WebPages.WebData": "3.2.9",
           "Microsoft.AspNetCore.Authentication.Cookies": "2.2.0",
           "Microsoft.AspNetCore.Authentication.OpenIdConnect": "3.1.27",
           "Microsoft.EntityFrameworkCore": "5.0.17",
@@ -3008,33 +3007,29 @@
         "lib/netstandard2.0/K4os.Hash.xxHash.xml"
       ]
     },
-    "Microsoft.AspNet.WebPages.Data/3.2.9": {
-      "sha512": "D6QnqWJ+d8Xr+M957eEECnY7gUPJmR+FLfn+L0hoCWrXQjNNmMnxGt8IVqXQAPlWJaJjrq6Kwh+9Eu3NvtxZMA==",
+    "Microsoft.AspNet.WebPages.Data/2.0.20710": {
+      "sha512": "PTwS5C1vF69FDikWhUkJZ4qb96yxtdVuVR90Hjt7e/GDNVOeR7tXMYWHs9cPP0v35EiO+V6BUj1c8dNCUXW7Ag==",
       "type": "package",
-      "path": "microsoft.aspnet.webpages.data/3.2.9",
+      "path": "microsoft.aspnet.webpages.data/2.0.20710",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "NET.icon.png",
-        "NET_Library_EULA_ENU.txt",
-        "lib/net45/WebMatrix.Data.dll",
-        "lib/net45/WebMatrix.Data.xml",
-        "microsoft.aspnet.webpages.data.3.2.9.nupkg.sha512",
+        "lib/net40/WebMatrix.Data.dll",
+        "lib/net40/WebMatrix.Data.xml",
+        "microsoft.aspnet.webpages.data.2.0.20710.nupkg.sha512",
         "microsoft.aspnet.webpages.data.nuspec"
       ]
     },
-    "Microsoft.AspNet.WebPages.WebData/3.2.9": {
-      "sha512": "Rrwovp6Ue75a3CckDF70NoEvURCW/Hjlqrn1BhRmPX8mNrAPyQFmve9+xYEopdo/cjRd65w7tkklpD9XCftBBg==",
+    "Microsoft.AspNet.WebPages.WebData/2.0.20710": {
+      "sha512": "BZsx1iI2qZ9c21QKD3KAk7BGrGQ3gkGw8a7AdkmDNJoK+RyEcEy46lyzpyiD7BkVKvlszO7er2m2nR2NWK6u9Q==",
       "type": "package",
-      "path": "microsoft.aspnet.webpages.webdata/3.2.9",
+      "path": "microsoft.aspnet.webpages.webdata/2.0.20710",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "NET.icon.png",
-        "NET_Library_EULA_ENU.txt",
-        "lib/net45/WebMatrix.WebData.dll",
-        "lib/net45/WebMatrix.WebData.xml",
-        "microsoft.aspnet.webpages.webdata.3.2.9.nupkg.sha512",
+        "lib/net40/WebMatrix.WebData.dll",
+        "lib/net40/WebMatrix.WebData.xml",
+        "microsoft.aspnet.webpages.webdata.2.0.20710.nupkg.sha512",
         "microsoft.aspnet.webpages.webdata.nuspec"
       ]
     },
@@ -9019,7 +9014,7 @@
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'Microsoft.AspNet.WebPages.Data 3.2.9' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "message": "Package 'Microsoft.AspNet.WebPages.Data 2.0.20710' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
       "libraryId": "Microsoft.AspNet.WebPages.Data",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"
@@ -9029,7 +9024,7 @@
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'Microsoft.AspNet.WebPages.WebData 3.2.9' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "message": "Package 'Microsoft.AspNet.WebPages.WebData 2.0.20710' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
       "libraryId": "Microsoft.AspNet.WebPages.WebData",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"

@@ -24,58 +24,13 @@ namespace DanTechTests
 {
     [TestClass]
     public class DTAuthenticateTests
-    {
-        public static IConfiguration InitConfiguration()
-        {
-            var config = new ConfigurationBuilder()
-              .AddJsonFile("appsettings.json")
-               .AddEnvironmentVariables()
-               .Build();
-            return config;
-        }
-
-        public static ILogger<DTController> InitLogger()
-        {
-            var serviceProvider = new ServiceCollection()
-                .AddLogging()
-                .BuildServiceProvider();
-
-            var factory = serviceProvider.GetService<ILoggerFactory>();
-
-            var logger = factory.CreateLogger<DTController>();
-            return logger;
-        }
-
+    {        
         private DTController ExecuteWithLoggedInUser(dgdb db, string host)
         {
-            //Set up db
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
-            if (testSession == null)
-            {
-                testSession = new dtSession() { user = testUser.id, hostAddress = IPAddress.Loopback.ToString() };
-                db.dtSessions.Add(testSession);
-            }
-            testSession.expires = DateTime.Now.AddDays(1);
-            testSession.session = DTTestConstants.TestSessionId;
-            db.SaveChanges();
+            var config = DTTestConstants.InitConfiguration();
+            var controller = DTTestConstants.InitializeDTController(db, host, true, config);
+            var httpContext = DTTestConstants.InitializeContext(host, true);
 
-            //Set up context
-            var httpContext = new DefaultHttpContext();
-            httpContext.Request.Host = new HostString(host);
-            var requestFeature = new HttpRequestFeature();
-            var featureCollection = new FeatureCollection();
-            requestFeature.Headers = new HeaderDictionary();
-            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.SessionCookieKey + "=" + DTTestConstants.TestSessionId));
-            featureCollection.Set<IHttpRequestFeature>(requestFeature);
-            var cookiesFeature = new RequestCookiesFeature(featureCollection);
-            httpContext.Request.Cookies = cookiesFeature.Cookies;
-            httpContext.Connection.RemoteIpAddress = IPAddress.Loopback;
-
-            //Set up controller
-            var config = InitConfiguration();
-            var logger = InitLogger();
-            var controller = new DTController(config, logger, db);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             var actionFilter = new DTAuthenticate(config, db);
@@ -176,8 +131,8 @@ namespace DanTechTests
             httpContext.Connection.RemoteIpAddress = IPAddress.Loopback;
 
             //Set up controller
-            var config = InitConfiguration();
-            var logger = InitLogger();
+            var config = DTTestConstants.InitConfiguration();
+            var logger = DTTestConstants.InitLogger();
             var controller = new DTController(config, logger, db);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
