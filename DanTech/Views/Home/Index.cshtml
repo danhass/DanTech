@@ -26,6 +26,14 @@
     @if (Model != null && Model.TestEnvironment)
     {
         <form action="/Home/ToggleTestState" method="post">
+            @if (Model.IsTesting)
+            {
+                <h3>Currently in <b>testing mode</b>.</h3>
+            }
+            else
+            {
+                <h3><b>Not</b> in testing mode.</h3>
+            }
             <button>Toggle Test State</button>
         </form>
     }
