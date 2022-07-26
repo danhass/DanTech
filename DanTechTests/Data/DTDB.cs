@@ -21,16 +21,16 @@ namespace DanTechTests.Data
             _db = new dgdb(optionsBuilder.Options);
         }
 
-        public static dgdb getDB()
+        public static dgdb getDB(int numberOfTestProjects = 0)
         {
             var optionsBuilder = new DbContextOptionsBuilder<dgdb>();
             optionsBuilder.UseMySQL(_conn);
             var db = new dgdb(optionsBuilder.Options);
-            if (!SetUpDB(db)) throw new Exception("Cannot set up db");
+            if (!SetUpDB(db, numberOfTestProjects)) throw new Exception("Cannot set up db");
             return db;
         }
 
-        public static bool SetUpDB(dgdb db)
+        public static bool SetUpDB(dgdb db, int numberOfTestProjects)
         {
             if (db == null) return false;
 
@@ -64,6 +64,11 @@ namespace DanTechTests.Data
             {
                 testFlag = new dtTestDatum() { title = "Testing in progress", value = "1" };
                 db.dtTestData.Add(testFlag);
+            }
+
+            for (int i=0; i < numberOfTestProjects; i++)
+            {
+                dtProject p = new dtProject() { title = DTTestConstants.TestProjectTitlePrefix + i.ToString(), userNavigation = testUser };
             }
 
             db.SaveChanges();

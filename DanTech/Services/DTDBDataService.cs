@@ -125,5 +125,28 @@ namespace DanTech.Services
             return mappedUser;
 
         }    
+        public List<dtProjectModel> DTProjects(int userId)
+        {
+            List<dtProjectModel> projects = new List<dtProjectModel>();
+            return projects;
+        }
+
+        public List<dtProjectModel> DTProjects(dtUser dtUser)
+        {
+            List<dtProjectModel> projects = new List<dtProjectModel>();
+            var ps = (from x in _db.dtProjects where x.user == dtUser.id select x).ToList();
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<dtUser, dtUserModel>();
+                cfg.CreateMap<dtProject, dtProjectModel>().
+                    ForMember(dest => dest.user, act => act.MapFrom(src => src));
+            });
+            var mapper = new Mapper(config);            
+            foreach (var p in ps)
+            {
+                projects.Add(mapper.Map<dtProjectModel>(p));
+            }
+            return projects;
+        }
     }
 }

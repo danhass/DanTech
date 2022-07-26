@@ -97,9 +97,7 @@ namespace DanTech.Controllers
 
         public ViewResult SetupTests()
         {
-            Dictionary<string, string> model = new Dictionary<string, string>();
-            model["State"] = "Test data initialized";
-            return View(model);
+            return View(new DTViewModel() { StatusMessage = "Test set up complete." } );
         }
 
 

@@ -9,8 +9,8 @@ namespace DanTech.Models
 {
     public class DTViewModel
     {
+        public string StatusMessage { get; set; }
         public  dtUserModel User { get; set; }
-
         public bool TestEnvironment { get; set; }
         public bool IsTesting { get; set; }
     }
