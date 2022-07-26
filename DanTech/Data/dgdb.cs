@@ -18,6 +18,7 @@ namespace DanTech.Data
         }
 
         public virtual DbSet<dtMisc> dtMiscs { get; set; }
+        public virtual DbSet<dtProject> dtProjects { get; set; }
         public virtual DbSet<dtSession> dtSessions { get; set; }
         public virtual DbSet<dtTestDatum> dtTestData { get; set; }
         public virtual DbSet<dtType> dtTypes { get; set; }
@@ -42,6 +43,35 @@ namespace DanTech.Data
                 entity.Property(e => e.title)
                     .IsRequired()
                     .HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<dtProject>(entity =>
+            {
+                entity.ToTable("dtProject");
+
+                entity.HasIndex(e => e.user, "fk_project_user_idx");
+
+                entity.Property(e => e.id).HasColumnType("int(11)");
+
+                entity.Property(e => e.priority).HasColumnType("int(11)");
+
+                entity.Property(e => e.shortCode)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.sortOrder).HasColumnType("int(11)");
+
+                entity.Property(e => e.title)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.user).HasColumnType("int(11)");
+
+                entity.HasOne(d => d.userNavigation)
+                    .WithMany(p => p.dtProjects)
+                    .HasForeignKey(d => d.user)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_project_user");
             });
 
             modelBuilder.Entity<dtSession>(entity =>
