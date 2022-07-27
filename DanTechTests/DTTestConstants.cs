@@ -12,25 +12,34 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Primitives;
+using DanTechTests.Data;
+using DanTech.Services;
 
 namespace DanTechTests
 {
     public class DTTestConstants
     {
+        public const string AuthTokensNeedToBeResetKey = "Auth tokens need to be reset";
+        public const int DefaultNumberOfTestPropjects = 3;
         public const string LocalHostDomain = "localhost:44324";
         public const string GoogleSigninHandler = "Home/GoogleSignin";
         public const string SessionCookieKey = "dtSessionId";
         public const string TestElementKey = "Test data element";
         public const string TestGoogleCodeTitle = "Google code";
         public const string TestGoogleCodeMistTitle = "Google code - testing";
-        public const string TestProjectTitlePrefix = "Test project #";
+        public const string TestProjectShortCodePrefix = "TP";
+        public const string TestProjectTitlePrefix = "Test project #";        
         public const string TestSessionId = "01ddb399-850b-4111-a3e6-6afd1c30b605";
         public const string TestStringTrueValue = "1";
         public const string TestUserEmail = "t@t.com"; //Permanent user in the user table that is reserved for testing.
         public const string TestUserFName = "A";
         public const string TestUserLName = "Test";
         public const string TestUserOthername = "tester";
-        public const string TestValue = "Test Value";   
+        public const string TestValue = "Test Value";
+
+        private static dgdb _db = null;
+        public static dgdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }
+
 
         public static IConfiguration InitConfiguration()
         {
@@ -90,6 +99,21 @@ namespace DanTechTests
             httpContext.Request.Cookies = cookiesFeature.Cookies;
             httpContext.Connection.RemoteIpAddress = IPAddress.Loopback;
             return httpContext;
+        }
+
+        public static void Cleanup(dgdb db)
+        {
+            var u = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            if (u != null)
+            {
+                var projs = (from x in db.dtProjects where x.user == u.id select x).ToList();
+                db.dtProjects.RemoveRange(projs);
+                var sess = (from x in db.dtSessions where x.user == u.id select x).ToList();
+                db.dtSessions.RemoveRange(sess);
+                db.dtUsers.Remove(u);
+                db.SaveChanges();
+                DTDBDataService.ClearTestData();
+            }
         }
     }
 }

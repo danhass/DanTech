@@ -47,7 +47,7 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public IActionResult GoogleSignin(string code)
         {            
-            if (VM.TestEnvironment && DTDBDataService.SetIfTesting(_db, "Google code", code)) return RedirectToAction("SetupTests");
+            if (VM.TestEnvironment && DTDBDataService.SetIfTesting( "Google code", code)) return RedirectToAction("SetupTests");
             string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
             string accessToken = DTGoogleAuthService.AuthToken(code, domain, _configuration);
             var cred = GoogleCredential.FromAccessToken(accessToken, null);
@@ -55,7 +55,7 @@ namespace DanTech.Controllers
             {
                 HttpClientInitializer = cred,
             });
-            var userInfo = oauthSerivce.Userinfo.Get().ExecuteAsync().Result;
+            var userInfo = oauthSerivce.Userinfo.Get().Execute();
             string sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, accessToken);
             SetVM(sessionId);
             Response.Cookies.Append("dtSessionId", sessionId);            
@@ -95,8 +95,10 @@ namespace DanTech.Controllers
             return RedirectToAction("Index");
         }
 
+        [ServiceFilter(typeof(DTAuthenticate))]
         public ViewResult SetupTests()
         {
+            DTDBDataService.ClearResetFlags();
             return View(new DTViewModel() { StatusMessage = "Test set up complete." } );
         }
 

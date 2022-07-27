@@ -10,22 +10,34 @@ namespace DanTech.Services
 {
     public class DTDBDataService
     {
-        private dgdb _db = new dgdb();
+        private static dgdb _db = null;
         private const string _testFlagKey = "Testing in progress";
+
+        public static void ClearResetFlags()
+        {
+            if (_db == null) _db = new dgdb();
+            var element = (from x in _db.dtMiscs where x.title == DTConstants.AuthTokensNeedToBeResetKey select x).FirstOrDefault();
+            if (element != null)
+            {
+                _db.dtMiscs.Remove(element);
+                _db.SaveChanges();
+            }
+        }
 
         public string TestFlagKey { get { return _testFlagKey; } }
         public bool InTesting { get { return (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null; } }
 
-        public static bool SetIfTesting(dgdb db, string key, string value)
+        public static bool SetIfTesting(string key, string value)
         {
-            var TestingFlag = (from x in db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
+            if (_db == null) _db = new dgdb();
+            var TestingFlag = (from x in _db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
             if (TestingFlag == null || TestingFlag.value != "1") return false;
 
-            var datum = (from x in db.dtTestData where x.title == key select x).FirstOrDefault();
+            var datum = (from x in _db.dtTestData where x.title == key select x).FirstOrDefault();
             if (datum == null)
             {
                 datum = new dtTestDatum() { title = key, value = value };
-                db.dtTestData.Add(datum);
+                _db.dtTestData.Add(datum);
             }
             else
             {
@@ -33,19 +45,21 @@ namespace DanTech.Services
             }
 
             var miscKey = key + " - testing";
-            var m = (from x in db.dtMiscs where x.title == miscKey select x).FirstOrDefault();
+            var m = (from x in _db.dtMiscs where x.title == miscKey select x).FirstOrDefault();
             if (m != null) m.value = value;
-            db.SaveChanges();
+            _db.SaveChanges();
             return true;
         }
 
         public DTDBDataService(dgdb db)
         {
             _db = db;
+            if (_db == null) _db = new dgdb();
         }       
 
         public void ToggleTestFlag()
         {
+            if (_db == null) _db = new dgdb();
             var testFlag = (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
             if (testFlag == null)
             {
@@ -60,33 +74,14 @@ namespace DanTech.Services
             _db.SaveChanges();
         }
 
-        public void ClearTestData()
+        public static void ClearTestData()
         {
-            var testData = (from x in _db.dtTestData where 1 == 1 select x).ToList();
+            if (_db == null) _db = new dgdb();
+            var testData = (from x in _db.dtTestData where x.title != DTConstants.AuthTokensNeedToBeResetKey select x).ToList();
             _db.dtTestData.RemoveRange(testData);
             _db.SaveChanges();
         }
-
-        //Returns true if testing flag is set after setting the value
-        public bool SetIfTesting(string key, string value)
-        {
-            var TestingFlag = (from x in _db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
-            if (TestingFlag == null || TestingFlag.value != "1") return false;
-
-            var datum = (from x in _db.dtTestData where x.title == key select x).FirstOrDefault();
-            if (datum == null)
-            {
-                datum = new dtTestDatum() { title = key, value = value };
-                _db.dtTestData.Add(datum);
-            }
-            else
-            {
-                datum.value = value;
-            }
-            _db.SaveChanges();
-            return true;
-        }
-
+ 
         public dtUserModel UserModelForSession(string session, string ipAddress)
         {
             dtUserModel mappedUser = null;
@@ -127,19 +122,22 @@ namespace DanTech.Services
         }    
         public List<dtProjectModel> DTProjects(int userId)
         {
+            if (_db == null) _db = new dgdb();
             List<dtProjectModel> projects = new List<dtProjectModel>();
-            return projects;
+            return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
 
-        public List<dtProjectModel> DTProjects(dtUser dtUser)
+        public List<dtProjectModel> DTProjects(dtUser u)
         {
+            if (_db == null) _db = new dgdb();
             List<dtProjectModel> projects = new List<dtProjectModel>();
-            var ps = (from x in _db.dtProjects where x.user == dtUser.id select x).ToList();
+            if (u == null) return projects;
+            var ps = (from x in _db.dtProjects where x.user == u.id select x).ToList();
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<dtUser, dtUserModel>();
                 cfg.CreateMap<dtProject, dtProjectModel>().
-                    ForMember(dest => dest.user, act => act.MapFrom(src => src));
+                    ForMember(dest => dest.user, act => act.MapFrom(src => src.userNavigation));
             });
             var mapper = new Mapper(config);            
             foreach (var p in ps)

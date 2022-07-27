@@ -57,7 +57,7 @@ namespace DanTech.Services
                     "https://" + domain + "/Home/GoogleSignin",
                     System.Threading.CancellationToken.None).Result;
 
-                tokenString = token.AccessToken;
+                tokenString = token.AccessToken;               
             }
             catch(Exception ex)
             {
@@ -85,10 +85,16 @@ namespace DanTech.Services
                 user.token = accessToken;
                 db.SaveChanges();
 
-                var session = (from x in db.dtSessions where x.user == user.id select x).FirstOrDefault();
+                var ipAddress = ctx.Connection.RemoteIpAddress.ToString();
+                var session = (from x in db.dtSessions where x.user == user.id && x.hostAddress == ipAddress select x).FirstOrDefault();
                 if (session == null)
                 {
-                    var ipAddress = ctx.Connection.RemoteIpAddress.ToString();
+                    var oldSession = (from x in db.dtSessions where x.user == user.id select x).FirstOrDefault();
+                    if (oldSession!=null) // Must purge old session
+                    {
+                        db.dtSessions.Remove(oldSession);
+                        db.SaveChanges();
+                    }
                     session = new dtSession() { user = user.id, hostAddress = ipAddress};
                     db.dtSessions.Add(session);
                 }

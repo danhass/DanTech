@@ -11,8 +11,15 @@ namespace DanTechTests
     [TestClass]
     public class DbDataServiceTests
     {
-        private dgdb _db = DTDB.getDB(3);
-        private string classTestName = "";
+        private static dgdb _db = null;
+        private static string classTestName = "";
+
+        [AssemblyInitialize()]
+        public static void Init(TestContext context)
+        {
+            _db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
+        }
+
 
         [TestMethod]
         public void InstantiateDB()
@@ -69,31 +76,31 @@ namespace DanTechTests
             var dataService = new DTDBDataService(_db);
 
             //Act
-            dataService.ClearTestData();
-            int countOnceClear = _db.dtTestData.Count();
-            bool setTestElementWhenNotTestingResult = dataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
-            var testDataFlagAfterNoSet = (from x in _db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
+
+            //Turn off testing
+            bool testFlagBeforeToggle = dataService.InTesting;
+            if (testFlagBeforeToggle)
+            {
+                dataService.ToggleTestFlag();
+                testFlagBeforeToggle = dataService.InTesting;
+            }
+
+            //Now turn it on.
             dataService.ToggleTestFlag();
             bool testFlagShouldBeSet = dataService.InTesting;
             var testInProgressFlag = (from x in _db.dtTestData where x.title == dataService.TestFlagKey select x).FirstOrDefault();
-            bool setTestDataElementResult = dataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
+            bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
             var testDataElementFlag = (from x in _db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
-            dataService.ClearTestData();
-            var testFlagShouldNotBeSet = dataService.InTesting;
-            var testElementsAfterClear = _db.dtTestData.ToList().Count;
 
             //Assert
-            Assert.AreEqual(countOnceClear, 0, "Clear test data failed");
-            Assert.IsFalse(setTestElementWhenNotTestingResult, "Should not set test value when not testing");
-            Assert.IsNull(testDataFlagAfterNoSet, "Should not have set test element when not testing");
+            Assert.IsFalse(testFlagBeforeToggle, "Did not set initial state to 'not testing'.");
+            Assert.AreNotEqual(testFlagBeforeToggle, testFlagShouldBeSet, "Did not toggel test flag correctly.");
             Assert.IsNotNull(testInProgressFlag, "Failed to set test in progress element");
             Assert.IsTrue(testFlagShouldBeSet, "Data service does not reflect db in test state.");
             Assert.AreEqual(testInProgressFlag.value, DTTestConstants.TestStringTrueValue, "Test in progress element has wrong value");
             Assert.IsTrue(setTestDataElementResult, "Failed to set test element.");
             Assert.IsNotNull(testDataElementFlag, "Test data element not correctly set.");
-            Assert.AreEqual(testDataElementFlag.value, DTTestConstants.TestValue);
-            Assert.AreEqual(testElementsAfterClear, 0, "Was not able to clear the final data elements");
-            Assert.IsFalse(testFlagShouldNotBeSet, "Data service still reflects db in test state.");
+            Assert.AreEqual(testDataElementFlag.value, DTTestConstants.TestValue, "Testing flag not set.");
         }
 
         [TestMethod]
@@ -108,19 +115,21 @@ namespace DanTechTests
         {  
             //Arrange
             var dataService = new DTDBDataService(_db);
-            var numProjs = (from x in _db.dtProjects where x.title.StartsWith(DTTestConstants.TestProjectTitlePrefix) select x).Count();
-            Assert.AreEqual(numProjs, 3, "Number of test projects improperly set.");
+
+            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var numProjs = dataService.DTProjects(testUser.id);
+            var numProjsByUser = dataService.DTProjects(testUser);
+
+            //Assert
+            Assert.AreEqual(numProjs.Count, DTTestConstants.DefaultNumberOfTestPropjects, "Data service returns wrong number by user id.");
+            Assert.AreEqual(numProjsByUser.Count, DTTestConstants.DefaultNumberOfTestPropjects, "Data service returns wrong number by user.");
         }
 
-        [ClassCleanup]
-        public void ClassCleanup()
+        
+        [AssemblyCleanup]
+        public static void Cleanup()
         {
-            var u = (from x in _db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).FirstOrDefault();
-            if (u != null)
-            {
-                _db.dtUsers.Remove(u);
-                _db.SaveChanges();
-            }
+            DTTestConstants.Cleanup(_db);
         }
     }
 }

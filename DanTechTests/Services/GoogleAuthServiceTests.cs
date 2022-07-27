@@ -9,6 +9,7 @@ using DanTech.Services;
 using System;
 using Microsoft.Extensions.Configuration;
 using System.Net;
+using System.Diagnostics;
 
 namespace DanTechTests
 {
@@ -20,6 +21,8 @@ namespace DanTechTests
         private const string TEST_USER_LNAME = "Test Family Name";
         private const string TEST_AUTH_CODE = "TestAccessToken-123456";
         private const string TEST_REMOTE_IP = "1.1.1.1";
+
+        public TestContext TestContext { get; set; }
 
         public static IConfiguration InitConfiguration()
         {
@@ -47,15 +50,24 @@ namespace DanTechTests
         [TestMethod()]
         public void AuthTokenTest_GetAuthToken()
         {
-
             //Arrange
-            var db = DTDB.getDB();
+            var db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
+            var badTokens = (from x in db.dtMiscs where x.title == DTTestConstants.AuthTokensNeedToBeResetKey select x).FirstOrDefault();
+            if (badTokens != null)
+            {
+                Assert.Inconclusive("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
+                Console.WriteLine("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
+                return;
+            }
             var config = InitConfiguration();
             var datum = (from x in db.dtTestData where x.title == "Google code" select x).FirstOrDefault();
             
             //Act
             string token = DTGoogleAuthService.AuthToken(datum.value, DTTestConstants.LocalHostDomain, config);
             string badCodeToken = DTGoogleAuthService.AuthToken("1234", DTTestConstants.LocalHostDomain, config);
+            badTokens = new dtMisc() { title = DTTestConstants.AuthTokensNeedToBeResetKey, value = "1" };
+            db.dtMiscs.Add(badTokens);
+            db.SaveChanges();
 
             //Assert
             Assert.IsNotNull(datum, "Could not find Google code in test data (dtTextData).");

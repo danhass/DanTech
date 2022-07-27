@@ -17,7 +17,7 @@ namespace DanTech.Controllers
     {
         protected readonly IConfiguration _configuration;
         protected readonly ILogger<DTController> _logger;
-        protected dgdb _db = new dgdb();
+        protected static dgdb _db = null;
         protected dtUser _user = null;
 
         public DTViewModel VM { get; set; }

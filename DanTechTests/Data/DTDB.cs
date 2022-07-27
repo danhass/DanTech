@@ -55,8 +55,9 @@ namespace DanTechTests.Data
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             if (testUser == null)
             {
-                testUser = new dtUser() { email = DTTestConstants.TestUserEmail, fName = DTTestConstants.TestUserFName, lName = DTTestConstants.TestUserLName, otherName = DTTestConstants.TestUserOthername };
+                testUser = new dtUser() { email = DTTestConstants.TestUserEmail, fName = DTTestConstants.TestUserFName, lName = DTTestConstants.TestUserLName, otherName = DTTestConstants.TestUserOthername, type = 1 };
                 db.dtUsers.Add(testUser);
+                db.SaveChanges();
             }
 
             var testFlag = (from x in db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
@@ -68,9 +69,13 @@ namespace DanTechTests.Data
 
             for (int i=0; i < numberOfTestProjects; i++)
             {
-                dtProject p = new dtProject() { title = DTTestConstants.TestProjectTitlePrefix + i.ToString(), userNavigation = testUser };
+                dtProject p = new dtProject() { 
+                    title = DTTestConstants.TestProjectTitlePrefix + i.ToString(), 
+                    shortCode = DTTestConstants.TestProjectShortCodePrefix + i.ToString(),
+                    user = testUser.id
+                };
+                db.dtProjects.Add(p);
             }
-
             db.SaveChanges();
 
             return true;
