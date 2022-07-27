@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +13,16 @@ namespace DanTech.Services
     {
         private static dgdb _db = null;
         private const string _testFlagKey = "Testing in progress";
+
+        //Mappings
+        private MapperConfiguration PlanItemMapConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.CreateMap<dtUser, dtUserModel>();
+            cfg.CreateMap<dtProject, dtProjectModel>();
+            cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
+                .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
+                .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation));
+        });
 
         public static void ClearResetFlags()
         {
@@ -147,29 +158,41 @@ namespace DanTech.Services
             return projects;
         }
 
-        public dtPlanItem Add (dtPlanItemModel planItem)
+        public dtPlanItem Set(dtPlanItem planItem)
+        {       
+            var mapper = new Mapper(PlanItemMapConfig);
+            var item = mapper.Map<dtPlanItemModel>(planItem);
+            return Set(item);
+        }
+        public dtPlanItem Set(dtPlanItemModel planItem)
         {
             if (_db == null) _db = new dgdb();
             if (planItem == null) return null;
 
             //Assume the elements of the model are valid.
             // For example, assume that the user is a valid user
-            dtPlanItem item = new dtPlanItem()
-            {
-                addToCalendar = planItem.addToCalendar,
-                completed = planItem.completed, 
-                day = planItem.day,
-                duration = planItem.duration,
-                note = planItem.note,
-                priority = planItem.priority,
-                start = planItem.start,
-                title = planItem.title,
-                user = planItem.user.id,
-                project = planItem.project?.id
-            };
-            _db.dtPlanItems.Add(item);
+            dtPlanItem item = null;
+            if (planItem.id != null && planItem.id > 0) item = (from x in _db.dtPlanItems where x.id == planItem.id select x).FirstOrDefault();
+            if (item == null)  item = new dtPlanItem();
+            item.addToCalendar = planItem.addToCalendar;
+            item.completed = planItem.completed;
+            item.day = planItem.day;
+            item.duration = planItem.duration;
+            item.note = planItem.note;
+            item.priority = planItem.priority;
+            item.start = planItem.start;
+            item.title = planItem.title;
+            item.user = planItem.user.id;
+            item.project = planItem.project?.id;
+            if (item.id < 1) _db.dtPlanItems.Add(item);
             _db.SaveChanges();
             return item;
         }        
+
+        public List<dtPlanItemModel> Get(dtUser user)
+        {
+            var mapper = new Mapper(PlanItemMapConfig);
+            return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x).ToList());
+        }
     }
 }

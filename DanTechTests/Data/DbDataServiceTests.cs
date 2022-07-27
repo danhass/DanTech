@@ -142,11 +142,29 @@ namespace DanTechTests
                 user = mapper.Map<dtUserModel>(testUser)
             };
 
+            dtPlanItemModel model2 = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemAdditionalTitle,
+                day = DateTime.Now.AddDays(1).Date,
+                user = mapper.Map<dtUserModel>(testUser),
+                note = DTTestConstants.TestValue2
+            };
+
             //Act
-            var newItem = dataService.Add(model);
+            var item = dataService.Set(model);
+            int newItemId = item.id;
+            item.note = DTTestConstants.TestValue;
+            item = dataService.Set(item);
+            var item2 = dataService.Set(model2);
+            var itemList = dataService.Get(testUser);
 
             //Assert
-            Assert.IsTrue(newItem.id > 0, "Plan item not correctly inserted.");
+            Assert.IsTrue(newItemId > 0, "Plan item creation failed.");
+            Assert.IsTrue(item.id == newItemId, "Plan item update did not work.");
+            Assert.AreEqual(item.note, DTTestConstants.TestValue, "Did not properly update plan item.");
+            Assert.IsTrue(item2.id > item.id, "Order of item creation is not correct.");
+            Assert.AreEqual(item2.note, DTTestConstants.TestValue2, "Second test value not set correctly.");
+            Assert.AreEqual(itemList.Count, 2, "Did not get list of plan items correctly.");
         }
 
         [AssemblyCleanup]

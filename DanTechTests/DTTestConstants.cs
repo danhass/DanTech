@@ -27,6 +27,7 @@ namespace DanTechTests
         public const string TestElementKey = "Test data element";
         public const string TestGoogleCodeTitle = "Google code";
         public const string TestGoogleCodeMistTitle = "Google code - testing";
+        public const string TestPlanItemAdditionalTitle = "Additional test plan item title";
         public const string TestPlanItemMinimumTitle = "Minimum test plan item title";
         public const string TestProjectShortCodePrefix = "TP";
         public const string TestProjectTitlePrefix = "Test project #";        
@@ -37,6 +38,7 @@ namespace DanTechTests
         public const string TestUserLName = "Test";
         public const string TestUserOthername = "tester";
         public const string TestValue = "Test Value";
+        public const string TestValue2 = "Test value #2";
 
 
         private static dgdb _db = null;
