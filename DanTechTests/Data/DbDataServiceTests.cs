@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using DanTech.Data;
 using DanTechTests.Data;
+using DanTech.Models.Data;
 using DanTech.Services;
 using System;
+using AutoMapper;
 
 namespace DanTechTests
 {
@@ -124,8 +126,29 @@ namespace DanTechTests
             Assert.AreEqual(numProjs.Count, DTTestConstants.DefaultNumberOfTestPropjects, "Data service returns wrong number by user id.");
             Assert.AreEqual(numProjsByUser.Count, DTTestConstants.DefaultNumberOfTestPropjects, "Data service returns wrong number by user.");
         }
-
         
+        [TestMethod]
+        public void ProjectItemAdd_MinimumItem()
+        { 
+            //Arrange
+            var dataService = new DTDBDataService(_db);
+            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
+            var mapper = new Mapper(config);
+            dtPlanItemModel model = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemMinimumTitle,
+                day = DateTime.Now.AddDays(1).Date,
+                user = mapper.Map<dtUserModel>(testUser)
+            };
+
+            //Act
+            var newItem = dataService.Add(model);
+
+            //Assert
+            Assert.IsTrue(newItem.id > 0, "Plan item not correctly inserted.");
+        }
+
         [AssemblyCleanup]
         public static void Cleanup()
         {

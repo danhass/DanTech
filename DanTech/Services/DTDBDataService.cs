@@ -146,5 +146,30 @@ namespace DanTech.Services
             }
             return projects;
         }
+
+        public dtPlanItem Add (dtPlanItemModel planItem)
+        {
+            if (_db == null) _db = new dgdb();
+            if (planItem == null) return null;
+
+            //Assume the elements of the model are valid.
+            // For example, assume that the user is a valid user
+            dtPlanItem item = new dtPlanItem()
+            {
+                addToCalendar = planItem.addToCalendar,
+                completed = planItem.completed, 
+                day = planItem.day,
+                duration = planItem.duration,
+                note = planItem.note,
+                priority = planItem.priority,
+                start = planItem.start,
+                title = planItem.title,
+                user = planItem.user.id,
+                project = planItem.project?.id
+            };
+            _db.dtPlanItems.Add(item);
+            _db.SaveChanges();
+            return item;
+        }        
     }
 }

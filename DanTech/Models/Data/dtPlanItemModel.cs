@@ -7,7 +7,7 @@ namespace DanTech.Models.Data
 {
     public class dtPlanItemModel
     {
-        public int id { get; set; }
+        public int? id { get; set; }
         public string title { get; set; }
         public string note { get; set; }
         public DateTime day { get; set; }

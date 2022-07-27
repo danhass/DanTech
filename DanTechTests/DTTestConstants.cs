@@ -27,6 +27,7 @@ namespace DanTechTests
         public const string TestElementKey = "Test data element";
         public const string TestGoogleCodeTitle = "Google code";
         public const string TestGoogleCodeMistTitle = "Google code - testing";
+        public const string TestPlanItemMinimumTitle = "Minimum test plan item title";
         public const string TestProjectShortCodePrefix = "TP";
         public const string TestProjectTitlePrefix = "Test project #";        
         public const string TestSessionId = "01ddb399-850b-4111-a3e6-6afd1c30b605";
@@ -36,6 +37,7 @@ namespace DanTechTests
         public const string TestUserLName = "Test";
         public const string TestUserOthername = "tester";
         public const string TestValue = "Test Value";
+
 
         private static dgdb _db = null;
         public static dgdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }
@@ -110,6 +112,8 @@ namespace DanTechTests
                 db.dtProjects.RemoveRange(projs);
                 var sess = (from x in db.dtSessions where x.user == u.id select x).ToList();
                 db.dtSessions.RemoveRange(sess);
+                var planItems = (from x in db.dtPlanItems where x.user == u.id select x).ToList();
+                db.dtPlanItems.RemoveRange(planItems);
                 db.dtUsers.Remove(u);
                 db.SaveChanges();
                 DTDBDataService.ClearTestData();
