@@ -5,12 +5,24 @@
 }
 @model DanTech.Models.DTViewModel
 
-<h3>To Do List</h3>
-@if (Model.PlanItems.Count > 0)
-{
-<datalist></datalist>
-}
-else
-{
-    <h4>List is clear</h4>
-}
+<table>
+    <tr>
+        <td>
+            <div id="PlanItems">
+                <h3>To Do List</h3>
+                @if (Model.PlanItems.Count > 0)
+                {
+                    <datalist></datalist>
+                }
+                else
+                {
+                    <h4>List is clear</h4>
+                }
+            </div>
+        </td>
+        <td>
+            <div id="NewPlanItemForm">
+            </div>
+        </td>
+</tr>
+</table>

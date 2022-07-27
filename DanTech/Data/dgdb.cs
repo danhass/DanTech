@@ -17,6 +17,7 @@ namespace DanTech.Data
         {
         }
 
+        public virtual DbSet<dtColorCode> dtColorCodes { get; set; }
         public virtual DbSet<dtMisc> dtMiscs { get; set; }
         public virtual DbSet<dtPlanItem> dtPlanItems { get; set; }
         public virtual DbSet<dtProject> dtProjects { get; set; }
@@ -35,6 +36,19 @@ namespace DanTech.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<dtColorCode>(entity =>
+            {
+                entity.ToTable("dtColorCode");
+
+                entity.Property(e => e.id).HasColumnType("int(11)");
+
+                entity.Property(e => e.note).HasMaxLength(45);
+
+                entity.Property(e => e.title)
+                    .IsRequired()
+                    .HasMaxLength(45);
+            });
+
             modelBuilder.Entity<dtMisc>(entity =>
             {
                 entity.ToTable("dtMisc");
@@ -88,9 +102,13 @@ namespace DanTech.Data
             {
                 entity.ToTable("dtProject");
 
+                entity.HasIndex(e => e.colorCode, "fk_project_colorCode_idx");
+
                 entity.HasIndex(e => e.user, "fk_project_user_idx");
 
                 entity.Property(e => e.id).HasColumnType("int(11)");
+
+                entity.Property(e => e.colorCode).HasColumnType("int(11)");
 
                 entity.Property(e => e.priority).HasColumnType("int(11)");
 
@@ -105,6 +123,11 @@ namespace DanTech.Data
                     .HasMaxLength(100);
 
                 entity.Property(e => e.user).HasColumnType("int(11)");
+
+                entity.HasOne(d => d.colorCodeNavigation)
+                    .WithMany(p => p.dtProjects)
+                    .HasForeignKey(d => d.colorCode)
+                    .HasConstraintName("fk_project_colorCode");
 
                 entity.HasOne(d => d.userNavigation)
                     .WithMany(p => p.dtProjects)

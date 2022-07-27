@@ -14,5 +14,8 @@ namespace DanTech.Models.Data
         public int? priority { get; set; }
         public int? sortOrder { get; set; }
         public dtUserModel user { get; set; }
+#nullable enable
+        public dtColorCodeModel? color { get; set; }
+#nullable disable
     }
 }

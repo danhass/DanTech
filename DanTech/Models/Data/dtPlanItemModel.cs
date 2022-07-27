@@ -16,7 +16,11 @@ namespace DanTech.Models.Data
         public int? priority { get; set; }
         public bool? addToCalendar { get; set; }
         public bool? completed { get; set; }
-        public dtProjectModel? project { get; set; }
         public dtUserModel user { get; set; }
+
+#nullable enable
+        public dtProjectModel? project { get; set; }        
+#nullable disable
+
     }
 }

@@ -19,7 +19,9 @@ namespace DanTech.Data
         public int user { get; set; }
         public int? priority { get; set; }
         public int? sortOrder { get; set; }
+        public int? colorCode { get; set; }
 
+        public virtual dtColorCode colorCodeNavigation { get; set; }
         public virtual dtUser userNavigation { get; set; }
         public virtual ICollection<dtPlanItem> dtPlanItems { get; set; }
     }
