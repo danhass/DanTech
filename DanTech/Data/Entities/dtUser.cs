@@ -9,6 +9,7 @@ namespace DanTech.Data
     {
         public dtUser()
         {
+            dtPlanItems = new HashSet<dtPlanItem>();
             dtProjects = new HashSet<dtProject>();
         }
 
@@ -25,6 +26,7 @@ namespace DanTech.Data
 
         public virtual dtType typeNavigation { get; set; }
         public virtual dtSession dtSession { get; set; }
+        public virtual ICollection<dtPlanItem> dtPlanItems { get; set; }
         public virtual ICollection<dtProject> dtProjects { get; set; }
     }
 }

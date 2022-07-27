@@ -7,6 +7,11 @@ namespace DanTech.Data
 {
     public partial class dtProject
     {
+        public dtProject()
+        {
+            dtPlanItems = new HashSet<dtPlanItem>();
+        }
+
         public int id { get; set; }
         public string title { get; set; }
         public string shortCode { get; set; }
@@ -16,5 +21,6 @@ namespace DanTech.Data
         public int? sortOrder { get; set; }
 
         public virtual dtUser userNavigation { get; set; }
+        public virtual ICollection<dtPlanItem> dtPlanItems { get; set; }
     }
 }

@@ -18,6 +18,7 @@ namespace DanTech.Data
         }
 
         public virtual DbSet<dtMisc> dtMiscs { get; set; }
+        public virtual DbSet<dtPlanItem> dtPlanItems { get; set; }
         public virtual DbSet<dtProject> dtProjects { get; set; }
         public virtual DbSet<dtSession> dtSessions { get; set; }
         public virtual DbSet<dtTestDatum> dtTestData { get; set; }
@@ -43,6 +44,44 @@ namespace DanTech.Data
                 entity.Property(e => e.title)
                     .IsRequired()
                     .HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<dtPlanItem>(entity =>
+            {
+                entity.ToTable("dtPlanItem");
+
+                entity.HasIndex(e => e.project, "fk_PlanItem_Project_idx");
+
+                entity.HasIndex(e => e.user, "fk_PlanItem_User_idx");
+
+                entity.Property(e => e.id).HasColumnType("int(11)");
+
+                entity.Property(e => e.addToCalendar).HasColumnType("bit(1)");
+
+                entity.Property(e => e.completed).HasColumnType("bit(1)");
+
+                entity.Property(e => e.day).HasColumnType("date");
+
+                entity.Property(e => e.priority).HasColumnType("int(11)");
+
+                entity.Property(e => e.project).HasColumnType("int(11)");
+
+                entity.Property(e => e.title)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.user).HasColumnType("int(11)");
+
+                entity.HasOne(d => d.projectNavigation)
+                    .WithMany(p => p.dtPlanItems)
+                    .HasForeignKey(d => d.project)
+                    .HasConstraintName("fk_PlanItem_Project");
+
+                entity.HasOne(d => d.userNavigation)
+                    .WithMany(p => p.dtPlanItems)
+                    .HasForeignKey(d => d.user)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_PlanItem_User");
             });
 
             modelBuilder.Entity<dtProject>(entity =>
