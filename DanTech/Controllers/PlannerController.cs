@@ -1,4 +1,5 @@
 ﻿using DanTech.Data;
+using DanTech.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -13,11 +14,12 @@ namespace DanTech.Controllers
     {
         public PlannerController(IConfiguration configuration, ILogger<PlannerController> logger, dgdb dgdb) : base(configuration, logger, dgdb)
         {
-
         }
         [ServiceFilter(typeof(DTAuthenticate))]
         public IActionResult Index()
         {
+            DTDBDataService svc = new DTDBDataService(_db);
+            VM.PlanItems = svc.Get(VM.User);
             return View(VM);
         }
     }

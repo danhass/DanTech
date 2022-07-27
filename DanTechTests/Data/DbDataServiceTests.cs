@@ -138,7 +138,7 @@ namespace DanTechTests
             dtPlanItemModel model = new dtPlanItemModel()
             {
                 title = DTTestConstants.TestPlanItemMinimumTitle,
-                day = DateTime.Now.AddDays(1).Date,
+                day = DateTime.Now.AddDays(2).Date,
                 user = mapper.Map<dtUserModel>(testUser)
             };
 
@@ -165,6 +165,7 @@ namespace DanTechTests
             Assert.IsTrue(item2.id > item.id, "Order of item creation is not correct.");
             Assert.AreEqual(item2.note, DTTestConstants.TestValue2, "Second test value not set correctly.");
             Assert.AreEqual(itemList.Count, 2, "Did not get list of plan items correctly.");
+            Assert.IsTrue(itemList[0].id > itemList[1].id, "Date ordering of plan items is not correct");
         }
 
         [AssemblyCleanup]

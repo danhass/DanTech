@@ -3,3 +3,14 @@
 *@
 @{
 }
+@model DanTech.Models.DTViewModel
+
+<h3>To Do List</h3>
+@if (Model.PlanItems.Count > 0)
+{
+<datalist></datalist>
+}
+else
+{
+    <h4>List is clear</h4>
+}

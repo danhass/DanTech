@@ -191,8 +191,21 @@ namespace DanTech.Services
 
         public List<dtPlanItemModel> Get(dtUser user)
         {
+            if (_db == null) _db = new dgdb();
+            if (user == null) return new List<dtPlanItemModel>();
             var mapper = new Mapper(PlanItemMapConfig);
-            return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x).ToList());
+            return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x).OrderBy(x => x.day).ToList());
+        }
+
+        public List<dtPlanItemModel> Get(dtUserModel userModel)
+        {
+            return Get(userModel.id);
+        }
+
+        public List<dtPlanItemModel> Get(int userId)
+        {
+            if (_db == null) _db = new dgdb();
+            return Get((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
     }
 }
