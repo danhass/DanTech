@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using DanTech.Data;
 using DanTech.Models.Data;
+using System.IO;
 
 namespace DanTech.Services
 {
@@ -18,7 +19,9 @@ namespace DanTech.Services
         private MapperConfiguration PlanItemMapConfig = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<dtUser, dtUserModel>();
-            cfg.CreateMap<dtProject, dtProjectModel>();
+            cfg.CreateMap<dtColorCode, dtColorCodeModel>();
+            cfg.CreateMap<dtProject, dtProjectModel>()
+                .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
             cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
                 .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
                 .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation));
@@ -206,6 +209,35 @@ namespace DanTech.Services
         {
             if (_db == null) _db = new dgdb();
             return Get((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
+        }
+
+        public static void GeneralUtil(dgdb db)
+        {
+            /*
+            if (_db == null) if (db != null) _db = db;
+            if (_db == null) return;
+            var lines = File.ReadAllLines(@"C:\dev\data\color.txt");
+            List<string> colorCodes = new List<string>();
+            foreach (var l in lines)
+            {
+                if (!l.StartsWith("COLOR"))
+                {
+                    var elements = l.Split("\t");
+                    if (elements.Length > 1 && !elements[0].Contains(' '))
+                    {
+                        colorCodes.Add(elements[0]);
+                    }
+                }
+            }
+
+            foreach (var c in colorCodes)
+            {
+                dtColorCode code = new dtColorCode() { title = c };
+                _db.dtColorCodes.Add(code);
+            }
+            _db.SaveChanges();
+            var ct = colorCodes.Count;
+            */
         }
     }
 }
