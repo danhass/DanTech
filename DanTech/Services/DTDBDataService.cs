@@ -24,7 +24,9 @@ namespace DanTech.Services
                 .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
             cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
                 .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
-                .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation));
+                .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
+                .ForMember(dest => dest.projectTitle, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))
+                .ForMember(dest => dest.projectMnemonic, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.shortCode));
         });
 
         public static void ClearResetFlags()

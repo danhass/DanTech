@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.32126.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DanTech", "DanTech\DanTech.csproj", "{8B64D889-E4BB-4554-B710-CD6624F2CF90}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DanTechTests", "DanTechTests\DanTechTests.csproj", "{E6E8E95B-9E8E-4085-8F1C-F8F7029763DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DanTechTests", "DanTechTests\DanTechTests.csproj", "{E6E8E95B-9E8E-4085-8F1C-F8F7029763DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

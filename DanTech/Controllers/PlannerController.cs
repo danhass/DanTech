@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DanTech.Models.Data;
 
 namespace DanTech.Controllers
 {
@@ -21,6 +22,20 @@ namespace DanTech.Controllers
             DTDBDataService svc = new DTDBDataService(_db);
             VM.PlanItems = svc.Get(VM.User);
             return View(VM);
+        }
+
+        [HttpPost]
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult SetPlanItem(string? title, string? note, string? day, string? start, string duration )
+        {           
+            DTDBDataService svc = new DTDBDataService(_db);
+            var pi = new dtPlanItemModel(title, note, day, start, duration, null, false, false, VM.User == null ? 0 : VM.User.id, VM.User ,null, null, null, null);
+            svc.Set(pi);
+            var data = svc.Get(VM.User);
+            var res = new dtTestingModel() { title = "result", note = "note set" };
+            var x = Json(data);
+
+            return x;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace DanTech.Controllers
             controller.VM.TestEnvironment = host.ToString().StartsWith("localhost");
             var dataService = new DTDBDataService(_db);
             controller.VM.IsTesting = dataService.InTesting;
-            controller.VM.User = dataService.UserModelForSession(session, ipAddress);
+            controller.VM.User = dataService.UserModelForSession(session, ipAddress);            
             if (controller.VM.User == null) context.HttpContext.Response.Cookies.Delete("dtSessionId");
             base.OnActionExecuting(context);
         }

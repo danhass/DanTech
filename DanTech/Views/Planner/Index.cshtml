@@ -22,7 +22,20 @@
         </td>
         <td>
             <div id="NewPlanItemForm">
+                Add an item to daily plan:<br />
+                <button onclick="submitPlanItem();">Add</button>
             </div>
         </td>
 </tr>
 </table>
+
+@section Scripts {
+<script type="text/javascript">
+    function submitPlanItem() {
+        var theData = { title: "test title", note: "test note", day: "08/03/2002" };
+        alert(JSON.stringify(theData));
+
+        $.post("https://localhost:44324/Planner/SetPlanItem", theData , function (data, status) { alert("Data: " + data[0].title + ", " + data[0].note); alert("Status: " + status) });
+    }
+</script>
+}
