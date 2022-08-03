@@ -199,7 +199,7 @@ namespace DanTech.Services
             if (_db == null) _db = new dgdb();
             if (user == null) return new List<dtPlanItemModel>();
             var mapper = new Mapper(PlanItemMapConfig);
-            return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x).OrderBy(x => x.day).ToList());
+            return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x).OrderBy(x => x.day).ThenBy(x => x.start).ToList());
         }
 
         public List<dtPlanItemModel> Get(dtUserModel userModel)

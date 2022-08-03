@@ -11,6 +11,7 @@ using DanTech.Models.Data;
 
 namespace DanTech.Controllers
 {
+#nullable enable
     public class PlannerController : DTController
     {
         public PlannerController(IConfiguration configuration, ILogger<PlannerController> logger, dgdb dgdb) : base(configuration, logger, dgdb)
@@ -25,17 +26,18 @@ namespace DanTech.Controllers
         }
 
         [HttpPost]
+       
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult SetPlanItem(string? title, string? note, string? day, string? start, string duration )
-        {           
+        public JsonResult SetPlanItem(string? title, string? note, string? start, string? end)
+        {
+            if (VM == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db);
-            var pi = new dtPlanItemModel(title, note, day, start, duration, null, false, false, VM.User == null ? 0 : VM.User.id, VM.User ,null, null, null, null);
+#pragma warning disable CS8604 // Possible null reference argument.
+            var pi = new dtPlanItemModel(title, note, start, end, null, false, false, VM.User == null ? 0 : VM.User.id, VM.User , null, null, string.Empty, string.Empty);
+#pragma warning restore CS8604 // Possible null reference argument.
             svc.Set(pi);
-            var data = svc.Get(VM.User);
-            var res = new dtTestingModel() { title = "result", note = "note set" };
-            var x = Json(data);
-
-            return x;
+            return Json(svc.Get(VM.User));
         }
     }
+#nullable disable
 }

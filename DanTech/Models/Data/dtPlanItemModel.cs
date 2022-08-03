@@ -7,27 +7,30 @@ using AutoMapper;
 
 namespace DanTech.Models.Data
 {
+#nullable enable
     public class dtPlanItemModel
     {
-        public dtPlanItemModel(string pTitle, string pNote, string? pDay, string? pStart, string? pDuration, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel? pdtUser, dtProject? pProject, int? pProjectId, string pProjectNemonic, string pProjectTitle)
+        public dtPlanItemModel(string pTitle, string pNote, string? pStart, string? pEnd, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel? pdtUser, dtProject? pProject, int? pProjectId, string pProjectNemonic, string pProjectTitle)
         {
             title = pTitle;
             note = pNote;
             day = DateTime.Now;
-            if (pDay != null && !string.IsNullOrEmpty(pDay))
-            {
-                DateTime dt;
-                if (DateTime.TryParse(pDay, out dt)) day = dt;
-            }
             if (pStart != null && !string.IsNullOrEmpty(pStart))
             {
                 DateTime dt;
-                if (DateTime.TryParse(pStart, out dt)) start = dt;
+                if (DateTime.TryParse(pStart, out dt))
+                {
+                    day = dt;
+                    start = dt;
+                }
             }
-            if (pDuration != null && !string.IsNullOrEmpty(pDuration))
+            if (pEnd != null && !string.IsNullOrEmpty(pEnd))
             {
-                TimeSpan ts;
-                if (TimeSpan.TryParse(pDuration, out ts)) duration = ts;
+                DateTime dt;
+                if (DateTime.TryParse(pEnd, out dt))
+                {
+                    duration = new TimeSpan(dt.Ticks - day.Ticks);
+                }
             }
             priority = pPriority;
             addToCalendar = pAddToCalendar;
@@ -39,6 +42,10 @@ namespace DanTech.Models.Data
             {
                 userId = pdtUser.id;
                 user = pdtUser;
+            }
+            else
+            {
+                user = new dtUserModel();
             }
             if (pProject != null)
             {
@@ -56,7 +63,9 @@ namespace DanTech.Models.Data
 
         public dtPlanItemModel()
         {
-
+            note = string.Empty;
+            title = string.Empty;
+            user = new dtUserModel();
         }
 
 
@@ -79,4 +88,5 @@ namespace DanTech.Models.Data
         public string projectMnemonic { get; set; } = "";
         public string projectTitle { get; set; } = "";        
     }
+#nullable disable
 }

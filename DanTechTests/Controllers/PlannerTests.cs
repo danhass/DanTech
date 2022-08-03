@@ -10,6 +10,8 @@ using DanTech.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net;
+using AutoMapper;
+using DanTech.Models.Data;
 
 namespace DanTechTests.Controllers
 {
@@ -19,6 +21,9 @@ namespace DanTechTests.Controllers
         private static dgdb _db = null;
         private IConfiguration _config = DTTestConstants.InitConfiguration();
         private PlannerController _controller = null;
+
+        // Valid values for tests
+        private int _numberOfPlanItems = 3;
 
         public PlannerTests()
         {
@@ -40,6 +45,8 @@ namespace DanTechTests.Controllers
             }
             testSession.expires = DateTime.Now.AddDays(1);
             testSession.session = DTTestConstants.TestSessionId;
+            _controller.VM = new DanTech.Models.DTViewModel();
+            _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(testUser);
             _db.SaveChanges();
         }
 
@@ -47,6 +54,16 @@ namespace DanTechTests.Controllers
         public void ControllerInitialized()
         {
             Assert.IsNotNull(_controller, "Planner controller not correctly initialized.");
+        }
+
+        [TestMethod]
+        public void SetPlanItem()
+        {
+            // Act
+            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestValue, null, null, null, null);
+
+            // Assert
+            Assert.AreEqual(((List<dtPlanItemModel>) jsonRes.Value).Count, _numberOfPlanItems, "Did not add test plan item correctly.");
         }
     }
 }
