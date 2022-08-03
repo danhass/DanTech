@@ -28,8 +28,10 @@ namespace DanTechTests
         public const string TestGoogleCodeTitle = "Google code";
         public const string TestGoogleCodeMistTitle = "Google code - testing";
         public const string TestPlanItemAdditionalTitle = "Additional test plan item title";
-        public const string TestPlanItemMinimumTitle = "Minimum test plan item title";
+        public const string TestPlanItemMinimumTitle = "Minimum test plan item title";       
         public const string TestProjectShortCodePrefix = "TP";
+        public const string TestTimeSpanStart = "14:10";
+        public const string TestTimeSpanEnd = "16:15";
         public const string TestProjectTitlePrefix = "Test project #";        
         public const string TestSessionId = "01ddb399-850b-4111-a3e6-6afd1c30b605";
         public const string TestStringTrueValue = "1";

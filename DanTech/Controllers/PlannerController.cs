@@ -28,14 +28,15 @@ namespace DanTech.Controllers
         [HttpPost]
        
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult SetPlanItem(string? title, string? note, string? start, string? end)
+        public JsonResult SetPlanItem(string? title, string? note, string? start, string? startTime, string? end, string? endTime)
         {
             if (VM == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db);
 #pragma warning disable CS8604 // Possible null reference argument.
-            var pi = new dtPlanItemModel(title, note, start, end, null, false, false, VM.User == null ? 0 : VM.User.id, VM.User , null, null, string.Empty, string.Empty);
+            var pi = new dtPlanItemModel(title, note, start, startTime, end, endTime, null, false, false, VM.User == null ? 0 : VM.User.id, VM.User , null, null, string.Empty, string.Empty);
 #pragma warning restore CS8604 // Possible null reference argument.
             svc.Set(pi);
+            var x = Json(svc.Get(VM.User));
             return Json(svc.Get(VM.User));
         }
     }

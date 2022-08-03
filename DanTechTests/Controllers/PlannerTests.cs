@@ -23,7 +23,7 @@ namespace DanTechTests.Controllers
         private PlannerController _controller = null;
 
         // Valid values for tests
-        private int _numberOfPlanItems = 3;
+        private int _numberOfPlanItems = 4;
 
         public PlannerTests()
         {
@@ -60,7 +60,7 @@ namespace DanTechTests.Controllers
         public void SetPlanItem()
         {
             // Act
-            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestValue, null, null, null, null);
+            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestValue, null, null, null, null, null);
 
             // Assert
             Assert.AreEqual(((List<dtPlanItemModel>) jsonRes.Value).Count, _numberOfPlanItems, "Did not add test plan item correctly.");

@@ -5,57 +5,84 @@
 }
 @model DanTech.Models.DTViewModel
 
-<table width="100%">
-    <tr>
-        <td width="50%" valign="top">
-            <div id="PlanItems">
-                <h3>To Do List</h3>
-                @if (Model.PlanItems.Count > 0)
+<div class="row" id="mainContainer">
+    <div class="col-8 border border-dark padding-right-xs">
+        <h3>To Do List</h3>
+        <div id="PlanItems">
+            @if (Model.PlanItems.Count > 0)
+            {
+                <div class="row border border-dark" id="heading">
+                    <div class="col-6 border border-dark">Item</div>
+                    <div class="col-3 border border-dark">Date</div>
+                    <div class="col-1 border border-dark">Start</div>
+                    <div class="col-1 border border-dark">Len</div>
+                    <div class="col-1 border border-dark" style="font-size: small">Priority</div>
+                </div>
+
+                @for (int i = 0; i < Model.PlanItems.Count; i++)
                 {
-                    <table valign="top" width="100%">
-                        <tr>
-                            <td> Item </td><td>Date</td><td>Start</td><td>Duration</td>
-                        </tr>
-                        @for (int i = 0; i < Model.PlanItems.Count; i++)
-                        {
-                            <tr>
-                                <td valign="top">@Model.PlanItems[i].title</td>
-                                <td valign="top">@Model.PlanItems[i].day.ToShortDateString()</td>
-                                <td valign="top">
-                                    @if (Model.PlanItems[i].start.HasValue)
-                                    {
-                                        @Model.PlanItems[i].start.Value.ToShortTimeString();
-                                    }
-                                </td>
-                                <td valign="top">
-                                    @if (Model.PlanItems[i].duration.HasValue)
-                                    {
-                                        @Model.PlanItems[i].duration.Value.ToString(@"hh\:mm");
-                                    }
-                                </td>
-                            </tr>
-                        }                        
-                    </table>
+                    var item = Model.PlanItems[i];
+                    <div class="row border border-dark">
+                        <div class="col-6 border border-dark">@item.title</div>
+                        <div class="col-3 border border-dark">@item.day.ToString("ddd"), @item.day.ToShortDateString()</div>
+                        <div class="col-1 border border-dark">
+                            @if (item.start.HasValue)
+                            {
+                                @item.start.Value.ToString("HH:mm");
+                            }
+                        </div>
+                        <div class="col-1 border border-dark">
+                            @if (item.duration.HasValue)
+                            {
+                                @item.duration.Value.ToString(@"hh\:mm");
+                            }
+                        </div>
+                        <div class="col-1 border border-dark">@item.priority</div>
+                    </div>
                 }
-                else
-                {
-                    <h4>List is clear</h4>
-                }
-            </div>
-        </td>
-        <td width="50%" valign="top">
+            }
+            else
+            {
+                <h4>List is clear</h4>
+            }
+        </div>
+    </div>
+     <div class="col-4 border border-dark padding-left-xs">
             <div id="NewPlanItemForm">
-                Add an item to daily plan:<br />
-                Title (test to be displayed on daily planner): <input type="text" id="NewPlanItemTitle" size="50" required /><br />
-                Note (extra information):<br /><textarea id="NewPlanItemNote" rows="4" cols="52"></textarea><br />
-                Start: <input type="datetime-local" id="NewPlanItemStart" />, &nbsp;
-                End: <input type="datetime-local" id="NewPlanItemEnd" /> <br />
-                <button onclick="submitPlanItem();">Add</button><br/>
-                <button onclick="test();">Test</button>
+                <h4>Add an item to daily plan:</h4>
+                <div class="row">
+                    <div class="col">
+                        Title (test to be displayed on daily planner): <input type="text" id="NewPlanItemTitle" required />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        Note (extra information):<br /><textarea id="NewPlanItemNote" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        Start: <input type="date" id="NewPlanItemStartDate" /> <input type="time" id="NewPlanItemStartTime"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        End: <input type="date" id="NewPlanEndDate" /> <input type="time" id="NewPlanItemEndTime" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <button onclick="submitPlanItem();">Add</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <button onclick="test();">Test</button>
+                    </div>
+                </div>
             </div>
-        </td>
-</tr>
-</table>
+    </div>
+</div>
 
 @section Scripts {
 <script type="text/javascript">
@@ -63,8 +90,10 @@
         var theData = {
             title: $("#NewPlanItemTitle").val(),
             note: $("#NewPlanItemNote").val(),
-            start: $("#NewPlanItemStart").val(),
-            end: $("#NewPlanItemEnd").val() 
+            start: $("#NewPlanItemStartDate").val(),
+            startTime: $("#NewPlanItemStartTime").val(),
+            end: $("#NewPlanItemEndDate").val(),
+            endTime: $("#NewPlanItemEndTime").val()
         };
         $.post("https://localhost:44324/Planner/SetPlanItem", theData,
             function (data, status) {
@@ -73,33 +102,61 @@
     }
 
     function test() {
-        var v = "2022-08-02T00:00:00";
+        var v = "";
         var d = new Date(Date.parse(v));  
         alert(d.getDate());
     }
 
 
     function refreshItems(data) {
-        alert(data.length);
         $("#NewPlanItemTitle").val("");
         $("#NewPlanItemNote").val("");
         $("#NewPlanItemStart").val("");
         $("#NewPlanItemEnd").val("");
 
-        var newList = "\t\t\t<h3>To Do List</h3>\n\t\t\t\t<table valign=\"top\" width=\"100%\">\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<td> Item </td><td> Date </td><td> Start </td><td> Duration </td>\n\t\t\t\t\t</tr >\n";
+
+        var newList = "\t\t\t\t<div class=\"row border border-dark\" id=\"heading\">\n";
+        newList += "\t\t\t\t\t<div class=\"col-6 border border-dark\">Item</div>\n";
+        newList += "\t\t\t\t\t\t<div class=\"col-3 border border-dark\">Date</div>\n";
+        newList += "\t\t\t\t\t\t<div class=\"col-1 border border-dark\">Start</div>\n";
+        newList += "\t\t\t\t\t\t<div class=\"col-1 border border-dark\">Len</div>\n";
+        newList += "\t\t\t\t\t\t<div class=\"col-1 border border-dark\" style=\"font-size: small\">Priority</div>\n";
+        newList += "\t\t\t\t</div>\n";
+
+        
         for (var i = 0; i < data.length; i++) {
-            newList += "\t\t\t\t\t<tr>\n";
-            alert(data[i].title);
-            newList += "\t\t\t\t\t\t<td>" + data[i].title + "</td>\n";
-            alert(new Date(Date.parse(data[i].day)).toDateString());
-            newList += "\t\t\t\t\t\t<td>" + new Date(Date.parse(data[i].day)).toDateString() + "</td>\n";
-            alert(new Date(Date.parse(data[i].start)).toTimeString());
-            newList += "\t\t\t\t\t\t<td>" + new Date(Date.parse(data[i].start)).toTimeString() + "</td>\n";
-            alert(data[i].duration.toString());
-            newList += "\t\t\t\t\t\t<td>" + data[i].duration + "</td>\n";
-            newList += "\t\t\t\t\t</tr>\n";
+            newList += "\t\t\t\t<div class=\"row border border-dark\">\n";
+         //   alert(data[i].title);
+            newList += "\t\t\t\t\t<div class=\"col-6 border border-dark\">" + data[i].title + "</div>\n";
+            var dBuf = new Date(Date.parse(data[i].day));
+         //   alert(dBuf.toDateString());
+            newList += "\t\t\t\t\t<div class=\"col-3 border border-dark\">" +
+                dBuf.toLocaleString("en-US", { weekday: "short"}) + ", " +
+                ("0" + (dBuf.getMonth()+1)).slice(-2) + "/" + ("0" + dBuf.getDate()).slice(-2) + "/" + dBuf.getFullYear() +
+                "</div>\n";
+            dBuf = new Date(Date.parse(data[i].start));
+         //   alert(dBuf);
+            newList += "\t\t\t\t\t<div class=\"col-1 border border-dark\">";
+            if (dBuf == "Invalid Date") {
+                newList += "&nbsp;"
+            } else {
+                newList += ("0" + dBuf.getHours()).slice(-2) + ":" + ("0" + dBuf.getMinutes()).slice(-2);
+            }
+            newList += "</div>\n";
+        //    alert(data[i].duration);
+            newList += "\t\t\t\t\t<div class=\"col-1 border border-dark\">";
+            if (data[i].duration == null) {
+                newList += "&nbsp;"
+            } else {
+                //alert("duration is not null for " + data[i].title);
+                //alert(data[i].duration);
+                //alert(Object.keys(data[i].duration.value));
+                newList += ("0" + data[i].duration.value.hours).slice(-2) + ":" + ("0" + data[i].duration.value.minutes).slice(-2);
+            }
+            newList += "</div>\n";
+            newList += "\t\t\t\t\t<div class=\"col-1 border border-dark\">" + data[i].priority + "</div>\n";
+            newList += "\t\t\t\t</div>\n"
         }
-        newList += "\t\t\t\t</table>";
         alert(newList);
         $("#PlanItems").html(newList);
     };

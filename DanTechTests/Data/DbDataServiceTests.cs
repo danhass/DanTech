@@ -128,7 +128,7 @@ namespace DanTechTests
         }
         
         [TestMethod]
-        public void ProjectItemAdd_MinimumItem()
+        public void PlanItemAdd_MinimumItem()
         { 
             //Arrange
             var dataService = new DTDBDataService(_db);
@@ -166,6 +166,44 @@ namespace DanTechTests
             Assert.AreEqual(item2.note, DTTestConstants.TestValue2, "Second test value not set correctly.");
             Assert.AreEqual(itemList.Count, 2, "Did not get list of plan items correctly.");
             Assert.IsTrue(itemList[0].id > itemList[1].id, "Date ordering of plan items is not correct");
+        }
+        [TestMethod]
+        public void PlanItemAdd_NoEndDate()
+        {           
+            //Arrange
+            var dataService = new DTDBDataService(_db);
+            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
+            var mapper = new Mapper(config);
+            dtPlanItemModel model = new dtPlanItemModel(
+                DTTestConstants.TestPlanItemAdditionalTitle,
+                string.Empty,
+                DateTime.Now.AddDays(5).ToShortDateString(),
+                DTTestConstants.TestTimeSpanStart,
+                null,
+                DTTestConstants.TestTimeSpanEnd,
+                null,
+                null,
+                null,
+                testUser.id,
+                mapper.Map<dtUserModel>(testUser),
+                null,
+                null,
+                string.Empty,
+                string.Empty
+                );
+
+            //Act
+            var item = dataService.Set(model);
+            var ts = item.duration;
+            var tsExpected = TimeSpan.Parse("2:05");
+
+            //Assert
+            Assert.IsNotNull(item, "Item is null.");
+            Assert.AreEqual(ts.Value.Hours, tsExpected.Hours, "Hours are not what is expected.");
+            Assert.AreEqual(ts.Value.Minutes, tsExpected.Minutes, "Minutes are not what is expected.");
+            Assert.AreEqual(ts.Value.Seconds, tsExpected.Seconds, "Something is wrong with seconds.");
+            
         }
 
         [AssemblyCleanup]

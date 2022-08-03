@@ -10,7 +10,7 @@ namespace DanTech.Models.Data
 #nullable enable
     public class dtPlanItemModel
     {
-        public dtPlanItemModel(string pTitle, string pNote, string? pStart, string? pEnd, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel? pdtUser, dtProject? pProject, int? pProjectId, string pProjectNemonic, string pProjectTitle)
+        public dtPlanItemModel(string pTitle, string pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel? pdtUser, dtProject? pProject, int? pProjectId, string pProjectNemonic, string pProjectTitle)
         {
             title = pTitle;
             note = pNote;
@@ -21,18 +21,52 @@ namespace DanTech.Models.Data
                 if (DateTime.TryParse(pStart, out dt))
                 {
                     day = dt;
-                    start = dt;
                 }
             }
-            if (pEnd != null && !string.IsNullOrEmpty(pEnd))
+            day = day.AddHours(0 - day.Hour);
+            day = day.AddMinutes(0 - day.Minute);
+            day = day.AddSeconds(0 - day.Second);
+            day = day.AddMilliseconds(0 - day.Millisecond);
+            if (!string.IsNullOrEmpty(pStartTime))
+            {
+                TimeSpan ts;
+                TimeSpan.TryParse(pStartTime, out ts);
+                if (ts.Ticks > 0)
+                {
+                    start = day;
+                    start = start.Value.AddHours(ts.Hours);
+                    start = start.Value.AddMinutes(ts.Minutes);
+                }
+            }
+            var end = start.HasValue ? start.Value : day;
+            if (!string.IsNullOrEmpty(pEnd))
             {
                 DateTime dt;
                 if (DateTime.TryParse(pEnd, out dt))
                 {
-                    duration = new TimeSpan(dt.Ticks - day.Ticks);
+                    end = dt;
                 }
             }
-            priority = pPriority;
+            end = end.AddMinutes(0 - end.Minute);
+            end = end.AddHours(0 - end.Hour);
+            end = end.AddMilliseconds(0 - end.Millisecond);
+            end = end.AddSeconds(0 - end.Second);
+            if (!string.IsNullOrEmpty(pEndTime))
+            {
+                TimeSpan ts;
+                TimeSpan.TryParse(pEndTime, out ts);
+                if (ts.Ticks > 0)
+                {
+                    end = end.AddHours(ts.Hours);
+                    end = end.AddMinutes(ts.Minutes);
+                }
+
+            }
+            if (!string.IsNullOrEmpty(pStartTime) && !string.IsNullOrEmpty(pEndTime))
+            {
+                duration = end - start;
+            }
+            priority = pPriority.HasValue ? pPriority : 1000;
             addToCalendar = pAddToCalendar;
             completed = pCompleted;
             projectMnemonic = pProjectNemonic;
@@ -66,6 +100,7 @@ namespace DanTech.Models.Data
             note = string.Empty;
             title = string.Empty;
             user = new dtUserModel();
+            priority = 1000;
         }
 
 

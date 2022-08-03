@@ -26,7 +26,8 @@ namespace DanTech.Services
                 .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
                 .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
                 .ForMember(dest => dest.projectTitle, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))
-                .ForMember(dest => dest.projectMnemonic, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.shortCode));
+                .ForMember(dest => dest.projectMnemonic, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.shortCode))
+                .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority.HasValue ? src.priority : 1000));
         });
 
         public static void ClearResetFlags()
@@ -199,7 +200,9 @@ namespace DanTech.Services
             if (_db == null) _db = new dgdb();
             if (user == null) return new List<dtPlanItemModel>();
             var mapper = new Mapper(PlanItemMapConfig);
-            return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x).OrderBy(x => x.day).ThenBy(x => x.start).ToList());
+            return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x)
+                .OrderBy(x => x.start)
+                .ThenBy(x => x.day).ToList());
         }
 
         public List<dtPlanItemModel> Get(dtUserModel userModel)
