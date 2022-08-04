@@ -156,7 +156,7 @@ namespace DanTechTests
             item.note = DTTestConstants.TestValue;
             item = dataService.Set(item);
             var item2 = dataService.Set(model2);
-            var itemList = dataService.Get(testUser);
+            var itemList = dataService.GetPlanItems(testUser);
 
             //Assert
             Assert.IsTrue(newItemId > 0, "Plan item creation failed.");

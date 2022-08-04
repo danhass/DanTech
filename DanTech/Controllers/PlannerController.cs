@@ -21,7 +21,7 @@ namespace DanTech.Controllers
         public IActionResult Index()
         {
             DTDBDataService svc = new DTDBDataService(_db);
-            VM.PlanItems = svc.Get(VM.User);
+            VM.PlanItems = svc.GetPlanItems(VM.User);
             return View(VM);
         }
 
@@ -36,8 +36,8 @@ namespace DanTech.Controllers
             var pi = new dtPlanItemModel(title, note, start, startTime, end, endTime, null, false, false, VM.User == null ? 0 : VM.User.id, VM.User , null, null, string.Empty, string.Empty);
 #pragma warning restore CS8604 // Possible null reference argument.
             svc.Set(pi);
-            var x = Json(svc.Get(VM.User));
-            return Json(svc.Get(VM.User));
+            var x = Json(svc.GetPlanItems(VM.User));
+            return Json(svc.GetPlanItems(VM.User));
         }
     }
 #nullable disable

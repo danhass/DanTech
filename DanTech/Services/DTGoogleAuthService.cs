@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DanTech.Data;
+using Google.Apis.Services;
 
 namespace DanTech.Services
 {
@@ -32,9 +33,38 @@ namespace DanTech.Services
             return r;
         }
 
-        public static string AuthToken(string code, string domain, IConfiguration config)
+        public static string RefreshAuthToken(string refreshToken)
         {
             string tokenString = "";
+            var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build();
+            var clientSecrets = new ClientSecrets
+            {
+                ClientId = config.GetValue<string>("Google:ClientId"),
+                ClientSecret = config.GetValue<string>("Google:ClientSecret")
+            };
+            var credential = new GoogleAuthorizationCodeFlow(
+                new GoogleAuthorizationCodeFlow.Initializer
+                {
+                    ClientSecrets = clientSecrets,
+                    Scopes = new string[] { GoogleUserInfoEmailScope, GoogleUserInfoProfileScope, GoogleCalendarScope }
+                }
+            );
+            try
+            {
+                var res = credential.RefreshTokenAsync("", refreshToken, System.Threading.CancellationToken.None).Result;
+                tokenString = res.AccessToken;
+            }
+            catch(Exception ex)
+            {
+                string msg = ex.Message;
+            }
+            return tokenString;
+        }
+
+        public static Dictionary<string, string> AuthToken(string code, string domain)
+        {
+            Dictionary<string, string> res = new Dictionary<string, string>();
+            var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build();
             var clientSecrets = new ClientSecrets
             {
                 ClientId = config.GetValue<string>("Google:ClientId"),
@@ -57,17 +87,52 @@ namespace DanTech.Services
                     "https://" + domain + "/Home/GoogleSignin",
                     System.Threading.CancellationToken.None).Result;
 
-                tokenString = token.AccessToken;               
+                res["AccessToken"] = token.AccessToken;
+                res["RefreshToken"] = token.RefreshToken;
             }
             catch(Exception ex)
             {
+                res["AccessToken"] = "";
+                res["RefreshToken"] = "";
                 string msgs = ex.Message;
             }
 
-            return tokenString;
+            return res;
         }
 
-        public static string SetLogin(Userinfo userInfo, HttpContext ctx, dgdb db, string accessToken)
+        public static Userinfo GetUserInfo (string token, string refreshToken = "")
+        {
+            var cred = GoogleCredential.FromAccessToken(token, null);
+            var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = cred
+            });
+            Userinfo userInfo = null;
+            try
+            {
+                userInfo  = oauthSerivce.Userinfo.Get().Execute();
+            }
+            catch(Exception)
+            {
+                // Retry with refresh token
+            }
+            if ((userInfo == null || string.IsNullOrEmpty(userInfo.Email)) && !string.IsNullOrEmpty(refreshToken))
+            {
+                cred = GoogleCredential.FromAccessToken(RefreshAuthToken(refreshToken));
+                oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer() { HttpClientInitializer = cred });
+                try
+                {
+                    userInfo = oauthSerivce.Userinfo.Get().Execute();
+                }
+                catch(Exception)
+                {
+                    // Weren't able to retrieve with either token. Just return the null.
+                }
+            }
+            return userInfo;
+        }
+
+        public static string SetLogin(Userinfo userInfo, HttpContext ctx, dgdb db, string accessToken, string refreshToken)
         {
             Guid sessionGuid = Guid.NewGuid(); ;
             if (!string.IsNullOrEmpty(userInfo.Email) && !(string.IsNullOrEmpty(userInfo.GivenName) && string.IsNullOrEmpty(userInfo.FamilyName)))
@@ -83,6 +148,7 @@ namespace DanTech.Services
                 user.lName = userInfo.FamilyName;
                 user.lastLogin = DateTime.Now;
                 user.token = accessToken;
+                user.refreshToken = refreshToken;
                 db.SaveChanges();
 
                 var ipAddress = ctx.Connection.RemoteIpAddress.ToString();

@@ -7,6 +7,7 @@ using AutoMapper;
 using DanTech.Data;
 using DanTech.Models.Data;
 using System.IO;
+using DanTech.Models;
 
 namespace DanTech.Services
 {
@@ -41,6 +42,11 @@ namespace DanTech.Services
             }
         }
 
+        public static DTViewModel SetCredentials(string token)
+        {
+            var vm = new DTViewModel();
+            return vm;
+        }
         public string TestFlagKey { get { return _testFlagKey; } }
         public bool InTesting { get { return (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null; } }
 
@@ -195,7 +201,7 @@ namespace DanTech.Services
             return item;
         }        
 
-        public List<dtPlanItemModel> Get(dtUser user)
+        public List<dtPlanItemModel> GetPlanItems(dtUser user)
         {
             if (_db == null) _db = new dgdb();
             if (user == null) return new List<dtPlanItemModel>();
@@ -205,15 +211,15 @@ namespace DanTech.Services
                 .ThenBy(x => x.day).ToList());
         }
 
-        public List<dtPlanItemModel> Get(dtUserModel userModel)
+        public List<dtPlanItemModel> GetPlanItems(dtUserModel userModel)
         {
-            return Get(userModel.id);
+            return GetPlanItems(userModel.id);
         }
 
-        public List<dtPlanItemModel> Get(int userId)
+        public List<dtPlanItemModel> GetPlanItems(int userId)
         {
             if (_db == null) _db = new dgdb();
-            return Get((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
+            return GetPlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
 
         public static void GeneralUtil(dgdb db)

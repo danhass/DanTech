@@ -34,6 +34,11 @@ namespace DanTech.Controllers
             
         }
 
+        public JsonResult SetCredentials(string token)
+        {
+            return Json(DTDBDataService.SetCredentials(token));
+        }
+
         [ServiceFilter(typeof(DTAuthenticate))]
         public IActionResult Index()
         {
@@ -49,14 +54,14 @@ namespace DanTech.Controllers
         {            
             if (VM.TestEnvironment && DTDBDataService.SetIfTesting( "Google code", code)) return RedirectToAction("SetupTests");
             string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
-            string accessToken = DTGoogleAuthService.AuthToken(code, domain, _configuration);
-            var cred = GoogleCredential.FromAccessToken(accessToken, null);
+            var tokens = DTGoogleAuthService.AuthToken(code, domain);
+            var cred = GoogleCredential.FromAccessToken(tokens["AccessToken"], null);
             var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
             {
-                HttpClientInitializer = cred,
+                HttpClientInitializer = cred
             });
             var userInfo = oauthSerivce.Userinfo.Get().Execute();
-            string sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, accessToken);
+            string sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
             SetVM(sessionId);
             Response.Cookies.Append("dtSessionId", sessionId);            
 

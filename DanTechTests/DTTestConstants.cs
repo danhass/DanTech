@@ -27,6 +27,7 @@ namespace DanTechTests
         public const string TestElementKey = "Test data element";
         public const string TestGoogleCodeTitle = "Google code";
         public const string TestGoogleCodeMistTitle = "Google code - testing";
+        public const string TestKnownGoodUserEmail = "hass.dan@gmail.com";
         public const string TestPlanItemAdditionalTitle = "Additional test plan item title";
         public const string TestPlanItemMinimumTitle = "Minimum test plan item title";       
         public const string TestProjectShortCodePrefix = "TP";
