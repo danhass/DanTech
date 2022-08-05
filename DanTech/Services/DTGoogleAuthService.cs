@@ -167,9 +167,22 @@ namespace DanTech.Services
                 session.expires = DateTime.Now.AddDays(1);
                 session.session = sessionGuid.ToString();
                 db.SaveChanges();
-                ctx.Response.Cookies.Delete("dtSessionId");
+                int cookieCt = 0;
+                foreach (var header in ctx.Response.Headers.Values)
+                {
+                    if (header.Count > 0)
+                    {
+                        foreach(var h in header)
+                        {
+                            foreach (var cookie in h.Split(";"))
+                            {
+                                if (cookie.Split("=").Length > 1 && cookie.Split("=")[0] == "dtSessionId") cookieCt = cookieCt + 1;
+                            }
+                        }
+                    }
+                }
+                for (int i=0; i<cookieCt; i++) ctx.Response.Cookies.Delete("dtSessionId");
                 ctx.Response.Cookies.Append("dtSessionId", sessionGuid.ToString());
-
             }
             else
             {

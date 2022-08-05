@@ -40,7 +40,7 @@ namespace DanTechTests.Controllers
             var testSession = (from x in _db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
             if (testSession == null)
             {
-                testSession = new dtSession() { user = testUser.id, hostAddress = IPAddress.Loopback.ToString() };
+                testSession = new dtSession() { user = testUser.id, hostAddress = DTTestConstants.TestHostAddress};
                 _db.dtSessions.Add(testSession);
             }
             testSession.expires = DateTime.Now.AddDays(1);

@@ -130,7 +130,7 @@ namespace DanTechTests
             //Arrange
             Userinfo userinfo = new Userinfo() { Email = TEST_USER_EMAIL, FamilyName = TEST_USER_LNAME, GivenName = TEST_USER_FNAME };
             HttpContext ctx = new DefaultHttpContext();
-            ctx.Connection.RemoteIpAddress = IPAddress.Loopback;
+            ctx.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestHostAddress);
             dgdb db = DTDB.getDB();
 
             //Act

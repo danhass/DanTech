@@ -28,7 +28,7 @@ namespace DanTechTests
         private DTController ExecuteWithLoggedInUser(dgdb db, string host)
         {
             var config = DTTestConstants.InitConfiguration();
-            var controller = DTTestConstants.InitializeDTController(db, host, true, config);
+            var controller = DTTestConstants.InitializeDTController(db, true);
             var httpContext = DTTestConstants.InitializeContext(host, true);
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
@@ -75,7 +75,7 @@ namespace DanTechTests
             var db = DTDB.getDB();
 
             //Act
-            var controller = ExecuteWithLoggedInUser(db, "dimgaard.com");
+            var controller = ExecuteWithLoggedInUser(db, IPAddress.Loopback.ToString());
 
             //Clean up
             RemoveTestSession(db);
@@ -92,7 +92,7 @@ namespace DanTechTests
             var db = DTDB.getDB();
 
             //Act
-            var controller = ExecuteWithLoggedInUser(db, DTTestConstants.LocalHostDomain);
+            var controller = ExecuteWithLoggedInUser(db, DTTestConstants.TestHostAddress);
 
             //Clean up db - test user is left in place
             RemoveTestSession(db);
@@ -128,7 +128,7 @@ namespace DanTechTests
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
-            httpContext.Connection.RemoteIpAddress = IPAddress.Loopback;
+            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestHostAddress);
 
             //Set up controller
             var config = DTTestConstants.InitConfiguration();

@@ -8,5 +8,6 @@ namespace DanTech.Data
     public class DTConstants
     {
         public const string AuthTokensNeedToBeResetKey = "Auth tokens need to be reset";
+        public const string SessionKey = "dtSessionId";
     }
 }

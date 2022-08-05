@@ -14,6 +14,10 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Primitives;
 using DanTechTests.Data;
 using DanTech.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace DanTechTests
 {
@@ -27,6 +31,7 @@ namespace DanTechTests
         public const string TestElementKey = "Test data element";
         public const string TestGoogleCodeTitle = "Google code";
         public const string TestGoogleCodeMistTitle = "Google code - testing";
+        public const string TestHostAddress = "::1";
         public const string TestKnownGoodUserEmail = "hass.dan@gmail.com";
         public const string TestPlanItemAdditionalTitle = "Additional test plan item title";
         public const string TestPlanItemMinimumTitle = "Minimum test plan item title";       
@@ -69,16 +74,17 @@ namespace DanTechTests
             return logger;
         }
 
-        public static DTController InitializeDTController(dgdb db, string host, bool withLoggedInUser, IConfiguration config)
+        public static DTController InitializeDTController(dgdb db, bool withLoggedInUser, string userEmail = "")
         {
             //Set up db
             if (withLoggedInUser)
             {
+                if (string.IsNullOrEmpty(userEmail)) userEmail = DTTestConstants.TestUserEmail;
                 var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-                var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+                var testSession = (from x in db.dtSessions where x.user == testUser.id && x.hostAddress == DTTestConstants.TestHostAddress select x).FirstOrDefault();
                 if (testSession == null)
                 {
-                    testSession = new dtSession() { user = testUser.id, hostAddress = IPAddress.Loopback.ToString() };
+                    testSession = new dtSession() { user = testUser.id, hostAddress = DTTestConstants.TestHostAddress };
                     db.dtSessions.Add(testSession);
                 }
                 testSession.expires = DateTime.Now.AddDays(1);
@@ -88,10 +94,32 @@ namespace DanTechTests
 
             //Set up controller
             var logger = DTTestConstants.InitLogger();
-            var controller = new DTController(config, logger, db);
+            var controller = new DTController(InitConfiguration(), logger, db);
 
             return controller;
         }
+
+        public static HomeController InitializeHomeController(dgdb db, bool withLoggedInUser, string userEmail = "")
+        {
+            if (withLoggedInUser)
+            {
+                if (string.IsNullOrEmpty(userEmail)) userEmail = DTTestConstants.TestUserEmail;
+                var user = (from x in db.dtUsers where x.email == userEmail select x).FirstOrDefault();
+                var testSession = (from x in db.dtSessions where x.user == user.id && x.hostAddress == DTTestConstants.TestHostAddress select x).FirstOrDefault();
+                if (testSession == null)
+                {
+                    testSession = new dtSession() { user = user.id, hostAddress = DTTestConstants.TestHostAddress };
+                    db.dtSessions.Add(testSession);
+                }
+                testSession.expires = DateTime.Now.AddDays(1);
+                testSession.session = DTTestConstants.TestSessionId;
+                db.SaveChanges();
+            }
+
+            var ctl = new HomeController(InitConfiguration(), new ServiceCollection().AddLogging().BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger<HomeController>(), db);
+            ctl.ControllerContext = new ControllerContext(new ActionContext(InitializeContext(DTTestConstants.TestHostAddress, false), new RouteData(), new ControllerActionDescriptor()));
+            return ctl;
+         }
 
         public static DefaultHttpContext InitializeContext(string host, bool withLoggedInUser)
         {
@@ -104,7 +132,7 @@ namespace DanTechTests
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
-            httpContext.Connection.RemoteIpAddress = IPAddress.Loopback;
+            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestHostAddress);
             return httpContext;
         }
 

@@ -63,11 +63,18 @@ namespace DanTech.Controllers
             var userInfo = oauthSerivce.Userinfo.Get().Execute();
             string sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
             SetVM(sessionId);
+            Response.Cookies.Delete("dtSessionId");
             Response.Cookies.Append("dtSessionId", sessionId);            
 
             return View(VM);
         } 
 
+        public string EstablishSession(string authToken, string refreshToken)
+        {
+            string sessionId = DTGoogleAuthService.SetLogin(DTGoogleAuthService.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
+            SetVM(sessionId);
+            return sessionId;
+        }
         public IActionResult Signin()
         {
             string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);            
