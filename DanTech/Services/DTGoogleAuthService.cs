@@ -20,7 +20,7 @@ namespace DanTech.Services
         private static readonly string GoogleUserInfoEmailScope = "https://www.googleapis.com/auth/userinfo.email";
         private static readonly string GoogleUserInfoProfileScope = "https://www.googleapis.com/auth/userinfo.profile";
 
-        public static string AuthService (string returnDomain, string returnHandler, IConfiguration config)
+        public static string AuthService(string returnDomain, string returnHandler, IConfiguration config)
         {
             string r = GoogleAuthEndpoint + "?" +
                 "scope=" + GoogleUserInfoEmailScope + " " + GoogleUserInfoProfileScope + " " + GoogleCalendarScope +
@@ -54,15 +54,16 @@ namespace DanTech.Services
                 var res = credential.RefreshTokenAsync("", refreshToken, System.Threading.CancellationToken.None).Result;
                 tokenString = res.AccessToken;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string msg = ex.Message;
             }
             return tokenString;
         }
 
-        public static Dictionary<string, string> AuthToken(string code, string domain)
+        public static Dictionary<string, string> AuthToken(string code, string domain, string endPoint = "")
         {
+            if (string.IsNullOrEmpty(endPoint) || domain.StartsWith("https://localhost:44324")) endPoint = "/Home/GoogleSignin";
             Dictionary<string, string> res = new Dictionary<string, string>();
             var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build();
             var clientSecrets = new ClientSecrets
@@ -84,7 +85,7 @@ namespace DanTech.Services
                 TokenResponse token = credential.ExchangeCodeForTokenAsync(
                     "",
                     code,
-                    "https://" + domain + "/Home/GoogleSignin",
+                    domain + endPoint,
                     System.Threading.CancellationToken.None).Result;
 
                 res["AccessToken"] = token.AccessToken;

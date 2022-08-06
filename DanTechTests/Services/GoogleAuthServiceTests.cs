@@ -54,19 +54,15 @@ namespace DanTechTests
             //Arrange
             var db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var badTokens = (from x in db.dtMiscs where x.title == DTTestConstants.AuthTokensNeedToBeResetKey select x).FirstOrDefault();
-            if (badTokens != null )
+            if (!DTTestConstants.TestControl_GetAuthCode_with_code)
             {
                 Assert.Inconclusive("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
-                Console.WriteLine("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
-                return;
             }
             var datum = (from x in db.dtTestData where x.title == "Google code" select x).FirstOrDefault();
             
             //Act
             var tokens = DTGoogleAuthService.AuthToken(datum.value, DTTestConstants.LocalHostDomain);
             var badCodeToken = DTGoogleAuthService.AuthToken("1234", DTTestConstants.LocalHostDomain);
-            badTokens = new dtMisc() { title = DTTestConstants.AuthTokensNeedToBeResetKey, value = "1" };
-            db.dtMiscs.Add(badTokens);
             db.SaveChanges();
 
             //Assert
@@ -74,7 +70,7 @@ namespace DanTechTests
             Assert.IsFalse(string.IsNullOrEmpty(datum.value), "Google code is null or empty.");
             Assert.IsFalse(string.IsNullOrEmpty(tokens["AccessToken"]), "Google Auth Service did not return an auth token for a (presumed) good Google code.");
             Assert.IsTrue(string.IsNullOrEmpty(badCodeToken["AccessToken"]), "(Presumed) bad Google code should haver return an empty string for auth token.");            
-        }
+        }        
 
         [TestMethod]
         public void UserInfo_FromAccessToken()

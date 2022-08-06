@@ -23,8 +23,12 @@ namespace DanTechTests
 {
     public class DTTestConstants
     {
+        public const bool TestControl_GetAuthCode_with_code = false;
+        public const bool TestControl_EstablishSession_with_code = false;
+
         public const string AuthTokensNeedToBeResetKey = "Auth tokens need to be reset";
         public const int DefaultNumberOfTestPropjects = 3;
+        public const string LocalProtocol = "https";
         public const string LocalHostDomain = "localhost:44324";
         public const string GoogleSigninHandler = "Home/GoogleSignin";
         public const string SessionCookieKey = "dtSessionId";
@@ -47,7 +51,6 @@ namespace DanTechTests
         public const string TestUserOthername = "tester";
         public const string TestValue = "Test Value";
         public const string TestValue2 = "Test value #2";
-
 
         private static dgdb _db = null;
         public static dgdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }

@@ -35,25 +35,30 @@ namespace DanTech
             services.AddControllersWithViews();
             services.AddScoped<DTAuthenticate>();
             services.AddSingleton<IConfiguration>(Configuration);
-  /*          services.AddAuthentication(o =>
-            {
-                o.DefaultChallengeScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
-                o.DefaultForbidScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
-                o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            })
-                .AddCookie()
-                .AddGoogleOpenIdConnect(options =>
-               {
-                   //options.ClientId = Configuration["Authentication:Google:ClientId"].ToString();
-                   //options.ClientSecret = Configuration["Authentication:Google:ClientSecret"].ToString();
-                   options.ClientId = "849195656550-mi3286esf9mrgk8gkacu2712c1qghi3m.apps.googleusercontent.com";
-                   options.ClientSecret = "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";
-                   options.Scope.Add("email");
-                   options.Scope.Add(Google.Apis.Oauth2.v2.Oauth2Service.Scope.UserinfoProfile);
-                   options.Scope.Add(Google.Apis.Oauth2.v2.Oauth2Service.Scope.UserinfoEmail);
-                });
-  */
- 
+            services.AddCors(options =>
+           {
+               options.AddPolicy("CorsPolicy",
+                   builder => builder.AllowAnyMethod().AllowCredentials().SetIsOriginAllowed((host) => true).AllowAnyHeader());
+           });
+            /*          services.AddAuthentication(o =>
+                      {
+                          o.DefaultChallengeScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
+                          o.DefaultForbidScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
+                          o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                      })
+                          .AddCookie()
+                          .AddGoogleOpenIdConnect(options =>
+                         {
+                             //options.ClientId = Configuration["Authentication:Google:ClientId"].ToString();
+                             //options.ClientSecret = Configuration["Authentication:Google:ClientSecret"].ToString();
+                             options.ClientId = "849195656550-mi3286esf9mrgk8gkacu2712c1qghi3m.apps.googleusercontent.com";
+                             options.ClientSecret = "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";
+                             options.Scope.Add("email");
+                             options.Scope.Add(Google.Apis.Oauth2.v2.Oauth2Service.Scope.UserinfoProfile);
+                             options.Scope.Add(Google.Apis.Oauth2.v2.Oauth2Service.Scope.UserinfoEmail);
+                          });
+            */
+
 
         }
 
@@ -70,7 +75,7 @@ namespace DanTech
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
@@ -88,6 +93,7 @@ namespace DanTech
                 Secure = CookieSecurePolicy.Always,
                 MinimumSameSitePolicy = SameSiteMode.Strict
             });
+            app.UseCors("CorsPolicy");
         }
     }
 }

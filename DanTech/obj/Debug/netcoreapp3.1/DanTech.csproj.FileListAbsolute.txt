@@ -165,3 +165,8 @@ C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.dll
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.pdb
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.genruntimeconfig.cache
 C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.AssemblyReference.cache
+C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Web.Cors.dll
+C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Net.Http.Formatting.dll
+C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.dll
+C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.Cors.dll
+C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll

@@ -23,10 +23,13 @@ using Microsoft.Extensions.Configuration;
 using DanTech.Services;
 using Microsoft.AspNetCore.Http;
 using System.Net;
+using System.Web.Http.Cors;
+using System.Collections.Specialized;
 
 namespace DanTech.Controllers
 {
- 
+
+    [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class HomeController : DTController
     {
         public HomeController(IConfiguration configuration, ILogger<HomeController> logger, dgdb dgdb) : base(configuration, logger, dgdb)
@@ -51,9 +54,8 @@ namespace DanTech.Controllers
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public IActionResult GoogleSignin(string code)
-        {            
-            if (VM.TestEnvironment && DTDBDataService.SetIfTesting( "Google code", code)) return RedirectToAction("SetupTests");
-            string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
+        { 
+            string domain = Request.Scheme + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
             var tokens = DTGoogleAuthService.AuthToken(code, domain);
             var cred = GoogleCredential.FromAccessToken(tokens["AccessToken"], null);
             var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
@@ -64,12 +66,39 @@ namespace DanTech.Controllers
             string sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
             SetVM(sessionId);
             Response.Cookies.Delete("dtSessionId");
-            Response.Cookies.Append("dtSessionId", sessionId);            
-
+            Response.Cookies.Append("dtSessionId", sessionId);  
             return View(VM);
         } 
 
-        public string EstablishSession(string authToken, string refreshToken)
+        [DisableCors]
+        [Route("/google")]                
+        public JsonResult EstablishSession(string code, bool useCaller, string domain)
+        {
+            if (!useCaller || string.IsNullOrEmpty(domain))
+            {
+                domain = Request.Headers["protocol"] + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
+            }
+            string sessionId = "None";
+            var tokens = DTGoogleAuthService.AuthToken(code, domain, "/google");
+            if (!string.IsNullOrEmpty(tokens["AccessToken"]))
+            {
+                var cred = GoogleCredential.FromAccessToken(tokens["AccessToken"], null);
+                var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = cred
+                });
+                var userInfo = oauthSerivce.Userinfo.Get().Execute();
+                sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
+                SetVM(sessionId);
+                Response.Cookies.Delete("dtSessionId");
+                Response.Cookies.Append("dtSessionId", sessionId);
+                Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            }
+            var json = Json(new { sessionId=sessionId });
+            return json;
+            }
+
+            public string EstablishSession(string authToken, string refreshToken)
         {
             string sessionId = DTGoogleAuthService.SetLogin(DTGoogleAuthService.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
             SetVM(sessionId);

@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 
 namespace DanTechTests.Controllers
 {
@@ -70,6 +71,30 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(sessionId, cookie, "Session not properly set on cookie.");
             Assert.AreEqual(cookieCount, 1, "More than one dtSessionId cookie.");
         }
- 
+
+        [TestMethod]
+        public void HomeController_EstablishSession_GoogleCode()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+            var badTokens = (from x in db.dtMiscs where x.title == DTTestConstants.AuthTokensNeedToBeResetKey select x).FirstOrDefault();
+            if (!DTTestConstants.TestControl_EstablishSession_with_code) Assert.Inconclusive("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
+            var datum = (from x in db.dtTestData where x.title == "Google code" select x).FirstOrDefault();
+            var controller = DTTestConstants.InitializeHomeController(db, false);
+
+
+            //Act
+            var sessionJson = controller.EstablishSession(datum.value, true, DTTestConstants.LocalProtocol + "://" + DTTestConstants.LocalHostDomain);
+            string json = sessionJson.Value.ToString();
+            string expectSession = json.Split("=")[1].Replace("}", "").Trim();
+            var storedSession = controller.VM == null || controller.VM.User == null ? "None" : (from x in db.dtSessions where x.user == controller.VM.User.id select x.session).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(sessionJson, "Did not receive json result.");
+            Assert.IsNotNull(storedSession, "Did not store json or return user information.");
+            Assert.AreEqual(storedSession, expectSession, "What is stored is not what is expected.");
+       
+        }
+
     }
 }
