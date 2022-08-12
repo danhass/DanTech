@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DanTech.Data;
 using Google.Apis.Services;
+using DanTech.Models.Data;
 
 namespace DanTech.Services
 {
@@ -133,8 +134,29 @@ namespace DanTech.Services
             return userInfo;
         }
 
-        public static string SetLogin(Userinfo userInfo, HttpContext ctx, dgdb db, string accessToken, string refreshToken)
+        public static dtLogin SetLogin(string sessionId, string hostAddress, dgdb db)
         {
+            dtLogin login = new dtLogin();
+            var outOfDates = (from x in db.dtSessions where x.expires < DateTime.Now select x).ToList();
+            db.RemoveRange(outOfDates);
+            var session = (from x in db.dtSessions where x.session == sessionId && x.hostAddress == hostAddress select x).FirstOrDefault();
+            if (session != null)
+            {
+                login.Session = session.session;
+                var user = (from x in db.dtUsers where x.id == session.user select x).FirstOrDefault();
+                if (user != null)
+                {
+                    login.Email = user.email;
+                    login.FName = user.fName;
+                    login.LName = user.lName;
+                }
+            }
+            return login;
+        }
+
+        public static dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, dgdb db, string accessToken, string refreshToken)
+        {
+            dtLogin login = new dtLogin();
             Guid sessionGuid = Guid.NewGuid(); ;
             if (!string.IsNullOrEmpty(userInfo.Email) && !(string.IsNullOrEmpty(userInfo.GivenName) && string.IsNullOrEmpty(userInfo.FamilyName)))
             {
@@ -151,6 +173,9 @@ namespace DanTech.Services
                 user.token = accessToken;
                 user.refreshToken = refreshToken;
                 db.SaveChanges();
+                login.Email = userInfo.Email;
+                login.FName = userInfo.GivenName;
+                login.LName = userInfo.FamilyName;
 
                 var ipAddress = ctx.Connection.RemoteIpAddress.ToString();
                 var session = (from x in db.dtSessions where x.user == user.id && x.hostAddress == ipAddress select x).FirstOrDefault();
@@ -165,7 +190,7 @@ namespace DanTech.Services
                     session = new dtSession() { user = user.id, hostAddress = ipAddress};
                     db.dtSessions.Add(session);
                 }
-                session.expires = DateTime.Now.AddDays(1);
+                session.expires = DateTime.Now.AddDays(7);
                 session.session = sessionGuid.ToString();
                 db.SaveChanges();
                 int cookieCt = 0;
@@ -183,13 +208,10 @@ namespace DanTech.Services
                     }
                 }
                 for (int i=0; i<cookieCt; i++) ctx.Response.Cookies.Delete("dtSessionId");
-                ctx.Response.Cookies.Append("dtSessionId", sessionGuid.ToString());
+                ctx.Response.Cookies.Append("dtSessionId", sessionGuid.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(7) });
+                login.Session = sessionGuid.ToString();
             }
-            else
-            {
-                return Guid.Empty.ToString();
-            }
-            return sessionGuid.ToString();
+            return login;
         }
     }
 }

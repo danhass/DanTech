@@ -10,6 +10,7 @@ using System.Net;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 using System.Linq;
 using DanTech.Controllers;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using DanTech.Models.Data;
 
 namespace DanTechTests.Controllers
 {
@@ -38,6 +40,48 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void HomeController_GoodLogin()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            var goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
+            var controller = DTTestConstants.InitializeHomeController(db, goodSession == null, "", goodSession == null ? "" : goodSession.session);
+            goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
+
+            //Act
+            int ct = 0;
+            var login = controller.EstablishSession();
+            dtLogin res = (dtLogin)login.Value;
+  
+            //Assert
+            Assert.IsNotNull(login, "Login is null.");
+            Assert.AreEqual(goodUser.email, res.Email, "Login email is incorrect.");
+            Assert.AreEqual(goodSession.session, res.Session, "Session guid is incorrect.");
+        }
+
+        [TestMethod]
+        public void HomeController_LoginWithSessionId_NoCookie()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            var goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
+            var controller = DTTestConstants.InitializeHomeController(db, goodSession == null, "", goodSession == null ? "" : goodSession.session);
+            goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
+
+            //Act
+            int ct = 0;
+            var login = controller.Login(goodSession.session);
+            dtLogin res = (dtLogin)login.Value;
+
+            //Assert
+            Assert.IsNotNull(login, "Login is null.");
+            Assert.AreEqual(goodUser.email, res.Email, "Login email is incorrect.");
+            Assert.AreEqual(goodSession.session, res.Session, "Session guid is incorrect.");
+        }
+
+        [TestMethod]
         public void HomeController_EstablishSession()
         {
             //Arrange
@@ -47,8 +91,8 @@ namespace DanTechTests.Controllers
             var cookieCount = 0;
 
             //Act
-            var sessionId = controller.EstablishSession(goodUser.token, goodUser.refreshToken);
-            var session = (from x in db.dtSessions where x.session == sessionId select x).FirstOrDefault();
+            var login = controller.EstablishSession(goodUser.token, goodUser.refreshToken);
+            var session = (from x in db.dtSessions where x.session == login.Session select x).FirstOrDefault();
             var cookie = "";
             foreach (var header in controller.Response.Headers.Values)
             {
@@ -67,8 +111,8 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.IsNotNull(controller, "Home controller could not be initialized.");
-            Assert.IsFalse(string.IsNullOrEmpty(sessionId), "EstablishSession did not return a session.");
-            Assert.AreEqual(sessionId, cookie, "Session not properly set on cookie.");
+            Assert.IsFalse(string.IsNullOrEmpty(login.Session), "EstablishSession did not return a session.");
+            Assert.AreEqual(login.Session, cookie, "Session not properly set on cookie.");
             Assert.AreEqual(cookieCount, 1, "More than one dtSessionId cookie.");
         }
 

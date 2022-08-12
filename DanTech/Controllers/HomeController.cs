@@ -25,11 +25,12 @@ using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Web.Http.Cors;
 using System.Collections.Specialized;
+using DanTech.Models.Data;
 
 namespace DanTech.Controllers
 {
-
-    [EnableCors(origins: "*", headers: "*", methods: "*")]
+    //[EnableCors(origins: "*", headers: "*", methods: "*")]
+    [DisableCors]
     public class HomeController : DTController
     {
         public HomeController(IConfiguration configuration, ILogger<HomeController> logger, dgdb dgdb) : base(configuration, logger, dgdb)
@@ -63,17 +64,19 @@ namespace DanTech.Controllers
                 HttpClientInitializer = cred
             });
             var userInfo = oauthSerivce.Userinfo.Get().Execute();
-            string sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
-            SetVM(sessionId);
+            var login = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
+            SetVM(login.Session);
             Response.Cookies.Delete("dtSessionId");
-            Response.Cookies.Append("dtSessionId", sessionId);  
+            Response.Cookies.Append("dtSessionId", login.Session);  
             return View(VM);
         } 
 
-        [DisableCors]
-        [Route("/google")]                
+        [Route("/google")] 
+        [AllowCrossSite]
         public JsonResult EstablishSession(string code, bool useCaller, string domain)
         {
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            dtLogin login = new dtLogin();
             if (!useCaller || string.IsNullOrEmpty(domain))
             {
                 domain = Request.Headers["protocol"] + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
@@ -88,22 +91,42 @@ namespace DanTech.Controllers
                     HttpClientInitializer = cred
                 });
                 var userInfo = oauthSerivce.Userinfo.Get().Execute();
-                sessionId = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
-                SetVM(sessionId);
+                login = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
+                SetVM(login.Session);
                 Response.Cookies.Delete("dtSessionId");
                 Response.Cookies.Append("dtSessionId", sessionId);
-                Response.Headers.Add("Access-Control-Allow-Origin", "*");
             }
-            var json = Json(new { sessionId=sessionId });
+            var json = Json(login);
             return json;
-            }
-
-            public string EstablishSession(string authToken, string refreshToken)
-        {
-            string sessionId = DTGoogleAuthService.SetLogin(DTGoogleAuthService.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
-            SetVM(sessionId);
-            return sessionId;
         }
+
+        [AllowCrossSite]
+        [Route("/login/cookie")]
+        public JsonResult EstablishSession()
+        {
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            string sessionId = Request.Cookies["dtSessionId"];
+            string addr = HttpContext.Connection.RemoteIpAddress.ToString();
+            var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db));
+            return json;
+        }
+
+        [Route("/login")]
+        public JsonResult Login(string sessionId)
+        {
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            string addr = HttpContext.Connection.RemoteIpAddress.ToString();
+            var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db));
+            return json;
+        }
+
+        public dtLogin EstablishSession(string authToken, string refreshToken)
+        {
+            dtLogin login = DTGoogleAuthService.SetLogin(DTGoogleAuthService.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
+            SetVM(login.Session);
+            return login;
+        }
+
         public IActionResult Signin()
         {
             string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);            
@@ -142,7 +165,5 @@ namespace DanTech.Controllers
             DTDBDataService.ClearResetFlags();
             return View(new DTViewModel() { StatusMessage = "Test set up complete." } );
         }
-
-
     }
 }

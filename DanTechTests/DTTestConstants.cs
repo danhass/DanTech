@@ -90,7 +90,7 @@ namespace DanTechTests
                     testSession = new dtSession() { user = testUser.id, hostAddress = DTTestConstants.TestHostAddress };
                     db.dtSessions.Add(testSession);
                 }
-                testSession.expires = DateTime.Now.AddDays(1);
+                testSession.expires = DateTime.Now.AddDays(7);
                 testSession.session = DTTestConstants.TestSessionId;
                 db.SaveChanges();
             } 
@@ -102,7 +102,7 @@ namespace DanTechTests
             return controller;
         }
 
-        public static HomeController InitializeHomeController(dgdb db, bool withLoggedInUser, string userEmail = "")
+        public static HomeController InitializeHomeController(dgdb db, bool withLoggedInUser, string userEmail = "", string sessionId = "")
         {
             if (withLoggedInUser)
             {
@@ -114,24 +114,25 @@ namespace DanTechTests
                     testSession = new dtSession() { user = user.id, hostAddress = DTTestConstants.TestHostAddress };
                     db.dtSessions.Add(testSession);
                 }
-                testSession.expires = DateTime.Now.AddDays(1);
+                testSession.expires = DateTime.Now.AddDays(7);
                 testSession.session = DTTestConstants.TestSessionId;
                 db.SaveChanges();
             }
 
             var ctl = new HomeController(InitConfiguration(), new ServiceCollection().AddLogging().BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger<HomeController>(), db);
-            ctl.ControllerContext = new ControllerContext(new ActionContext(InitializeContext(DTTestConstants.TestHostAddress, false), new RouteData(), new ControllerActionDescriptor()));
+            ctl.ControllerContext = new ControllerContext(new ActionContext(InitializeContext(DTTestConstants.TestHostAddress, false, sessionId), new RouteData(), new ControllerActionDescriptor()));
             return ctl;
          }
 
-        public static DefaultHttpContext InitializeContext(string host, bool withLoggedInUser)
+        public static DefaultHttpContext InitializeContext(string host, bool withLoggedInUser, string sessionId = "")
         {
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(host);
             var requestFeature = new HttpRequestFeature();
             var featureCollection = new FeatureCollection();
             requestFeature.Headers = new HeaderDictionary();
-            if (withLoggedInUser) requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.SessionCookieKey + "=" + DTTestConstants.TestSessionId));
+            if (string.IsNullOrEmpty(sessionId)) sessionId = DTTestConstants.TestSessionId;
+            if (withLoggedInUser || !string.IsNullOrEmpty(sessionId)) requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.SessionCookieKey + "=" + sessionId));
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;

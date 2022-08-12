@@ -36,10 +36,17 @@ namespace DanTech
             services.AddScoped<DTAuthenticate>();
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddCors(options =>
-           {
-               options.AddPolicy("CorsPolicy",
-                   builder => builder.AllowAnyMethod().AllowCredentials().SetIsOriginAllowed((host) => true).AllowAnyHeader());
-           });
+            {
+                options.AddPolicy(name: "CorsPolicy",
+                    policy =>
+                    {
+                        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                    });
+            });
+            //builder => builder.AllowAnyMethod().AllowCredentials().SetIsOriginAllowed((host) => true).AllowAnyHeader());
+
+
+
             /*          services.AddAuthentication(o =>
                       {
                           o.DefaultChallengeScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;

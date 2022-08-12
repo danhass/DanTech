@@ -135,7 +135,7 @@ namespace DanTech.Services
                         });
                         var mapper = new Mapper(config);
                         mappedUser = mapper.Map<dtUserModel>(user);
-                        sessionRecord.expires = DateTime.Now.AddDays(1);
+                        sessionRecord.expires = DateTime.Now.AddDays(7);
                     }
                 }
                 _db.SaveChanges();

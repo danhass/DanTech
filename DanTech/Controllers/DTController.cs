@@ -22,6 +22,13 @@ namespace DanTech.Controllers
 
         public DTViewModel VM { get; set; }
 
+        protected void log(string entry, string key="Debug logging")
+        {
+            dtMisc log = new dtMisc() { title = key, value = entry };
+            _db.dtMiscs.Add(log);
+            _db.SaveChanges();
+        }
+
         public DTController(IConfiguration configuration, ILogger<DTController> logger, dgdb dgdb)
         {
             _db = dgdb;

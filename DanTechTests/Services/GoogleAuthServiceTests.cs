@@ -130,26 +130,51 @@ namespace DanTechTests
             dgdb db = DTDB.getDB();
 
             //Act
-            string sessionId = DTGoogleAuthService.SetLogin(userinfo, ctx, db, TEST_AUTH_CODE, TEST_REFRESH_CODE);
+            var login = DTGoogleAuthService.SetLogin(userinfo, ctx, db, TEST_AUTH_CODE, TEST_REFRESH_CODE);
             Guid sessionAsGuid = Guid.Empty;
-            Guid.TryParse(sessionId, out sessionAsGuid);
+            Guid.TryParse(login.Session, out sessionAsGuid);
             var setCookie = ctx.Response.GetTypedHeaders().SetCookie.ToList()[0];
             var ipAddress = ctx.Connection.RemoteIpAddress.ToString();
             var user = (from x in db.dtUsers where x.email == TEST_USER_EMAIL select x).FirstOrDefault();
             var numUsers = (from x in db.dtUsers where x.email == TEST_USER_EMAIL select x).ToList().Count;
-            var session = (from x in db.dtSessions where x.session == sessionId select x).FirstOrDefault();
+            var session = (from x in db.dtSessions where x.session == login.Session select x).FirstOrDefault();
             db.dtSessions.Remove(session);
             db.dtUsers.Remove(user);
             db.SaveChanges();
 
             //Assert
-            Assert.IsFalse(string.IsNullOrEmpty(sessionId), "Session id should be a string that can be parsed into a guid.");
+            Assert.IsFalse(string.IsNullOrEmpty(login.Session), "Session id should be a string that can be parsed into a guid.");
             Assert.AreNotEqual(sessionAsGuid, Guid.Empty, "Session should not be an empty GUID.");
             Assert.IsNotNull(setCookie, "Session cookie not set.");
             Assert.IsNotNull(session, "Session not saved to db.");
             Assert.AreEqual(session.hostAddress, ipAddress, "The remote ip address is not set on the session.");
             Assert.AreEqual(session.user, user.id, "Session user not properly set.");
             Assert.AreEqual(session.userNavigation.refreshToken, TEST_REFRESH_CODE, "User info not set correctly");
+        }
+
+        [TestMethod]
+        public void SetLogin_SessionId()
+        {
+            //Arrange
+            dgdb db = DTDB.getDB();
+            var ctrl = DTTestConstants.InitializeDTController(db, true);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+
+            //Act
+            var badLogin = DTGoogleAuthService.SetLogin(new Guid().ToString(), DTTestConstants.TestHostAddress, db);
+            var goodLogin = DTGoogleAuthService.SetLogin(testSession.session, DTTestConstants.TestHostAddress, db);
+
+            //Assert
+            Assert.IsNotNull(testUser, "Could not establish test user.");
+            Assert.IsNotNull(testSession, "Could not establish test session.");
+            Assert.IsTrue(string.IsNullOrEmpty(badLogin.Session), "Bad session id still gave a login");
+            Assert.AreEqual(testSession.session, goodLogin.Session, "Login session incorrect.");
+            Assert.AreEqual(testUser.email, goodLogin.Email, "Login email incorrect.");
+            Assert.AreEqual(testUser.fName, goodLogin.FName, "Login first name incorrect.");
+            Assert.AreEqual(testUser.lName, goodLogin.LName, "Login last name incorrect");
+
+
         }
 
     }
