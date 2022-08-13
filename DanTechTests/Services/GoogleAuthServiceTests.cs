@@ -122,11 +122,11 @@ namespace DanTechTests
         [TestMethod]
         public void SetLoginTest()
         {
-
             //Arrange
             Userinfo userinfo = new Userinfo() { Email = TEST_USER_EMAIL, FamilyName = TEST_USER_LNAME, GivenName = TEST_USER_FNAME };
             HttpContext ctx = new DefaultHttpContext();
-            ctx.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestHostAddress);
+            ctx.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
+            ctx.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             dgdb db = DTDB.getDB();
 
             //Act
@@ -134,7 +134,7 @@ namespace DanTechTests
             Guid sessionAsGuid = Guid.Empty;
             Guid.TryParse(login.Session, out sessionAsGuid);
             var setCookie = ctx.Response.GetTypedHeaders().SetCookie.ToList()[0];
-            var ipAddress = ctx.Connection.RemoteIpAddress.ToString();
+            var requestHost = ctx.Request.Host.Value;
             var user = (from x in db.dtUsers where x.email == TEST_USER_EMAIL select x).FirstOrDefault();
             var numUsers = (from x in db.dtUsers where x.email == TEST_USER_EMAIL select x).ToList().Count;
             var session = (from x in db.dtSessions where x.session == login.Session select x).FirstOrDefault();
@@ -147,7 +147,7 @@ namespace DanTechTests
             Assert.AreNotEqual(sessionAsGuid, Guid.Empty, "Session should not be an empty GUID.");
             Assert.IsNotNull(setCookie, "Session cookie not set.");
             Assert.IsNotNull(session, "Session not saved to db.");
-            Assert.AreEqual(session.hostAddress, ipAddress, "The remote ip address is not set on the session.");
+            Assert.AreEqual(session.hostAddress, requestHost, "The remote host is not set on the session.");
             Assert.AreEqual(session.user, user.id, "Session user not properly set.");
             Assert.AreEqual(session.userNavigation.refreshToken, TEST_REFRESH_CODE, "User info not set correctly");
         }
@@ -160,10 +160,11 @@ namespace DanTechTests
             var ctrl = DTTestConstants.InitializeDTController(db, true);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+            var log = "";
 
             //Act
-            var badLogin = DTGoogleAuthService.SetLogin(new Guid().ToString(), DTTestConstants.TestHostAddress, db);
-            var goodLogin = DTGoogleAuthService.SetLogin(testSession.session, DTTestConstants.TestHostAddress, db);
+            var badLogin = DTGoogleAuthService.SetLogin(new Guid().ToString(), DTTestConstants.TestRemoteHost, db, ref log);
+            var goodLogin = DTGoogleAuthService.SetLogin(testSession.session, DTTestConstants.TestRemoteHost, db, ref log);
 
             //Assert
             Assert.IsNotNull(testUser, "Could not establish test user.");

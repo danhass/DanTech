@@ -28,7 +28,7 @@ namespace DanTech.Controllers
         }
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var ipAddress = context.HttpContext.Connection.RemoteIpAddress.ToString();
+            var hostAddress = context.HttpContext.Request.Host.Value;
             var session = context.HttpContext.Request.Cookies["dtSessionId"];
             var controller = (DTController)context.Controller;
             var host = context.HttpContext.Request.Host;
@@ -36,7 +36,7 @@ namespace DanTech.Controllers
             controller.VM.TestEnvironment = host.ToString().StartsWith("localhost");
             var dataService = new DTDBDataService(_db);
             controller.VM.IsTesting = dataService.InTesting;
-            controller.VM.User = dataService.UserModelForSession(session, ipAddress);            
+            controller.VM.User = dataService.UserModelForSession(session, hostAddress);            
             if (controller.VM.User == null) context.HttpContext.Response.Cookies.Delete("dtSessionId");
             base.OnActionExecuting(context);
         }

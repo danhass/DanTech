@@ -48,6 +48,7 @@ namespace DanTech.Controllers
         {
             var typeCt = (from x in _db.dtTypes where 1 == 1 select x).ToList().Count;
             ViewBag.ipAddress = HttpContext.Connection.RemoteIpAddress;
+            ViewBag.host = Request.Host.Value;
 
             var v = VM;
             return View(VM);
@@ -106,8 +107,9 @@ namespace DanTech.Controllers
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
             string sessionId = Request.Cookies["dtSessionId"];
-            string addr = HttpContext.Connection.RemoteIpAddress.ToString();
-            var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db));
+            string log = "";
+            string addr = HttpContext.Request.Host.Value;
+            var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db, ref log));
             return json;
         }
 
@@ -115,10 +117,12 @@ namespace DanTech.Controllers
         public JsonResult Login(string sessionId)
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
-            string addr = HttpContext.Connection.RemoteIpAddress.ToString();
-            var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db));
+            string log = "";
+
+            string addr = HttpContext.Request.Host.Value;
+            var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db, ref log));
             return json;
-        }
+        }       
 
         public dtLogin EstablishSession(string authToken, string refreshToken)
         {

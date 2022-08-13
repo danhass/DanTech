@@ -50,7 +50,6 @@ namespace DanTechTests.Controllers
             goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
 
             //Act
-            int ct = 0;
             var login = controller.EstablishSession();
             dtLogin res = (dtLogin)login.Value;
   
@@ -71,7 +70,6 @@ namespace DanTechTests.Controllers
             goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
 
             //Act
-            int ct = 0;
             var login = controller.Login(goodSession.session);
             dtLogin res = (dtLogin)login.Value;
 
@@ -79,6 +77,31 @@ namespace DanTechTests.Controllers
             Assert.IsNotNull(login, "Login is null.");
             Assert.AreEqual(goodUser.email, res.Email, "Login email is incorrect.");
             Assert.AreEqual(goodSession.session, res.Session, "Session guid is incorrect.");
+        }
+
+        [TestMethod]
+        public void HomeController_LoginWithSessionId_DifferentHostAddress()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+            var controller = DTTestConstants.InitializeHomeController(db, true);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+            string hostAddressNeedsToBeRestored = testSession.hostAddress;
+            testSession.hostAddress = "0:0:0:0";
+            db.SaveChanges();
+
+            //Act
+            var login = controller.Login(testSession.session);
+            dtLogin res = (dtLogin)login.Value;
+            testSession.hostAddress = hostAddressNeedsToBeRestored;
+            db.SaveChanges();
+
+            //Assert
+            Assert.IsNotNull(login, "Bad session+host login should still return a non-null login object.");
+            Assert.IsTrue(string.IsNullOrEmpty(res.Email), "Bad session+host login should have null email.");
+            Assert.IsTrue(string.IsNullOrEmpty(res.Session), "Bad session+host login should have null session.");
+            Assert.IsFalse(string.IsNullOrEmpty(res.Message), "Bad session+host login should return a message.");
         }
 
         [TestMethod]

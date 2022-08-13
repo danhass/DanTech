@@ -105,13 +105,13 @@ namespace DanTech.Services
             _db.SaveChanges();
         }
  
-        public dtUserModel UserModelForSession(string session, string ipAddress)
+        public dtUserModel UserModelForSession(string session, string hostAddress)
         {
             dtUserModel mappedUser = null;
             if (!string.IsNullOrEmpty(session))
             {
                 var sessionRecord = (from x in _db.dtSessions where x.session == session select x).FirstOrDefault();
-                if (sessionRecord == null || sessionRecord.expires < DateTime.Now || sessionRecord.hostAddress != ipAddress)
+                if (sessionRecord == null || sessionRecord.expires < DateTime.Now || sessionRecord.hostAddress != hostAddress)
                 {
                     if (sessionRecord != null)
                     {

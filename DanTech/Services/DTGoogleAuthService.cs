@@ -134,7 +134,7 @@ namespace DanTech.Services
             return userInfo;
         }
 
-        public static dtLogin SetLogin(string sessionId, string hostAddress, dgdb db)
+        public static dtLogin SetLogin(string sessionId, string hostAddress, dgdb db, ref string log)
         {
             dtLogin login = new dtLogin();
             var outOfDates = (from x in db.dtSessions where x.expires < DateTime.Now select x).ToList();
@@ -150,6 +150,11 @@ namespace DanTech.Services
                     login.FName = user.fName;
                     login.LName = user.lName;
                 }
+            }
+            else
+            {
+                log += "Invalid session";
+                login.Message = log;
             }
             return login;
         }
@@ -177,8 +182,9 @@ namespace DanTech.Services
                 login.FName = userInfo.GivenName;
                 login.LName = userInfo.FamilyName;
 
-                var ipAddress = ctx.Connection.RemoteIpAddress.ToString();
-                var session = (from x in db.dtSessions where x.user == user.id && x.hostAddress == ipAddress select x).FirstOrDefault();
+                var hostAddress = ctx.Request.Host.Value;
+
+                var session = (from x in db.dtSessions where x.user == user.id && x.hostAddress == hostAddress select x).FirstOrDefault();
                 if (session == null)
                 {
                     var oldSession = (from x in db.dtSessions where x.user == user.id select x).FirstOrDefault();
@@ -187,7 +193,7 @@ namespace DanTech.Services
                         db.dtSessions.Remove(oldSession);
                         db.SaveChanges();
                     }
-                    session = new dtSession() { user = user.id, hostAddress = ipAddress};
+                    session = new dtSession() { user = user.id, hostAddress = hostAddress};
                     db.dtSessions.Add(session);
                 }
                 session.expires = DateTime.Now.AddDays(7);

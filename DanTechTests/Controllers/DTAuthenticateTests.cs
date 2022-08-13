@@ -92,7 +92,7 @@ namespace DanTechTests
             var db = DTDB.getDB();
 
             //Act
-            var controller = ExecuteWithLoggedInUser(db, DTTestConstants.TestHostAddress);
+            var controller = ExecuteWithLoggedInUser(db, DTTestConstants.TestRemoteHost);
 
             //Clean up db - test user is left in place
             RemoveTestSession(db);
@@ -128,7 +128,7 @@ namespace DanTechTests
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
-            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestHostAddress);
+            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
 
             //Set up controller
             var config = DTTestConstants.InitConfiguration();
