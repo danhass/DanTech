@@ -25,8 +25,15 @@ namespace DanTech.Controllers
             return View(VM);
         }
 
-        [HttpPost]
-       
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult PlanItems(string sessionId)
+        {
+            DTDBDataService svc = new DTDBDataService(_db);
+            VM.PlanItems = svc.GetPlanItems(VM.User);
+            return Json(VM.PlanItems);
+        }
+
+        [HttpPost]       
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult SetPlanItem(string? title, string? note, string? start, string? startTime, string? end, string? endTime)
         {

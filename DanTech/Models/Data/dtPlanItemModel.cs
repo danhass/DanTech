@@ -10,7 +10,7 @@ namespace DanTech.Models.Data
 #nullable enable
     public class dtPlanItemModel
     {
-        public dtPlanItemModel(string pTitle, string pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel? pdtUser, dtProject? pProject, int? pProjectId, string pProjectNemonic, string pProjectTitle)
+        public dtPlanItemModel(string pTitle, string pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel? pdtUser, dtProject? pProject, int? pProjectId, string pProjectNemonic, string pProjectTitle, bool loadUser=false)
         {
             title = pTitle;
             note = pNote;
@@ -72,14 +72,17 @@ namespace DanTech.Models.Data
             projectMnemonic = pProjectNemonic;
             projectTitle = pProjectTitle;
             userId= pUser;
-            if (pdtUser != null)
+            if (loadUser)
             {
-                userId = pdtUser.id;
-                user = pdtUser;
-            }
-            else
-            {
-                user = new dtUserModel();
+                if (pdtUser != null)
+                {
+                    userId = pdtUser.id;
+                    user = pdtUser;
+                }
+                else
+                {
+                    user = new dtUserModel();
+                }
             }
             if (pProject != null)
             {
@@ -114,9 +117,9 @@ namespace DanTech.Models.Data
         public bool? addToCalendar { get; set; }
         public bool? completed { get; set; }
         public int? userId { get; set; }
-        public dtUserModel user { get; set; }
-
 #nullable enable
+        public dtUserModel? user { get; set; }
+
         public dtProjectModel? project { get; set; }
 #nullable disable
 

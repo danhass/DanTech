@@ -28,7 +28,8 @@ namespace DanTech.Services
                 .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
                 .ForMember(dest => dest.projectTitle, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))
                 .ForMember(dest => dest.projectMnemonic, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.shortCode))
-                .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority.HasValue ? src.priority : 1000));
+                .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority.HasValue ? src.priority : 1000))
+                .ForMember(dest => dest.userId, src => src.MapFrom(src => src.user));
         });
 
         public static void ClearResetFlags()
@@ -194,7 +195,7 @@ namespace DanTech.Services
             item.priority = planItem.priority;
             item.start = planItem.start;
             item.title = planItem.title;
-            item.user = planItem.user.id;
+            item.user = planItem.userId??0;
             item.project = planItem.project?.id;
             if (item.id < 1) _db.dtPlanItems.Add(item);
             _db.SaveChanges();
@@ -213,6 +214,7 @@ namespace DanTech.Services
 
         public List<dtPlanItemModel> GetPlanItems(dtUserModel userModel)
         {
+            if (userModel == null || userModel.id < 1) return new List<dtPlanItemModel>();
             return GetPlanItems(userModel.id);
         }
 

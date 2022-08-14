@@ -139,7 +139,8 @@ namespace DanTechTests
             {
                 title = DTTestConstants.TestPlanItemMinimumTitle,
                 day = DateTime.Now.AddDays(2).Date,
-                user = mapper.Map<dtUserModel>(testUser)
+                user = mapper.Map<dtUserModel>(testUser),
+                userId = testUser.id                
             };
 
             dtPlanItemModel model2 = new dtPlanItemModel()
@@ -147,6 +148,7 @@ namespace DanTechTests
                 title = DTTestConstants.TestPlanItemAdditionalTitle,
                 day = DateTime.Now.AddDays(1).Date,
                 user = mapper.Map<dtUserModel>(testUser),
+                userId = testUser.id,
                 note = DTTestConstants.TestValue2
             };
 
