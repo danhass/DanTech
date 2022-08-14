@@ -125,7 +125,7 @@ namespace DanTechTests
             return ctl;
          }
 
-        public static DefaultHttpContext InitializeContext(string host, bool withLoggedInUser, string sessionId = "")
+        public static DefaultHttpContext InitializeContext(string host, bool withLoggedInUser, string sessionId = "", bool noCookie = false)
         {
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(host);
@@ -133,7 +133,10 @@ namespace DanTechTests
             var featureCollection = new FeatureCollection();
             requestFeature.Headers = new HeaderDictionary();
             if (string.IsNullOrEmpty(sessionId)) sessionId = DTTestConstants.TestSessionId;
-            if (withLoggedInUser || !string.IsNullOrEmpty(sessionId)) requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.SessionCookieKey + "=" + sessionId));
+            if (withLoggedInUser || !string.IsNullOrEmpty(sessionId) && !noCookie)
+            {
+                requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.SessionCookieKey + "=" + sessionId));
+            }
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;

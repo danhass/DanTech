@@ -104,6 +104,48 @@ namespace DanTechTests
         }
 
         [TestMethod]
+        public void ActionExecutingTest_SessionOnQueryString()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+            var config = DTTestConstants.InitConfiguration();
+            var controller = DTTestConstants.InitializeDTController(db, true);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
+            httpContext.Request.QueryString = new QueryString("?sessionId=" + DTTestConstants.TestSessionId);
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
+            var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
+            var actionFilter = new DTAuthenticate(config, db);
+
+            //Action
+            actionFilter.OnActionExecuting(ctx);
+
+            //Assert
+            Assert.IsNotNull(controller.VM.User);
+        }
+
+        [TestMethod]
+        public void ActionExectutingTest_SessionQueryStringWithInvalid()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+            var config = DTTestConstants.InitConfiguration();
+            var controller = DTTestConstants.InitializeDTController(db, true);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
+            httpContext.Request.QueryString = new QueryString("?sessionId=" + Guid.Empty.ToString());
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
+            var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
+            var actionFilter = new DTAuthenticate(config, db);
+
+            //Action
+            actionFilter.OnActionExecuting(ctx);
+
+            //Assert
+            Assert.IsNull(controller.VM.User);
+        }
+
+        [TestMethod]
         public void ActionExecutingTest_UserNotLoggedIn()
         {
             //Arrange
