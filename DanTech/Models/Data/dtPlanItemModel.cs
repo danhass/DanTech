@@ -90,8 +90,11 @@ namespace DanTech.Models.Data
                 projectTitle = pProject.title;
                 var cfg = new MapperConfiguration(cfg =>
                 {
+                    cfg.CreateMap<dtStatus, dtStatusModel>();
+                    cfg.CreateMap<dtColorCode, dtColorCode>();
                     cfg.CreateMap<dtProject, dtProjectModel>()
-                    .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
+                        .ForMember(dest => dest.status, src => src.MapFrom(src => src.status))
+                        .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
                 });
                 var mapper = new Mapper(cfg);
                 project = mapper.Map<dtProjectModel>(pProject);

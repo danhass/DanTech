@@ -26,7 +26,10 @@ namespace DanTech.Controllers
             return View(VM);
         }
 
-        public JsonResult AddPlanProjects()
+        [ServiceFilter(typeof(DTAuthenticate))]
+        [DisableCors]
+
+        public JsonResult AddPlanProjects(string sessionId)
         {
             return Json(new { });
         }

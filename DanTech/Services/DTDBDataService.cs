@@ -21,6 +21,7 @@ namespace DanTech.Services
         {
             cfg.CreateMap<dtUser, dtUserModel>();
             cfg.CreateMap<dtColorCode, dtColorCodeModel>();
+            cfg.CreateMap<dtStatus, dtStatusModel>();
             cfg.CreateMap<dtProject, dtProjectModel>()
                 .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
             cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
@@ -167,7 +168,7 @@ namespace DanTech.Services
             foreach (var p in ps)
             {
                 projects.Add(mapper.Map<dtProjectModel>(p));
-            }
+            }          
             return projects;
         }
 
@@ -209,7 +210,7 @@ namespace DanTech.Services
             var mapper = new Mapper(PlanItemMapConfig);
             return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x)
                 .OrderBy(x => x.start)
-                .ThenBy(x => x.day).ToList());
+                .ThenBy(x => x.day).ToList());            
         }
 
         public List<dtPlanItemModel> GetPlanItems(dtUserModel userModel)

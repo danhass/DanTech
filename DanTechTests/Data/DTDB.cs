@@ -74,7 +74,7 @@ namespace DanTechTests.Data
                     shortCode = DTTestConstants.TestProjectShortCodePrefix + i.ToString(),
                     user = testUser.id
                 };
-                db.dtProjects.Add(p);
+                //db.dtProjects.Add(p);
             }
             db.SaveChanges();
 

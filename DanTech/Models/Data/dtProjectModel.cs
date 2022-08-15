@@ -17,5 +17,6 @@ namespace DanTech.Models.Data
 #nullable enable
         public dtColorCodeModel? color { get; set; }
 #nullable disable
+        public dtStatusModel status { get; set; }
     }
 }

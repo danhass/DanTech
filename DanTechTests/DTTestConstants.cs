@@ -157,7 +157,7 @@ namespace DanTechTests
                 db.dtPlanItems.RemoveRange(planItems);
                 db.dtUsers.Remove(u);
                 db.SaveChanges();
-                DTDBDataService.ClearTestData();
+                DTDBDataService.ClearTestData();                
             }
         }
     }
