@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DanTech.Models.Data;
+using System.Web.Http.Cors;
 
 namespace DanTech.Controllers
 {
@@ -26,6 +27,7 @@ namespace DanTech.Controllers
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
+        [DisableCors]
         public JsonResult PlanItems(string sessionId)
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
