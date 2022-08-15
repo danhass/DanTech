@@ -65,5 +65,11 @@ namespace DanTechTests.Controllers
             // Assert
             Assert.AreEqual(((List<dtPlanItemModel>) jsonRes.Value).Count, _numberOfPlanItems, "Did not add test plan item correctly.");
         }
+
+        [TestMethod]
+        public void PlanItem_Get()
+        {
+
+        }
     }
 }

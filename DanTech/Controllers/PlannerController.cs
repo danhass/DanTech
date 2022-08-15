@@ -28,6 +28,7 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult PlanItems(string sessionId)
         {
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
             DTDBDataService svc = new DTDBDataService(_db);
             VM.PlanItems = svc.GetPlanItems(VM.User);
             return Json(VM.PlanItems);
