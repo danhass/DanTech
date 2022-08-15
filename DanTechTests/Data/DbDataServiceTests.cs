@@ -22,13 +22,12 @@ namespace DanTechTests
             _db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
         }
 
-
         [TestMethod]
         public void InstantiateDB()
         {
             Assert.IsNotNull(_db);
         }
-
+         
         [TestMethod]
         public void DBAccessible()
         {
@@ -103,6 +102,20 @@ namespace DanTechTests
             Assert.IsTrue(setTestDataElementResult, "Failed to set test element.");
             Assert.IsNotNull(testDataElementFlag, "Test data element not correctly set.");
             Assert.AreEqual(testDataElementFlag.value, DTTestConstants.TestValue, "Testing flag not set.");
+        }
+
+        [TestMethod]
+        public void Statuses_List()
+        {
+            //Arrange
+            var numStati = (from x in _db.dtStatuses select x).ToList().Count;
+            var dataService = new DTDBDataService(_db);
+
+            //Act
+            var colors = dataService.GetStati();
+
+            //Assert
+            Assert.AreEqual(colors.Count, numStati, "Status not correctly retrieved.");
         }
 
         [TestMethod]

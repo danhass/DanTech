@@ -23,6 +23,7 @@ namespace DanTech.Services
             cfg.CreateMap<dtColorCode, dtColorCodeModel>();
             cfg.CreateMap<dtStatus, dtStatusModel>();
             cfg.CreateMap<dtProject, dtProjectModel>()
+                .ForMember(dest => dest.status, src => src.MapFrom(src => src.status))
                 .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
             cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
                 .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
@@ -161,8 +162,12 @@ namespace DanTech.Services
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<dtUser, dtUserModel>();
-                cfg.CreateMap<dtProject, dtProjectModel>().
-                    ForMember(dest => dest.user, act => act.MapFrom(src => src.userNavigation));
+                cfg.CreateMap<dtColorCode, dtColorCodeModel>();
+                cfg.CreateMap<dtStatus, dtStatusModel>();
+                cfg.CreateMap<dtProject, dtProjectModel>()
+                    .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation))
+                    .ForMember(dest => dest.status, src => src.MapFrom(src => src.statusNavigation))
+                    .ForMember(dest => dest.user, act => act.MapFrom(src => src.userNavigation));
             });
             var mapper = new Mapper(config);            
             foreach (var p in ps)
@@ -223,6 +228,13 @@ namespace DanTech.Services
         {
             if (_db == null) _db = new dgdb();
             return GetPlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
+        }
+
+        public List<dtStatusModel> GetStati()
+        {
+            if (_db == null) _db = new dgdb();
+            var mappr = new Mapper( new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
+            return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).ToList());
         }
 
         public static void GeneralUtil(dgdb db)

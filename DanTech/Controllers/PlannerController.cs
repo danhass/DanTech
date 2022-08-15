@@ -29,9 +29,11 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         [DisableCors]
 
-        public JsonResult AddPlanProjects(string sessionId)
+        public JsonResult Stati(string sessionId)
         {
-            return Json(new { });
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            DTDBDataService svc = new DTDBDataService(_db);
+            return Json(svc.GetStati());
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
