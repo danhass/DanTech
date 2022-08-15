@@ -17,11 +17,9 @@ namespace DanTech.Data
         {
         }
 
-        public virtual DbSet<dtColorCode> dtColorCodes { get; set; }
         public virtual DbSet<dtMisc> dtMiscs { get; set; }
-        public virtual DbSet<dtPlanItem> dtPlanItems { get; set; }
-        public virtual DbSet<dtProject> dtProjects { get; set; }
         public virtual DbSet<dtSession> dtSessions { get; set; }
+        public virtual DbSet<dtStatus> dtStatuses { get; set; }
         public virtual DbSet<dtTestDatum> dtTestData { get; set; }
         public virtual DbSet<dtType> dtTypes { get; set; }
         public virtual DbSet<dtUser> dtUsers { get; set; }
@@ -36,19 +34,6 @@ namespace DanTech.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<dtColorCode>(entity =>
-            {
-                entity.ToTable("dtColorCode");
-
-                entity.Property(e => e.id).HasColumnType("int(11)");
-
-                entity.Property(e => e.note).HasMaxLength(45);
-
-                entity.Property(e => e.title)
-                    .IsRequired()
-                    .HasMaxLength(45);
-            });
-
             modelBuilder.Entity<dtMisc>(entity =>
             {
                 entity.ToTable("dtMisc");
@@ -58,82 +43,6 @@ namespace DanTech.Data
                 entity.Property(e => e.title)
                     .IsRequired()
                     .HasMaxLength(100);
-            });
-
-            modelBuilder.Entity<dtPlanItem>(entity =>
-            {
-                entity.ToTable("dtPlanItem");
-
-                entity.HasIndex(e => e.project, "fk_PlanItem_Project_idx");
-
-                entity.HasIndex(e => e.user, "fk_PlanItem_User_idx");
-
-                entity.Property(e => e.id).HasColumnType("int(11)");
-
-                entity.Property(e => e.addToCalendar).HasColumnType("bit(1)");
-
-                entity.Property(e => e.completed).HasColumnType("bit(1)");
-
-                entity.Property(e => e.day).HasColumnType("date");
-
-                entity.Property(e => e.priority).HasColumnType("int(11)");
-
-                entity.Property(e => e.project).HasColumnType("int(11)");
-
-                entity.Property(e => e.title)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.user).HasColumnType("int(11)");
-
-                entity.HasOne(d => d.projectNavigation)
-                    .WithMany(p => p.dtPlanItems)
-                    .HasForeignKey(d => d.project)
-                    .HasConstraintName("fk_PlanItem_Project");
-
-                entity.HasOne(d => d.userNavigation)
-                    .WithMany(p => p.dtPlanItems)
-                    .HasForeignKey(d => d.user)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_PlanItem_User");
-            });
-
-            modelBuilder.Entity<dtProject>(entity =>
-            {
-                entity.ToTable("dtProject");
-
-                entity.HasIndex(e => e.colorCode, "fk_project_colorCode_idx");
-
-                entity.HasIndex(e => e.user, "fk_project_user_idx");
-
-                entity.Property(e => e.id).HasColumnType("int(11)");
-
-                entity.Property(e => e.colorCode).HasColumnType("int(11)");
-
-                entity.Property(e => e.priority).HasColumnType("int(11)");
-
-                entity.Property(e => e.shortCode)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.sortOrder).HasColumnType("int(11)");
-
-                entity.Property(e => e.title)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.user).HasColumnType("int(11)");
-
-                entity.HasOne(d => d.colorCodeNavigation)
-                    .WithMany(p => p.dtProjects)
-                    .HasForeignKey(d => d.colorCode)
-                    .HasConstraintName("fk_project_colorCode");
-
-                entity.HasOne(d => d.userNavigation)
-                    .WithMany(p => p.dtProjects)
-                    .HasForeignKey(d => d.user)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_project_user");
             });
 
             modelBuilder.Entity<dtSession>(entity =>
@@ -156,6 +65,19 @@ namespace DanTech.Data
                     .HasForeignKey<dtSession>(d => d.user)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_session_user");
+            });
+
+            modelBuilder.Entity<dtStatus>(entity =>
+            {
+                entity.ToTable("dtStatus");
+
+                entity.HasComment("This is a system table. Users do not make custom stati.");
+
+                entity.Property(e => e.id).HasColumnType("int(11)");
+
+                entity.Property(e => e.title)
+                    .IsRequired()
+                    .HasMaxLength(100);
             });
 
             modelBuilder.Entity<dtTestDatum>(entity =>

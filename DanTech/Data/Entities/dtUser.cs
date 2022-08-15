@@ -7,12 +7,6 @@ namespace DanTech.Data
 {
     public partial class dtUser
     {
-        public dtUser()
-        {
-            dtPlanItems = new HashSet<dtPlanItem>();
-            dtProjects = new HashSet<dtProject>();
-        }
-
         public int id { get; set; }
         public int type { get; set; }
         public string fName { get; set; }
@@ -26,7 +20,5 @@ namespace DanTech.Data
 
         public virtual dtType typeNavigation { get; set; }
         public virtual dtSession dtSession { get; set; }
-        public virtual ICollection<dtPlanItem> dtPlanItems { get; set; }
-        public virtual ICollection<dtProject> dtProjects { get; set; }
     }
 }
