@@ -35,14 +35,16 @@ namespace DanTech
             services.AddControllersWithViews();
             services.AddScoped<DTAuthenticate>();
             services.AddSingleton<IConfiguration>(Configuration);
+            
             services.AddCors(options =>
             {
-                options.AddPolicy(name: "CorsPolicy",
-                    policy =>
+                options.AddDefaultPolicy(
+                    builder =>
                     {
-                        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-                    });
+                        builder.WithOrigins("http://localhost:4200", "https://danhass-github-io.vercel.com").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                    });     
             });
+            
             //builder => builder.AllowAnyMethod().AllowCredentials().SetIsOriginAllowed((host) => true).AllowAnyHeader());
 
 
@@ -100,7 +102,7 @@ namespace DanTech
                 Secure = CookieSecurePolicy.Always,
                 MinimumSameSitePolicy = SameSiteMode.Strict
             });
-            app.UseCors("CorsPolicy");
+            app.UseCors();
         }
     }
 }

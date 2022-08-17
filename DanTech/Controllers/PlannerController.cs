@@ -26,9 +26,7 @@ namespace DanTech.Controllers
             return View(VM);
         }
 
-        [ServiceFilter(typeof(DTAuthenticate))]
         [DisableCors]
-
         public JsonResult Stati(string sessionId)
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -37,7 +35,6 @@ namespace DanTech.Controllers
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
-        [DisableCors]
         public JsonResult PlanItems(string sessionId)
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");

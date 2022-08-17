@@ -8,6 +8,7 @@ using DanTech.Data;
 using DanTech.Models.Data;
 using System.IO;
 using DanTech.Models;
+using System.Net;
 
 namespace DanTech.Services
 {
@@ -239,31 +240,15 @@ namespace DanTech.Services
 
         public static void GeneralUtil(dgdb db)
         {
-            /*
-            if (_db == null) if (db != null) _db = db;
-            if (_db == null) return;
-            var lines = File.ReadAllLines(@"C:\dev\data\color.txt");
-            List<string> colorCodes = new List<string>();
-            foreach (var l in lines)
-            {
-                if (!l.StartsWith("COLOR"))
-                {
-                    var elements = l.Split("\t");
-                    if (elements.Length > 1 && !elements[0].Contains(' '))
-                    {
-                        colorCodes.Add(elements[0]);
-                    }
-                }
-            }
+            var url = "https://7822-54268.el-alt.com/Planner/Stati";
 
-            foreach (var c in colorCodes)
-            {
-                dtColorCode code = new dtColorCode() { title = c };
-                _db.dtColorCodes.Add(code);
-            }
-            _db.SaveChanges();
-            var ct = colorCodes.Count;
-            */
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.AutomaticDecompression = DecompressionMethods.GZip;
+            HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
+            Stream stream = resp.GetResponseStream();
+            StreamReader rdr = new StreamReader(stream);
+            string line = rdr.ReadToEnd();
+            Console.WriteLine(line);
         }
     }
 }

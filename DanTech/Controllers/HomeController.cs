@@ -29,8 +29,6 @@ using DanTech.Models.Data;
 
 namespace DanTech.Controllers
 {
-    //[EnableCors(origins: "*", headers: "*", methods: "*")]
-    [DisableCors]
     public class HomeController : DTController
     {
         public HomeController(IConfiguration configuration, ILogger<HomeController> logger, dgdb dgdb) : base(configuration, logger, dgdb)
@@ -46,6 +44,10 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public IActionResult Index()
         {
+            // This method lets us use the web app kind of like a console app that is used a lot
+            //   for ad hoc processing tasks, research, and experimentation.
+            // We are leaving this here because it is used so often.
+            //DTDBDataService.GeneralUtil(_db);
             var typeCt = (from x in _db.dtTypes where 1 == 1 select x).ToList().Count;
             ViewBag.ipAddress = HttpContext.Connection.RemoteIpAddress;
             ViewBag.host = Request.Host.Value;
@@ -53,8 +55,9 @@ namespace DanTech.Controllers
             var v = VM;
             return View(VM);
         }
-
+                
         [ServiceFilter(typeof(DTAuthenticate))]
+        [DisableCors]
         public IActionResult GoogleSignin(string code)
         { 
             string domain = Request.Scheme + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
@@ -73,7 +76,6 @@ namespace DanTech.Controllers
         } 
 
         [Route("/google")] 
-        [AllowCrossSite]
         public JsonResult EstablishSession(string code, bool useCaller, string domain)
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -100,9 +102,9 @@ namespace DanTech.Controllers
             var json = Json(login);
             return json;
         }
-
-        [AllowCrossSite]
+        
         [Route("/login/cookie")]
+        [DisableCors]
         public JsonResult EstablishSession()
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -113,7 +115,7 @@ namespace DanTech.Controllers
             return json;
         }
 
-        [Route("/login")]
+        [Route("/login")]        
         public JsonResult Login(string sessionId)
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -124,6 +126,7 @@ namespace DanTech.Controllers
             return json;
         }       
 
+        [DisableCors]
         public dtLogin EstablishSession(string authToken, string refreshToken)
         {
             dtLogin login = DTGoogleAuthService.SetLogin(DTGoogleAuthService.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
@@ -131,6 +134,7 @@ namespace DanTech.Controllers
             return login;
         }
 
+        [DisableCors]
         public IActionResult Signin()
         {
             string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);            
