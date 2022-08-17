@@ -22,6 +22,12 @@ namespace DanTechTests
             _db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
         }
 
+        [AssemblyCleanup]
+        public static void Cleanup()
+        {
+            DTTestConstants.Cleanup(_db);
+        }
+
         [TestMethod]
         public void InstantiateDB()
         {
@@ -112,10 +118,24 @@ namespace DanTechTests
             var dataService = new DTDBDataService(_db);
 
             //Act
-            var colors = dataService.GetStati();
+            var statuses = dataService.GetStati();
 
             //Assert
-            Assert.AreEqual(colors.Count, numStati, "Status not correctly retrieved.");
+            Assert.AreEqual(statuses.Count, numStati, "Status not correctly retrieved.");
+        }
+
+        [TestMethod]
+        public void ColorCode_List()
+        {
+            //Arrange
+            var numColorCodes = (from x in _db.dtColorCodes select x).ToList().Count;
+            var dataService = new DTDBDataService(_db);
+
+            //Act
+            var colorCodes = dataService.GetColorCodes();
+
+            //Assert
+            Assert.AreEqual(colorCodes.Count, numColorCodes, "Color codes not correctly received.");
         }
 
         [TestMethod]
@@ -221,10 +241,5 @@ namespace DanTechTests
             
         }
 
-        [AssemblyCleanup]
-        public static void Cleanup()
-        {
-            DTTestConstants.Cleanup(_db);
-        }
     }
 }

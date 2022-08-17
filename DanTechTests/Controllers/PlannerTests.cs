@@ -97,10 +97,27 @@ namespace DanTechTests.Controllers
 
             //Act
             var res = _controller.Stati(DTTestConstants.TestSessionId);
+            var corsFlag = _controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
             Assert.AreEqual(((List<dtStatusModel>)res.Value).Count, numberStati, "Stati numbers don't match.");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+        }
 
+        [TestMethod]
+        public void ColorCodes()
+        {
+            //Arrange
+            int numberColorCodes = (from x in _db.dtColorCodes select x).ToList().Count;
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.ColorCodes(DTTestConstants.TestSessionId);
+            var corsFlag = _controller.Response.Headers["Access-Control-Allow-Origin"];
+
+            //Assert
+            Assert.AreEqual(((List<dtColorCodeModel>)res.Value).Count, numberColorCodes, "Color codes numbers don't match.");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
         }
     }
 }

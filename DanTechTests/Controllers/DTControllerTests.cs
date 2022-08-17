@@ -52,11 +52,14 @@ namespace DanTechTests.Controllers
             //Act
             var login = controller.EstablishSession();
             dtLogin res = (dtLogin)login.Value;
-  
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
+
             //Assert
             Assert.IsNotNull(login, "Login is null.");
             Assert.AreEqual(goodUser.email, res.Email, "Login email is incorrect.");
             Assert.AreEqual(goodSession.session, res.Session, "Session guid is incorrect.");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+
         }
 
         [TestMethod]

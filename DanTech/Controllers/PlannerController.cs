@@ -26,12 +26,18 @@ namespace DanTech.Controllers
             return View(VM);
         }
 
-        [DisableCors]
         public JsonResult Stati(string sessionId)
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
             DTDBDataService svc = new DTDBDataService(_db);
             return Json(svc.GetStati());
+        }
+
+        public JsonResult ColorCodes(string sessionId)
+        {
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            DTDBDataService svc = new DTDBDataService(_db);
+            return Json(svc.GetColorCodes());
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
