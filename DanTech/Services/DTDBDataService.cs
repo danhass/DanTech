@@ -18,22 +18,7 @@ namespace DanTech.Services
         private const string _testFlagKey = "Testing in progress";
 
         //Mappings
-        private MapperConfiguration PlanItemMapConfig = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<dtUser, dtUserModel>();
-            cfg.CreateMap<dtColorCode, dtColorCodeModel>();
-            cfg.CreateMap<dtStatus, dtStatusModel>();
-            cfg.CreateMap<dtProject, dtProjectModel>()
-                .ForMember(dest => dest.status, src => src.MapFrom(src => src.status))
-                .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
-            cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
-                .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
-                .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
-                .ForMember(dest => dest.projectTitle, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))
-                .ForMember(dest => dest.projectMnemonic, src =>src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.shortCode))
-                .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority.HasValue ? src.priority : 1000))
-                .ForMember(dest => dest.userId, src => src.MapFrom(src => src.user));
-        });
+        private MapperConfiguration PlanItemMapConfig = dtPlanItemModel.mapperConfiguration;
 
         public static void ClearResetFlags()
         {
@@ -131,12 +116,7 @@ namespace DanTech.Services
                     }
                     else
                     {
-                        var config = new MapperConfiguration(cfg =>
-                        {
-                            cfg.CreateMap<dtSession, dtSessionModel>();
-                            cfg.CreateMap<dtUser, dtUserModel>().
-                                ForMember(dest => dest.session, act => act.MapFrom(src => src.dtSession));
-                        });
+                        var config = dtUserModel.mapperConfiguration;
                         var mapper = new Mapper(config);
                         mappedUser = mapper.Map<dtUserModel>(user);
                         sessionRecord.expires = DateTime.Now.AddDays(7);
@@ -160,16 +140,7 @@ namespace DanTech.Services
             List<dtProjectModel> projects = new List<dtProjectModel>();
             if (u == null) return projects;
             var ps = (from x in _db.dtProjects where x.user == u.id select x).ToList();
-            var config = new MapperConfiguration(cfg =>
-            {
-                cfg.CreateMap<dtUser, dtUserModel>();
-                cfg.CreateMap<dtColorCode, dtColorCodeModel>();
-                cfg.CreateMap<dtStatus, dtStatusModel>();
-                cfg.CreateMap<dtProject, dtProjectModel>()
-                    .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation))
-                    .ForMember(dest => dest.status, src => src.MapFrom(src => src.statusNavigation))
-                    .ForMember(dest => dest.user, act => act.MapFrom(src => src.userNavigation));
-            });
+            var config = dtProjectModel.mapperConfiguration;
             var mapper = new Mapper(config);            
             foreach (var p in ps)
             {
@@ -247,6 +218,7 @@ namespace DanTech.Services
 
         public static void GeneralUtil(dgdb db)
         {
+            /*
             var url = "https://7822-54268.el-alt.com/Planner/Stati";
 
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
@@ -256,6 +228,24 @@ namespace DanTech.Services
             StreamReader rdr = new StreamReader(stream);
             string line = rdr.ReadToEnd();
             Console.WriteLine(line);
+            */
+
+            int number = 10;
+            Person person = new Person { Name = "Original" };
+
+            Modify(number);
+            Modify(person);
+            string res = string.Format($"{number} / {person.Name}");
+            int ct = 2;
+            ct++;
         }
+
+        static void Modify (int number) { number++; }
+        static void Modify (Person person) { person.Name = "Adjusted"; }
+    }
+
+    public class Person
+    {
+        public string Name { get; set; }
     }
 }

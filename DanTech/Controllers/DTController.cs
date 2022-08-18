@@ -45,12 +45,7 @@ namespace DanTech.Controllers
                 var user = (from x in _db.dtUsers where x.id == session.user select x).FirstOrDefault();
                 if (user != null)
                 {
-                    var config = new MapperConfiguration(cfg =>
-                    {
-                        cfg.CreateMap<dtSession, dtSessionModel>();
-                        cfg.CreateMap<dtUser, dtUserModel>().
-                            ForMember(dest => dest.session, act => act.MapFrom(src => src.dtSession));
-                    });
+                    var config = dtSessionModel.mapperConfiguration;
                     var mapper = new Mapper(config);
                     VM.User = mapper.Map<dtUserModel>(user);
                 }

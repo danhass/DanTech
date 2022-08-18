@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using DanTech.Data;
 
 namespace DanTech.Models.Data
@@ -18,8 +19,19 @@ namespace DanTech.Models.Data
         public string refreshToken { get; set; }
         public DateTime? lastLogin { get; set; }
         public byte? suspended { get; set; }
-
         public dtSessionModel session { get; set; }
 
+        public static MapperConfiguration mapperConfiguration
+        {
+            get
+            {
+                return new MapperConfiguration(cfg =>
+                {
+                    cfg.CreateMap<dtSession, dtSessionModel>();
+                    cfg.CreateMap<dtUser, dtUserModel>().
+                        ForMember(dest => dest.session, act => act.MapFrom(src => src.dtSession));
+                });
+            }
+        }
     }
 }

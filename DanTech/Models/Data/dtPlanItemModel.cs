@@ -88,14 +88,7 @@ namespace DanTech.Models.Data
             {
                 projectMnemonic = pProject.shortCode;
                 projectTitle = pProject.title;
-                var cfg = new MapperConfiguration(cfg =>
-                {
-                    cfg.CreateMap<dtStatus, dtStatusModel>();
-                    cfg.CreateMap<dtColorCode, dtColorCode>();
-                    cfg.CreateMap<dtProject, dtProjectModel>()
-                        .ForMember(dest => dest.status, src => src.MapFrom(src => src.status))
-                        .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
-                });
+                var cfg = dtProjectModel.mapperConfiguration;
                 var mapper = new Mapper(cfg);
                 project = mapper.Map<dtProjectModel>(pProject);
             }
@@ -127,7 +120,31 @@ namespace DanTech.Models.Data
 #nullable disable
 
         public string projectMnemonic { get; set; } = "";
-        public string projectTitle { get; set; } = "";        
+        public string projectTitle { get; set; } = "";       
+        
+        public static MapperConfiguration mapperConfiguration
+        {
+            get
+            {
+                return new MapperConfiguration(cfg =>
+                {
+                    cfg.CreateMap<dtUser, dtUserModel>();
+                    cfg.CreateMap<dtColorCode, dtColorCodeModel>();
+                    cfg.CreateMap<dtStatus, dtStatusModel>();
+                    cfg.CreateMap<dtProject, dtProjectModel>()
+                        .ForMember(dest => dest.status, src => src.MapFrom(src => src.status))
+                        .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCodeNavigation.id))
+                        .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
+                    cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
+                        .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
+                        .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
+                        .ForMember(dest => dest.projectTitle, src => src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))
+                        .ForMember(dest => dest.projectMnemonic, src => src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.shortCode))
+                        .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority.HasValue ? src.priority : 1000))
+                        .ForMember(dest => dest.userId, src => src.MapFrom(src => src.user));
+                });
+            }
+        }
     }
 #nullable disable
 }

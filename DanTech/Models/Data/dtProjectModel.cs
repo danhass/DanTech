@@ -1,7 +1,9 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DanTech.Data;
 
 namespace DanTech.Models.Data
 {
@@ -14,9 +16,29 @@ namespace DanTech.Models.Data
         public int? priority { get; set; }
         public int? sortOrder { get; set; }
         public dtUserModel user { get; set; }
+        public int? colorCodeId { get; set; }
 #nullable enable
         public dtColorCodeModel? color { get; set; }
 #nullable disable
         public dtStatusModel status { get; set; }
+
+        public static MapperConfiguration mapperConfiguration
+        {
+            get
+            {
+                return new MapperConfiguration(cfg =>
+                   {
+                       cfg.CreateMap<dtStatus, dtStatusModel>();
+                       cfg.CreateMap<dtColorCode, dtColorCode>();
+                       cfg.CreateMap<dtUser, dtUserModel>();
+                       cfg.CreateMap<dtProject, dtProjectModel>()
+                           .ForMember(dest => dest.status, src => src.MapFrom(src => src.statusNavigation))
+                           .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCodeNavigation.id))
+                           .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
+                           .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
+                   }
+                );
+            }
+        }
     }
 }
