@@ -149,6 +149,34 @@ namespace DanTech.Services
             return projects;
         }
 
+        public dtProject Set(dtProject project)
+        {
+            dtProject existing = null;
+            if (project.id > 0)
+            {
+                existing = (from x in _db.dtProjects where x.id == project.id select x).FirstOrDefault();
+            }
+
+            if (existing == null)
+            {
+                existing = project;
+            }
+            else
+            {
+                existing.notes = project.notes;
+                existing.priority = project.priority;
+                existing.shortCode = project.shortCode;
+                existing.sortOrder = project.sortOrder;
+                existing.status = project.status;
+                existing.title = project.title;
+                existing.user = project.user;
+                existing.colorCode = project.colorCode;
+            }
+            if (existing.id < 1) _db.dtProjects.Add(existing);
+            _db.SaveChanges();
+            return existing;
+        }
+
         public dtPlanItem Set(dtPlanItem planItem)
         {       
             var mapper = new Mapper(PlanItemMapConfig);

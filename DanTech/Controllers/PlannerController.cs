@@ -26,28 +26,59 @@ namespace DanTech.Controllers
             return View(VM);
         }
 
+        [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Stati(string sessionId)
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", "*");
             DTDBDataService svc = new DTDBDataService(_db);
             return Json(svc.GetStati());
         }
 
+        [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult ColorCodes(string sessionId)
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", "*");
             DTDBDataService svc = new DTDBDataService(_db);
             return Json(svc.GetColorCodes());
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult Projects(string sessionId)
+        {
+            if (VM == null || VM.User == null) return Json(null);
+            DTDBDataService svc = new DTDBDataService(_db);
+            return Json(svc.DTProjects(VM.User.id));
+        }
+
+
+        [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult PlanItems(string sessionId)
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", "*");
             DTDBDataService svc = new DTDBDataService(_db);
             VM.PlanItems = svc.GetPlanItems(VM.User);
             return Json(VM.PlanItems);
         }
+
+        [HttpPost]
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult SetProject(string sessionId, string title, string shortCode, int status, int? colorCode=null, int? priority=null, int? sortOrder=null, string notes = "")
+        {
+            if (!Response.Headers.Keys.Contains("Access-Control-Allow-Origin")) Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            if (VM == null) return Json(null);
+            var newProj = new dtProject()
+            {
+                colorCode = colorCode,
+                notes = notes,
+                priority = priority,
+                shortCode = shortCode,
+                sortOrder = sortOrder,
+                status = status,
+                title = title,
+                user = VM.User.id
+            };
+            DTDBDataService svc = new DTDBDataService(_db);
+            svc.Set(newProj);
+            return Json(svc.DTProjects(VM.User.id));
+        }
+
 
         [HttpPost]       
         [ServiceFilter(typeof(DTAuthenticate))]

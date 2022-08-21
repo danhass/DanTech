@@ -15,11 +15,13 @@ namespace DanTechTests
     {
         private static dgdb _db = null;
         private static string classTestName = "";
+        public static int _numberOfProjects = 0;
 
         [AssemblyInitialize()]
         public static void Init(TestContext context)
         {
             _db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
+            _numberOfProjects = DTTestConstants.DefaultNumberOfTestPropjects;
         }
 
         [AssemblyCleanup]
@@ -146,18 +148,49 @@ namespace DanTechTests
         }
 
         [TestMethod]
+        public void Project_Set()
+        {
+            //Arrange
+            var dataService = new DTDBDataService(_db);
+            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testStatus = (from x in _db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
+            var allProjects = (from x in _db.dtProjects select x).OrderBy(x => x.id).ToList();
+            var existingProject = allProjects[allProjects.Count - 1]; //The last three are test projects
+            var copyOfExisting = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtProject, dtProject>(); })).Map<dtProject>(existingProject);
+            copyOfExisting.notes = "Updated by Test:Project_Set";
+            var newProj = new dtProject()
+            {
+                notes = "new test item from Test:Project_Set",
+                shortCode = "TST",
+                status = testStatus.id,
+                title = DTTestConstants.TestProjectTitlePrefix + "New_Test", 
+                user=testUser.id
+            };
+
+            //Act
+            var setNew_Result = dataService.Set(newProj);
+            var setExist_Result = dataService.Set(copyOfExisting);
+            _numberOfProjects++;
+
+            //Assert
+            Assert.AreEqual(setNew_Result.id, existingProject.id + 1, "Should have inserted a new project just after the last current one.");
+            Assert.AreEqual(setExist_Result.notes, existingProject.notes, "Should have updated existing project to show new note.");
+        }
+
+        [TestMethod]
         public void ProjectsListByUser()
         {  
             //Arrange
             var dataService = new DTDBDataService(_db);
-
             var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            
+            //Act
             var numProjs = dataService.DTProjects(testUser.id);
             var numProjsByUser = dataService.DTProjects(testUser);
 
             //Assert
-            Assert.AreEqual(numProjs.Count, DTTestConstants.DefaultNumberOfTestPropjects, "Data service returns wrong number by user id.");
-            Assert.AreEqual(numProjsByUser.Count, DTTestConstants.DefaultNumberOfTestPropjects, "Data service returns wrong number by user.");
+            Assert.AreEqual(numProjs.Count, _numberOfProjects, "Data service returns wrong number by user id.");
+            Assert.AreEqual(numProjsByUser.Count, _numberOfProjects, "Data service returns wrong number by user.");
         }
         
         [TestMethod]
@@ -202,6 +235,7 @@ namespace DanTechTests
             Assert.AreEqual(itemList.Count, 2, "Did not get list of plan items correctly.");
             Assert.IsTrue(itemList[0].id > itemList[1].id, "Date ordering of plan items is not correct");
         }
+
         [TestMethod]
         public void PlanItemAdd_NoEndDate()
         {           

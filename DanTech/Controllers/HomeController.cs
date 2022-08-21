@@ -115,16 +115,25 @@ namespace DanTech.Controllers
             return json;
         }
 
-        [Route("/login")]        
+        [Route("/login")]
+        [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Login(string sessionId)
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            //Response.Headers.Add("Access-Control-Allow-Origin", "*");
             string log = "";
 
             string addr = HttpContext.Request.Host.Value;
             var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db, ref log));
             return json;
-        }       
+        } 
+        
+        [Route("/ping")]
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult Ping(string sessionId)
+        {
+            //Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            return Json(new { response = "api is alive", submitted = "sessionId: " + sessionId});
+        }
 
         [DisableCors]
         public dtLogin EstablishSession(string authToken, string refreshToken)

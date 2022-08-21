@@ -19,6 +19,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Primitives;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using System.Collections.Specialized;
 
 namespace DanTechTests
 {
@@ -31,8 +33,9 @@ namespace DanTechTests
             var controller = DTTestConstants.InitializeDTController(db, true);
             var httpContext = DTTestConstants.InitializeContext(host, true);
 
-            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
+            controller.ControllerContext = new ControllerContext(actionContext);
             var actionFilter = new DTAuthenticate(config, db);
 
             //Act
@@ -76,12 +79,14 @@ namespace DanTechTests
 
             //Act
             var controller = ExecuteWithLoggedInUser(db, IPAddress.Loopback.ToString());
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Clean up
             RemoveTestSession(db);
 
             //Assert
             Assert.IsFalse(controller.VM.TestEnvironment, "path that does not begin with localhost should result in test env flag of false.");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
         }
 
 
@@ -96,11 +101,41 @@ namespace DanTechTests
 
             //Clean up db - test user is left in place
             RemoveTestSession(db);
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
             Assert.IsNotNull(controller.VM, "Controller's VM not set.");
             Assert.IsNotNull(controller.VM.User, "User not set on VM.");
             Assert.AreEqual(controller.VM.User.email, DTTestConstants.TestUserEmail, "User set incorrectly");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+        }
+
+        [TestMethod]
+        public void ActionExecutingTest_SessionInPostData()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+            var config = DTTestConstants.InitConfiguration();
+            var controller = DTTestConstants.InitializeDTController(db, true);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);    
+            httpContext.Request.Headers.Add(HeaderNames.ContentType, new StringValues("application/x-www-form-urlencoded"));
+            var form = new Dictionary<string, StringValues>();
+            StringValues val = new StringValues(DTTestConstants.TestSessionId);
+            form["sessionId"] = val;
+            httpContext.Request.Form = new FormCollection(form);
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
+            var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
+            ctx.ActionArguments["sessionId"] = DTTestConstants.TestSessionId;
+            controller.ControllerContext = new ControllerContext(actionContext);
+            var actionFilter = new DTAuthenticate(config, db);
+
+            actionFilter.OnActionExecuting(ctx);
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
+
+            //Assert
+            Assert.IsNotNull(controller.VM.User, "Could not set user from post data.");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
         }
 
         [TestMethod]
@@ -113,15 +148,18 @@ namespace DanTechTests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + DTTestConstants.TestSessionId);
-            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
+            controller.ControllerContext = new ControllerContext(actionContext);
             var actionFilter = new DTAuthenticate(config, db);
 
             //Action
             actionFilter.OnActionExecuting(ctx);
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
-            Assert.IsNotNull(controller.VM.User);
+            Assert.IsNotNull(controller.VM.User, "Coult not set user from query string");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
         }
 
         [TestMethod]
@@ -134,15 +172,18 @@ namespace DanTechTests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + Guid.Empty.ToString());
-            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
+            controller.ControllerContext = new ControllerContext(actionContext);
             var actionFilter = new DTAuthenticate(config, db);
 
             //Action
             actionFilter.OnActionExecuting(ctx);
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
-            Assert.IsNull(controller.VM.User);
+            Assert.IsNull(controller.VM.User, "Invalid user from query string.");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
         }
 
         [TestMethod]
@@ -167,6 +208,7 @@ namespace DanTechTests
             var featureCollection = new FeatureCollection();
             requestFeature.Headers = new HeaderDictionary();
             requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.TestSessionId + "=" + DTTestConstants.TestSessionId));
+            requestFeature.Headers.Add(HeaderNames.ContentType, new StringValues("application/x-www-form-urlencoded"));
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
@@ -176,16 +218,19 @@ namespace DanTechTests
             var config = DTTestConstants.InitConfiguration();
             var logger = DTTestConstants.InitLogger();
             var controller = new DTController(config, logger, db);
-            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor(), new ModelStateDictionary());
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
+            controller.ControllerContext = new ControllerContext(actionContext);
             var actionFilter = new DTAuthenticate(config, db);
 
             //Act
             actionFilter.OnActionExecuting(ctx);
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
             Assert.IsNotNull(controller.VM, "Controller's VM not set.");
             Assert.IsNull(controller.VM.User, "User should be null.");
+            Assert.AreEqual(corsFlag, "*", "CORS flag not set");
         }
     }
 }
