@@ -108,8 +108,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var projectsWithNewItem = _controller.SetProject("", newProj.title, newProj.shortCode, newProj.status, newProj.colorCode, newProj.priority, newProj.sortOrder, newProj.notes);
-            var projectsWithUpdatedItem = _controller.SetProject("", copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
+            var projectsWithNewItem = _controller.SetProject("", newProj.title, newProj.shortCode, newProj.status, newProj.colorCode.HasValue ? newProj.colorCode.Value : 0, newProj.priority, newProj.sortOrder, newProj.notes);
+            var projectsWithUpdatedItem = _controller.SetProject("", copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode.HasValue ? copyOfExisting.colorCode.Value : 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
 //            var corsFlag = _controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert

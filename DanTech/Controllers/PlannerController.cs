@@ -61,7 +61,8 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult SetProject(string sessionId, string title, string shortCode, int status, int? colorCode=null, int? priority=null, int? sortOrder=null, string notes = "")
         {
-            if (!Response.Headers.Keys.Contains("Access-Control-Allow-Origin")) Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            if (!Response.Headers.Keys.Contains("Access-Control-Allow-Origin")) 
+                Response.Headers.Add("Access-Control-Allow-Origin", "*");
             if (VM == null) return Json(null);
             var newProj = new dtProject()
             {

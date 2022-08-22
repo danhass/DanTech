@@ -16,10 +16,7 @@ namespace DanTech.Models.Data
         public int? priority { get; set; }
         public int? sortOrder { get; set; }
         public dtUserModel user { get; set; }
-        public int? colorCodeId { get; set; }
-#nullable enable
-        public dtColorCodeModel? color { get; set; }
-#nullable disable
+        public int colorCodeId { get; set; }
         public dtStatusModel status { get; set; }
 
         public static MapperConfiguration mapperConfiguration
@@ -32,10 +29,9 @@ namespace DanTech.Models.Data
                        cfg.CreateMap<dtColorCode, dtColorCode>();
                        cfg.CreateMap<dtUser, dtUserModel>();
                        cfg.CreateMap<dtProject, dtProjectModel>()
-                           .ForMember(dest => dest.status, src => src.MapFrom(src => src.statusNavigation))
-                           .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCodeNavigation.id))
-                           .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
-                           .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
+                           .ForMember(dest => dest.status, src =>  src.MapFrom(src => src.statusNavigation))
+                           .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode.HasValue ? c.colorCode.Value: 0))
+                           .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation));
                    }
                 );
             }

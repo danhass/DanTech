@@ -133,8 +133,7 @@ namespace DanTech.Models.Data
                     cfg.CreateMap<dtStatus, dtStatusModel>();
                     cfg.CreateMap<dtProject, dtProjectModel>()
                         .ForMember(dest => dest.status, src => src.MapFrom(src => src.status))
-                        .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCodeNavigation.id))
-                        .ForMember(dest => dest.color, src => src.MapFrom(src => src.colorCodeNavigation));
+                        .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode.HasValue ? c.colorCode : 0));
                     cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
                         .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
                         .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))

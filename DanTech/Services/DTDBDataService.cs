@@ -145,7 +145,8 @@ namespace DanTech.Services
             foreach (var p in ps)
             {
                 projects.Add(mapper.Map<dtProjectModel>(p));
-            }          
+            }
+            _db.SaveChanges();
             return projects;
         }
 
@@ -160,6 +161,7 @@ namespace DanTech.Services
             if (existing == null)
             {
                 existing = project;
+                if (existing.colorCode.HasValue && (from x in _db.dtColorCodes where x.id == existing.colorCode.Value select x).FirstOrDefault() == null) existing.colorCode = null;
             }
             else
             {
@@ -170,7 +172,8 @@ namespace DanTech.Services
                 existing.status = project.status;
                 existing.title = project.title;
                 existing.user = project.user;
-                existing.colorCode = project.colorCode;
+                if (project.colorCode.HasValue && (from x in _db.dtColorCodes where x.id == project.colorCode.Value select x).FirstOrDefault() != null) existing.colorCode = project.colorCode;
+                else existing.colorCode = null;
             }
             if (existing.id < 1) _db.dtProjects.Add(existing);
             _db.SaveChanges();
