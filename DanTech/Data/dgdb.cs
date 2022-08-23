@@ -175,11 +175,20 @@ namespace DanTech.Data
 
                 entity.HasComment("This is a system table. Users do not make custom stati.");
 
+                entity.HasIndex(e => e.colorCode, "fk_status_colorCode_idx");
+
                 entity.Property(e => e.id).HasColumnType("int(11)");
+
+                entity.Property(e => e.colorCode).HasColumnType("int(11)");
 
                 entity.Property(e => e.title)
                     .IsRequired()
                     .HasMaxLength(100);
+
+                entity.HasOne(d => d.colorCodeNavigation)
+                    .WithMany(p => p.dtStatuses)
+                    .HasForeignKey(d => d.colorCode)
+                    .HasConstraintName("fk_status_colorCode");
             });
 
             modelBuilder.Entity<dtTestDatum>(entity =>

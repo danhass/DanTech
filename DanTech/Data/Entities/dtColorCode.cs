@@ -10,6 +10,7 @@ namespace DanTech.Data
         public dtColorCode()
         {
             dtProjects = new HashSet<dtProject>();
+            dtStatuses = new HashSet<dtStatus>();
         }
 
         public int id { get; set; }
@@ -17,5 +18,6 @@ namespace DanTech.Data
         public string note { get; set; }
 
         public virtual ICollection<dtProject> dtProjects { get; set; }
+        public virtual ICollection<dtStatus> dtStatuses { get; set; }
     }
 }

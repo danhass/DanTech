@@ -10,10 +10,10 @@ namespace DanTech.Models.Data
 #nullable enable
     public class dtPlanItemModel
     {
-        public dtPlanItemModel(string pTitle, string pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel? pdtUser, dtProject? pProject, int? pProjectId, string pProjectNemonic, string pProjectTitle, bool loadUser=false)
-        {
+        public dtPlanItemModel(string pTitle, string? pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel pdtUser, int? pProjectId, dtProject pdtProject, bool pLoadUser=false)
+        {            
             title = pTitle;
-            note = pNote;
+            note = pNote ?? "";
             day = DateTime.Now;
             if (pStart != null && !string.IsNullOrEmpty(pStart))
             {
@@ -69,12 +69,12 @@ namespace DanTech.Models.Data
             priority = pPriority.HasValue ? pPriority : 1000;
             addToCalendar = pAddToCalendar;
             completed = pCompleted;
-            projectMnemonic = pProjectNemonic;
-            projectTitle = pProjectTitle;
+            projectMnemonic = "";
+            projectTitle = "";
             userId= pUser;
-            if (loadUser)
+            if (pLoadUser)
             {
-                if (pdtUser != null)
+                if (pdtUser != null && pdtUser.id > 0)
                 {
                     userId = pdtUser.id;
                     user = pdtUser;
@@ -84,13 +84,14 @@ namespace DanTech.Models.Data
                     user = new dtUserModel();
                 }
             }
-            if (pProject != null)
+            projectId = pProjectId;
+            if (pdtProject != null && pdtProject.id > 0)
             {
-                projectMnemonic = pProject.shortCode;
-                projectTitle = pProject.title;
+                projectMnemonic = pdtProject.shortCode;
+                projectTitle = pdtProject.title;
                 var cfg = dtProjectModel.mapperConfiguration;
                 var mapper = new Mapper(cfg);
-                project = mapper.Map<dtProjectModel>(pProject);
+                project = mapper.Map<dtProjectModel>(pdtProject);
             }
         }
 
@@ -113,12 +114,11 @@ namespace DanTech.Models.Data
         public bool? addToCalendar { get; set; }
         public bool? completed { get; set; }
         public int? userId { get; set; }
+        public int? projectId { get; set; }
 #nullable enable
         public dtUserModel? user { get; set; }
-
         public dtProjectModel? project { get; set; }
 #nullable disable
-
         public string projectMnemonic { get; set; } = "";
         public string projectTitle { get; set; } = "";       
         

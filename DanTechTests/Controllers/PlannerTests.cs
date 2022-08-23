@@ -78,7 +78,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             // Act
-            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestValue, null, null, null, null, null);
+            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, DTTestConstants.TestValue, null, null, null, null, null, null);
             var jsonGet = _controller.PlanItems(DTTestConstants.TestSessionId);
 
             // Assert

@@ -257,9 +257,7 @@ namespace DanTechTests
                 testUser.id,
                 mapper.Map<dtUserModel>(testUser),
                 null,
-                null,
-                string.Empty,
-                string.Empty
+                null
                 );
 
             //Act

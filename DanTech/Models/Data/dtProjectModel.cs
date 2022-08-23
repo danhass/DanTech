@@ -17,7 +17,7 @@ namespace DanTech.Models.Data
         public int? sortOrder { get; set; }
         public dtUserModel user { get; set; }
         public int colorCodeId { get; set; }
-        public dtStatusModel status { get; set; }
+        public int status { get; set; }
 
         public static MapperConfiguration mapperConfiguration
         {
@@ -29,7 +29,6 @@ namespace DanTech.Models.Data
                        cfg.CreateMap<dtColorCode, dtColorCode>();
                        cfg.CreateMap<dtUser, dtUserModel>();
                        cfg.CreateMap<dtProject, dtProjectModel>()
-                           .ForMember(dest => dest.status, src =>  src.MapFrom(src => src.statusNavigation))
                            .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode.HasValue ? c.colorCode.Value: 0))
                            .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation));
                    }

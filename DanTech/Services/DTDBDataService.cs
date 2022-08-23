@@ -237,14 +237,14 @@ namespace DanTech.Services
         {
             if (_db == null) _db = new dgdb();
             var mappr = new Mapper( new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
-            return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).ToList());
+            return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
         }
 
         public List<dtColorCodeModel> GetColorCodes()
         {
             if (_db == null) _db = new dgdb();
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtColorCode, dtColorCodeModel>(); }));
-            return mappr.Map<List<dtColorCodeModel>>((from x in _db.dtColorCodes select x).ToList());
+            return mappr.Map<List<dtColorCodeModel>>((from x in _db.dtColorCodes select x).OrderBy(x => x.title).ToList());
         }
 
         public static void GeneralUtil(dgdb db)

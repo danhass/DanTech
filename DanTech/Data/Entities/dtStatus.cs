@@ -15,7 +15,9 @@ namespace DanTech.Data
         public int id { get; set; }
         public string title { get; set; }
         public string note { get; set; }
+        public int? colorCode { get; set; }
 
+        public virtual dtColorCode colorCodeNavigation { get; set; }
         public virtual ICollection<dtProject> dtProjects { get; set; }
     }
 }
