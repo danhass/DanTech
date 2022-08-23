@@ -25,7 +25,7 @@ namespace DanTechTests.Controllers
     public class PlannerTests
     {
         private static dgdb _db = null;
-        private IConfiguration _config = DTTestConstants.InitConfiguration();
+        private IConfiguration _config = DTTestOrganizer.InitConfiguration();
         private PlannerController _controller = null;
         private dtUser _testUser = null;
         // Valid values for tests
@@ -33,7 +33,7 @@ namespace DanTechTests.Controllers
 
         public PlannerTests()
         {
-            _db = DTTestConstants.DB();
+            _db = DTTestOrganizer.DB();
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
                 .BuildServiceProvider();
@@ -90,7 +90,7 @@ namespace DanTechTests.Controllers
         public void SetProject()
         {
             //Arrange
-            int numProjects = DbDataServiceTests._numberOfProjects;
+            int numProjects = DTTestOrganizer._numberOfProjects;
             var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testStatus = (from x in _db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
             var allProjects = (from x in _db.dtProjects select x).OrderBy(x => x.id).ToList();

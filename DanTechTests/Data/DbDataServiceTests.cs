@@ -13,33 +13,20 @@ namespace DanTechTests
     [TestClass]
     public class DbDataServiceTests
     {
-        private static dgdb _db = null;
         private static string classTestName = "";
-        public static int _numberOfProjects = 0;
-
-        [AssemblyInitialize()]
-        public static void Init(TestContext context)
-        {
-            _db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
-            _numberOfProjects = DTTestConstants.DefaultNumberOfTestPropjects;
-        }
-
-        [AssemblyCleanup]
-        public static void Cleanup()
-        {
-            DTTestConstants.Cleanup(_db);
-        }
 
         [TestMethod]
         public void InstantiateDB()
         {
-            Assert.IsNotNull(_db);
+            var db = DTTestOrganizer.DB();
+            Assert.IsNotNull(db);
         }
          
         [TestMethod]
         public void DBAccessible()
         {
-            var typeCt = (from x in _db.dtTypes where 1 == 1 select x).ToList().Count;
+            var db = DTTestOrganizer.DB();
+            var typeCt = (from x in db.dtTypes where 1 == 1 select x).ToList().Count;
             Assert.IsTrue(typeCt > 0);
         }
 
@@ -47,26 +34,27 @@ namespace DanTechTests
         public void DBUserCRUD()
         {
             //Arrange
-            var userCt = (from x in _db.dtUsers where 1 == 1 select x).ToList().Count;
+            var db = DTTestOrganizer.DB();
+            var userCt = (from x in db.dtUsers where 1 == 1 select x).ToList().Count;
             classTestName = "test_" + DateTime.Now.Ticks;
 
-            var specUserCt = (from x in _db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
+            var specUserCt = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
 
             //Act
             dtUser u = new dtUser() { fName = classTestName, lName = classTestName, type = 1 };
-            _db.dtUsers.Add(u);
-            _db.SaveChanges();
-            var userCtAfterInsert = (from x in _db.dtUsers where 1 == 1 select x).ToList().Count;
-            var specUserCtAfterInsert = (from x in _db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
-            u = (from x in _db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).FirstOrDefault();
+            db.dtUsers.Add(u);
+            db.SaveChanges();
+            var userCtAfterInsert = (from x in db.dtUsers where 1 == 1 select x).ToList().Count;
+            var specUserCtAfterInsert = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
+            u = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).FirstOrDefault();
             var flagBeforeSuspension = u.suspended;
             u.suspended = 1;
-            _db.SaveChanges();
-            u = (from x in _db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).FirstOrDefault();
-            _db.dtUsers.Remove(u);
-            _db.SaveChanges();
-            var userCtAfterRemove = (from x in _db.dtUsers where 1 == 1 select x).ToList().Count;
-            var specUserCtAfterRemove = (from x in _db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
+            db.SaveChanges();
+            u = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).FirstOrDefault();
+            db.dtUsers.Remove(u);
+            db.SaveChanges();
+            var userCtAfterRemove = (from x in db.dtUsers where 1 == 1 select x).ToList().Count;
+            var specUserCtAfterRemove = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
 
             //Assert
             Assert.AreEqual(userCt + 1, userCtAfterInsert, "Adding user should increase user count by 1.");
@@ -81,8 +69,10 @@ namespace DanTechTests
         [TestMethod]
         public void SetTestingFlag()
         {
+            var db = DTTestOrganizer.DB();
+
             //Arrange
-            var dataService = new DTDBDataService(_db);
+            var dataService = new DTDBDataService(db);
 
             //Act
 
@@ -97,9 +87,9 @@ namespace DanTechTests
             //Now turn it on.
             dataService.ToggleTestFlag();
             bool testFlagShouldBeSet = dataService.InTesting;
-            var testInProgressFlag = (from x in _db.dtTestData where x.title == dataService.TestFlagKey select x).FirstOrDefault();
+            var testInProgressFlag = (from x in db.dtTestData where x.title == dataService.TestFlagKey select x).FirstOrDefault();
             bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
-            var testDataElementFlag = (from x in _db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
+            var testDataElementFlag = (from x in db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
 
             //Assert
             Assert.IsFalse(testFlagBeforeToggle, "Did not set initial state to 'not testing'.");
@@ -116,8 +106,9 @@ namespace DanTechTests
         public void Statuses_List()
         {
             //Arrange
-            var numStati = (from x in _db.dtStatuses select x).ToList().Count;
-            var dataService = new DTDBDataService(_db);
+            var db = DTTestOrganizer.DB();
+            var numStati = (from x in db.dtStatuses select x).ToList().Count;
+            var dataService = new DTDBDataService(db);
 
             //Act
             var statuses = dataService.GetStati();
@@ -129,9 +120,10 @@ namespace DanTechTests
         [TestMethod]
         public void ColorCode_List()
         {
+            var db = DTTestOrganizer.DB();
             //Arrange
-            var numColorCodes = (from x in _db.dtColorCodes select x).ToList().Count;
-            var dataService = new DTDBDataService(_db);
+            var numColorCodes = (from x in db.dtColorCodes select x).ToList().Count;
+            var dataService = new DTDBDataService(db);
 
             //Act
             var colorCodes = dataService.GetColorCodes();
@@ -144,17 +136,19 @@ namespace DanTechTests
         public void UserModelForSession_NotLoggedIn()
         {
             //Arrange 
-            var dataService = new DTDBDataService(_db);
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
         }
 
         [TestMethod]
         public void Project_Set()
         {
             //Arrange
-            var dataService = new DTDBDataService(_db);
-            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            var testStatus = (from x in _db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
-            var allProjects = (from x in _db.dtProjects select x).OrderBy(x => x.id).ToList();
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testStatus = (from x in db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
+            var allProjects = (from x in db.dtProjects select x).OrderBy(x => x.id).ToList();
             var existingProject = allProjects[allProjects.Count - 1]; //The last three are test projects
             var copyOfExisting = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtProject, dtProject>(); })).Map<dtProject>(existingProject);
             copyOfExisting.notes = "Updated by Test:Project_Set";
@@ -170,7 +164,7 @@ namespace DanTechTests
             //Act
             var setNew_Result = dataService.Set(newProj);
             var setExist_Result = dataService.Set(copyOfExisting);
-            _numberOfProjects++;
+            DTTestOrganizer._numberOfProjects++;
 
             //Assert
             Assert.AreEqual(setNew_Result.id, existingProject.id + 1, "Should have inserted a new project just after the last current one.");
@@ -179,26 +173,28 @@ namespace DanTechTests
 
         [TestMethod]
         public void ProjectsListByUser()
-        {  
+        {
             //Arrange
-            var dataService = new DTDBDataService(_db);
-            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             
             //Act
             var numProjs = dataService.DTProjects(testUser.id);
             var numProjsByUser = dataService.DTProjects(testUser);
 
             //Assert
-            Assert.AreEqual(numProjs.Count, _numberOfProjects, "Data service returns wrong number by user id.");
-            Assert.AreEqual(numProjsByUser.Count, _numberOfProjects, "Data service returns wrong number by user.");
+            Assert.AreEqual(numProjs.Count, DTTestOrganizer._numberOfProjects, "Data service returns wrong number by user id.");
+            Assert.AreEqual(numProjsByUser.Count, DTTestOrganizer._numberOfProjects, "Data service returns wrong number by user.");
         }
         
         [TestMethod]
         public void PlanItemAdd_MinimumItem()
-        { 
+        {
             //Arrange
-            var dataService = new DTDBDataService(_db);
-            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel()
@@ -238,10 +234,11 @@ namespace DanTechTests
 
         [TestMethod]
         public void PlanItemAdd_NoEndDate()
-        {           
+        {
             //Arrange
-            var dataService = new DTDBDataService(_db);
-            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel(

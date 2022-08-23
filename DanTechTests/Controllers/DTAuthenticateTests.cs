@@ -29,9 +29,9 @@ namespace DanTechTests
     {        
         private DTController ExecuteWithLoggedInUser(dgdb db, string host)
         {
-            var config = DTTestConstants.InitConfiguration();
-            var controller = DTTestConstants.InitializeDTController(db, true);
-            var httpContext = DTTestConstants.InitializeContext(host, true);
+            var config = DTTestOrganizer.InitConfiguration();
+            var controller = DTTestOrganizer.InitializeDTController(db, true);
+            var httpContext = DTTestOrganizer.InitializeContext(host, true);
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
@@ -115,8 +115,8 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTDB.getDB();
-            var config = DTTestConstants.InitConfiguration();
-            var controller = DTTestConstants.InitializeDTController(db, true);
+            var config = DTTestOrganizer.InitConfiguration();
+            var controller = DTTestOrganizer.InitializeDTController(db, true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);    
             httpContext.Request.Headers.Add(HeaderNames.ContentType, new StringValues("application/x-www-form-urlencoded"));
@@ -143,8 +143,8 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTDB.getDB();
-            var config = DTTestConstants.InitConfiguration();
-            var controller = DTTestConstants.InitializeDTController(db, true);
+            var config = DTTestOrganizer.InitConfiguration();
+            var controller = DTTestOrganizer.InitializeDTController(db, true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + DTTestConstants.TestSessionId);
@@ -167,8 +167,8 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTDB.getDB();
-            var config = DTTestConstants.InitConfiguration();
-            var controller = DTTestConstants.InitializeDTController(db, true);
+            var config = DTTestOrganizer.InitConfiguration();
+            var controller = DTTestOrganizer.InitializeDTController(db, true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + Guid.Empty.ToString());
@@ -215,8 +215,8 @@ namespace DanTechTests
             httpContext.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
 
             //Set up controller
-            var config = DTTestConstants.InitConfiguration();
-            var logger = DTTestConstants.InitLogger();
+            var config = DTTestOrganizer.InitConfiguration();
+            var logger = DTTestOrganizer.InitLogger();
             var controller = new DTController(config, logger, db);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);

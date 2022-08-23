@@ -52,7 +52,7 @@ namespace DanTechTests
         public void AuthTokenTest_GetAuthToken()
         {
             //Arrange
-            var db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
+            var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var badTokens = (from x in db.dtMiscs where x.title == DTTestConstants.AuthTokensNeedToBeResetKey select x).FirstOrDefault();
             if (!DTTestConstants.TestControl_GetAuthCode_with_code)
             {
@@ -76,7 +76,7 @@ namespace DanTechTests
         public void UserInfo_FromAccessToken()
         {
             //Arrange
-            var db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
+            var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
 
             //Act
@@ -93,7 +93,7 @@ namespace DanTechTests
         public void UserInfo_FromRefreshToken()
         {
             //Arrange
-            var db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
+            var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
 
             //Act
@@ -108,7 +108,7 @@ namespace DanTechTests
         public void AuthTokenTest_RefreshAuthToken()
         {
             //Arrange
-            var db = DTTestConstants.DB(DTTestConstants.DefaultNumberOfTestPropjects);
+            var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
             var config = InitConfiguration();
 
@@ -157,7 +157,7 @@ namespace DanTechTests
         {
             //Arrange
             dgdb db = DTDB.getDB();
-            var ctrl = DTTestConstants.InitializeDTController(db, true);
+            var ctrl = DTTestOrganizer.InitializeDTController(db, true);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
             var log = "";

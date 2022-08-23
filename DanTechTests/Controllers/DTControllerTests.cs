@@ -33,7 +33,7 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var db = DTDB.getDB();            
-            var controller = DTTestConstants.InitializeDTController(db, true);           
+            var controller = DTTestOrganizer.InitializeDTController(db, true);           
 
             //Assert
             Assert.IsNotNull(controller, "Did not successfully instantiate controller.");
@@ -46,7 +46,7 @@ namespace DanTechTests.Controllers
             var db = DTDB.getDB();
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
             var goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
-            var controller = DTTestConstants.InitializeHomeController(db, goodSession == null, "", goodSession == null ? "" : goodSession.session);
+            var controller = DTTestOrganizer.InitializeHomeController(db, goodSession == null, "", goodSession == null ? "" : goodSession.session);
             goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
 
             //Act
@@ -69,7 +69,7 @@ namespace DanTechTests.Controllers
             var db = DTDB.getDB();
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
             var goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
-            var controller = DTTestConstants.InitializeHomeController(db, goodSession == null, "", goodSession == null ? "" : goodSession.session);
+            var controller = DTTestOrganizer.InitializeHomeController(db, goodSession == null, "", goodSession == null ? "" : goodSession.session);
             goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
 
             //Act
@@ -87,7 +87,7 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var db = DTDB.getDB();
-            var controller = DTTestConstants.InitializeHomeController(db, true);
+            var controller = DTTestOrganizer.InitializeHomeController(db, true);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
             string hostAddressNeedsToBeRestored = testSession.hostAddress;
@@ -112,7 +112,7 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var db = DTDB.getDB();
-            var controller = DTTestConstants.InitializeHomeController(db, false);
+            var controller = DTTestOrganizer.InitializeHomeController(db, false);
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
             var cookieCount = 0;
 
@@ -150,7 +150,7 @@ namespace DanTechTests.Controllers
             var badTokens = (from x in db.dtMiscs where x.title == DTTestConstants.AuthTokensNeedToBeResetKey select x).FirstOrDefault();
             if (!DTTestConstants.TestControl_EstablishSession_with_code) Assert.Inconclusive("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
             var datum = (from x in db.dtTestData where x.title == "Google code" select x).FirstOrDefault();
-            var controller = DTTestConstants.InitializeHomeController(db, false);
+            var controller = DTTestOrganizer.InitializeHomeController(db, false);
 
 
             //Act
