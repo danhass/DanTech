@@ -206,6 +206,7 @@ namespace DanTech.Services
             item.title = planItem.title;
             item.user = planItem.userId??0;
             item.project = planItem.project?.id;
+            item.preserve = planItem.preserve;
             if (item.id < 1) _db.dtPlanItems.Add(item);
             _db.SaveChanges();
             return item;

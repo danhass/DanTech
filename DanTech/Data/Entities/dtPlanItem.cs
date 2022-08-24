@@ -18,6 +18,7 @@ namespace DanTech.Data
         public int? priority { get; set; }
         public bool? addToCalendar { get; set; }
         public bool? completed { get; set; }
+        public bool? preserve { get; set; }
 
         public virtual dtProject projectNavigation { get; set; }
         public virtual dtUser userNavigation { get; set; }

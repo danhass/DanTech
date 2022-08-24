@@ -87,7 +87,7 @@ namespace DanTech.Controllers
         {
             if (VM == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db);
-            var pi = new dtPlanItemModel(title, note, start, startTime, end, endTime, null, false, false, VM.User == null ? 0 : VM.User.id, VM.User?? new dtUserModel() , projectId, new dtProject(), false);
+            var pi = new dtPlanItemModel(title, note, start, startTime, end, endTime, null, false, false, true, VM.User == null ? 0 : VM.User.id, VM.User?? new dtUserModel() , projectId, new dtProject(), false);
             svc.Set(pi);
             var x = Json(svc.GetPlanItems(VM.User));
             return Json(svc.GetPlanItems(VM.User));

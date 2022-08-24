@@ -251,6 +251,7 @@ namespace DanTechTests
                 null,
                 null,
                 null,
+                true,
                 testUser.id,
                 mapper.Map<dtUserModel>(testUser),
                 null,

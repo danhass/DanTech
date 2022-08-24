@@ -10,7 +10,7 @@ namespace DanTech.Models.Data
 #nullable enable
     public class dtPlanItemModel
     {
-        public dtPlanItemModel(string pTitle, string? pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, int pUser, dtUserModel pdtUser, int? pProjectId, dtProject pdtProject, bool pLoadUser=false)
+        public dtPlanItemModel(string pTitle, string? pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, bool? pPreserve, int pUser, dtUserModel pdtUser, int? pProjectId, dtProject pdtProject, bool pLoadUser=false)
         {            
             title = pTitle;
             note = pNote ?? "";
@@ -68,6 +68,7 @@ namespace DanTech.Models.Data
             }
             priority = pPriority.HasValue ? pPriority : 1000;
             addToCalendar = pAddToCalendar;
+            preserve = pPreserve;
             completed = pCompleted;
             projectMnemonic = "";
             projectTitle = "";
@@ -113,6 +114,7 @@ namespace DanTech.Models.Data
         public int? priority { get; set; }
         public bool? addToCalendar { get; set; }
         public bool? completed { get; set; }
+        public bool? preserve { get; set; }
         public int? userId { get; set; }
         public int? projectId { get; set; }
 #nullable enable
