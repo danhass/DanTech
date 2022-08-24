@@ -83,11 +83,38 @@ namespace DanTech.Controllers
 
         [HttpPost]       
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult SetPlanItem(string sessionId, string title, string? note, string? start, string? startTime, string? end, string? endTime, int? projectId)
+        public JsonResult SetPlanItem(string sessionId, 
+                                      string title, 
+                                      string? note, 
+                                      string? start, 
+                                      string? startTime, 
+                                      string? end, 
+                                      string? endTime,
+                                      int? priority,
+                                      bool? addToCalendar,
+                                      bool? completed,
+                                      bool? preserve,
+                                      int? projectId 
+                                      )
         {
             if (VM == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db);
-            var pi = new dtPlanItemModel(title, note, start, startTime, end, endTime, null, false, false, true, VM.User == null ? 0 : VM.User.id, VM.User?? new dtUserModel() , projectId, new dtProject(), false);
+            var pi = new dtPlanItemModel(title, 
+                                         note, 
+                                         start, 
+                                         startTime, 
+                                         end, 
+                                         endTime, 
+                                         priority, 
+                                         addToCalendar, 
+                                         completed, 
+                                         preserve, 
+                                         VM.User == null ? 0 : VM.User.id, 
+                                         VM.User?? new dtUserModel() , 
+                                         projectId, 
+                                         new dtProject(), 
+                                         false
+                                         );
             svc.Set(pi);
             var x = Json(svc.GetPlanItems(VM.User));
             return Json(svc.GetPlanItems(VM.User));
