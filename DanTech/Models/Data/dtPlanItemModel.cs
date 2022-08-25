@@ -138,10 +138,11 @@ namespace DanTech.Models.Data
                         .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode.HasValue ? c.colorCode : 0));
                     cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
                         .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
+                        .ForMember(dest => dest.projectId, src => src.MapFrom(src => src.project))
                         .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
                         .ForMember(dest => dest.projectTitle, src => src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))
                         .ForMember(dest => dest.projectMnemonic, src => src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.shortCode))
-                        .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority.HasValue ? src.priority : 1000))
+                        .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority.HasValue ? src.priority.Value : 1000))
                         .ForMember(dest => dest.userId, src => src.MapFrom(src => src.user));
                 });
             }

@@ -205,7 +205,7 @@ namespace DanTech.Services
             item.start = planItem.start;
             item.title = planItem.title;
             item.user = planItem.userId??0;
-            item.project = planItem.project?.id;
+            item.project = planItem.projectId;
             item.preserve = planItem.preserve;
             if (item.id < 1) _db.dtPlanItems.Add(item);
             _db.SaveChanges();
@@ -222,18 +222,16 @@ namespace DanTech.Services
             if (user == null) return new List<dtPlanItemModel>();
             var mapper = new Mapper(PlanItemMapConfig);       
             var items = (from x in _db.dtPlanItems where x.user == user.id select x).OrderBy(x => x.day).ThenBy(x=> x.start).ToList();
+            string result = "Items: " + items.Count + "; User: " + user.id;
             if (!getAll)
             {
-                var minDate = DateTime.Now
-                    .AddHours(0 - DateTime.Now.Hour)
-                    .AddMinutes(0 - DateTime.Now.Minute)
-                    .AddSeconds(0 - DateTime.Now.Second)
-                    .AddMilliseconds(0 - DateTime.Now.Millisecond);
+                var minDate = DateTime.Parse(DateTime.Now.AddDays(1 - daysBack).ToShortDateString());
                 items = items.Where(x => x.day >= minDate).ToList();
             }
             if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
             if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
-            return mapper.Map<List<dtPlanItemModel>>(items);            
+            var mapped = mapper.Map<List<dtPlanItemModel>>(items);
+            return mapped;
         }
 
         public List<dtPlanItemModel> GetPlanItems(dtUserModel userModel, 
