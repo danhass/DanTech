@@ -212,26 +212,48 @@ namespace DanTech.Services
             return item;
         }        
 
-        public List<dtPlanItemModel> GetPlanItems(dtUser user)
+        public List<dtPlanItemModel> GetPlanItems(dtUser user, 
+                                                    int daysBack = 1, 
+                                                    bool includeCompleted = false, 
+                                                    bool getAll = false, 
+                                                    int onlyProject = 0)
         {
             if (_db == null) _db = new dgdb();
             if (user == null) return new List<dtPlanItemModel>();
-            var mapper = new Mapper(PlanItemMapConfig);
-            return mapper.Map<List<dtPlanItemModel>>((from x in _db.dtPlanItems where x.user == user.id select x)
-                .OrderBy(x => x.start)
-                .ThenBy(x => x.day).ToList());            
+            var mapper = new Mapper(PlanItemMapConfig);       
+            var items = (from x in _db.dtPlanItems where x.user == user.id select x).OrderBy(x => x.day).ThenBy(x=> x.start).ToList();
+            if (!getAll)
+            {
+                var minDate = DateTime.Now
+                    .AddHours(0 - DateTime.Now.Hour)
+                    .AddMinutes(0 - DateTime.Now.Minute)
+                    .AddSeconds(0 - DateTime.Now.Second)
+                    .AddMilliseconds(0 - DateTime.Now.Millisecond);
+                items = items.Where(x => x.day >= minDate).ToList();
+            }
+            if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
+            if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
+            return mapper.Map<List<dtPlanItemModel>>(items);            
         }
 
-        public List<dtPlanItemModel> GetPlanItems(dtUserModel userModel)
+        public List<dtPlanItemModel> GetPlanItems(dtUserModel userModel, 
+                                                  int daysBack = 1, 
+                                                  bool includeCompleted = false, 
+                                                  bool getAll = false, 
+                                                  int onlyProject = 0)
         {
             if (userModel == null || userModel.id < 1) return new List<dtPlanItemModel>();
-            return GetPlanItems(userModel.id);
+            return GetPlanItems(userModel.id, daysBack, includeCompleted, getAll);
         }
 
-        public List<dtPlanItemModel> GetPlanItems(int userId)
+        public List<dtPlanItemModel> GetPlanItems(int userId, 
+                                                  int daysBack = 1,
+                                                  bool includeCompleted = false, 
+                                                  bool getAll = false, 
+                                                  int onlyProject = 0)
         {
             if (_db == null) _db = new dgdb();
-            return GetPlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
+            return GetPlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll);
         }
 
         public List<dtStatusModel> GetStati()
@@ -262,12 +284,11 @@ namespace DanTech.Services
             Console.WriteLine(line);
             */
 
-            int number = 10;
-            Person person = new Person { Name = "Original" };
-
-            Modify(number);
-            Modify(person);
-            string res = string.Format($"{number} / {person.Name}");
+            dtPlanItem itm = new dtPlanItem();
+            itm.day = DateTime.Parse("8/30/2022");
+            var ts = TimeSpan.Parse("13:05");
+            itm.start = itm.day + ts;
+            
             int ct = 2;
             ct++;
         }

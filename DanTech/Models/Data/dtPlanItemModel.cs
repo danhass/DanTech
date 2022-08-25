@@ -62,7 +62,7 @@ namespace DanTech.Models.Data
                 }
 
             }
-            if (!string.IsNullOrEmpty(pStartTime) && !string.IsNullOrEmpty(pEndTime))
+            if (!string.IsNullOrEmpty(pStartTime) && !string.IsNullOrEmpty(pEndTime) && start < end)
             {
                 duration = end - start;
             }

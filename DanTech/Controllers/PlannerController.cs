@@ -50,10 +50,13 @@ namespace DanTech.Controllers
 
 
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult PlanItems(string sessionId)
+        public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0)
         {
             DTDBDataService svc = new DTDBDataService(_db);
-            VM.PlanItems = svc.GetPlanItems(VM.User);
+            VM.PlanItems = svc.GetPlanItems(VM.User
+                , daysBack.HasValue ? daysBack.Value : 1
+                , includeCompleted.HasValue ? includeCompleted.Value : false
+                , getAll.HasValue ? getAll.Value : false) ;
             return Json(VM.PlanItems);
         }
 
@@ -81,20 +84,24 @@ namespace DanTech.Controllers
         }
 
 
-        [HttpPost]       
+        [HttpPost]
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult SetPlanItem(string sessionId, 
-                                      string title, 
-                                      string? note, 
-                                      string? start, 
-                                      string? startTime, 
-                                      string? end, 
+        public JsonResult SetPlanItem(string sessionId,
+                                      string title,
+                                      string? note,
+                                      string? start,
+                                      string? startTime,
+                                      string? end,
                                       string? endTime,
                                       int? priority,
                                       bool? addToCalendar,
                                       bool? completed,
                                       bool? preserve,
-                                      int? projectId 
+                                      int? projectId,
+                                      int? daysBack = 1,
+                                      bool? includeCompleted = false,
+                                      bool? getAll = false,
+                                      int? onlyProject = 0
                                       )
         {
             if (VM == null) return Json(null);
@@ -117,7 +124,11 @@ namespace DanTech.Controllers
                                          );
             svc.Set(pi);
             var x = Json(svc.GetPlanItems(VM.User));
-            return Json(svc.GetPlanItems(VM.User));
+            return Json(svc.GetPlanItems(VM.User, 
+                                        daysBack.HasValue ? daysBack.Value : 1, 
+                                        includeCompleted.HasValue ? includeCompleted.Value : false, 
+                                        getAll.HasValue ? getAll.Value : false,
+                                        onlyProject.HasValue ? onlyProject.Value : 0));
         }
     }
 #nullable disable

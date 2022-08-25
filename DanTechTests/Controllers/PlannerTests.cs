@@ -71,7 +71,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public void PlanItemGet()
+        public void PlanItemSet()
         {
             //Arrange
             _numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count + 1;
@@ -79,10 +79,22 @@ namespace DanTechTests.Controllers
 
             // Act
             var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, DTTestConstants.TestValue, null, null, null, null, null, null, null, null, true, null);
-            var jsonGet = _controller.PlanItems(DTTestConstants.TestSessionId);
 
             // Assert
             Assert.AreEqual(((List<dtPlanItemModel>) jsonRes.Value).Count, _numberOfPlanItems, "Did not add test plan item correctly.");
+        }
+
+        [TestMethod]
+        public void PlanItem_Get()
+        {
+            //Arrange
+            _numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
+            SetControllerQueryString();
+
+            // Act
+            var jsonGet = _controller.PlanItems(DTTestConstants.TestSessionId);
+
+            // Assert
             Assert.AreEqual(((List<dtPlanItemModel>)jsonGet.Value).Count, _numberOfPlanItems, "Did not retrieve plan items correctly.");
         }
 
