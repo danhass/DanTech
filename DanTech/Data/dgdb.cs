@@ -18,6 +18,8 @@ namespace DanTech.Data
         }
 
         public virtual DbSet<dtColorCode> dtColorCodes { get; set; }
+        public virtual DbSet<dtConfig> dtConfigs { get; set; }
+        public virtual DbSet<dtKey> dtKeys { get; set; }
         public virtual DbSet<dtMisc> dtMiscs { get; set; }
         public virtual DbSet<dtPlanItem> dtPlanItems { get; set; }
         public virtual DbSet<dtProject> dtProjects { get; set; }
@@ -48,6 +50,50 @@ namespace DanTech.Data
                 entity.Property(e => e.title)
                     .IsRequired()
                     .HasMaxLength(45);
+            });
+
+            modelBuilder.Entity<dtConfig>(entity =>
+            {
+                entity.ToTable("dtConfig");
+
+                entity.HasIndex(e => e.type, "fk_config_type_idx");
+
+                entity.HasIndex(e => e.key, "fk_config_type_idx1");
+
+                entity.HasIndex(e => e.user, "fk_config_user_idx");
+
+                entity.Property(e => e.id).HasColumnType("int(11)");
+
+                entity.Property(e => e.key).HasColumnType("int(11)");
+
+                entity.Property(e => e.type).HasColumnType("int(11)");
+
+                entity.Property(e => e.user).HasColumnType("int(11)");
+
+                entity.Property(e => e.value).HasMaxLength(100);
+
+                entity.HasOne(d => d.typeNavigation)
+                    .WithMany(p => p.dtConfigs)
+                    .HasForeignKey(d => d.type)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_config_type");
+
+                entity.HasOne(d => d.userNavigation)
+                    .WithMany(p => p.dtConfigs)
+                    .HasForeignKey(d => d.user)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_config_user");
+            });
+
+            modelBuilder.Entity<dtKey>(entity =>
+            {
+                entity.ToTable("dtKey");
+
+                entity.Property(e => e.id).HasColumnType("int(11)");
+
+                entity.Property(e => e.key)
+                    .IsRequired()
+                    .HasMaxLength(100);
             });
 
             modelBuilder.Entity<dtMisc>(entity =>

@@ -1,4 +1,4 @@
-Scaffold-DbContext "Name=ConnectionStrings:DG" MySql.EntityFrameworkCore -Tables dtColorCode, dtMisc, dtPlanItem, dtProject, dtSession, dtStatus, dtTestData, dtType, dtUser -OutputDir Data\Entities -ContextDir Data -Context dgdb -Namespace DanTech.Data -UseDatabaseNames -Force
+Scaffold-DbContext "Name=ConnectionStrings:DG" MySql.EntityFrameworkCore -Tables dtColorCode, dtConfig, dtKey, dtMisc, dtPlanItem, dtProject, dtSession, dtStatus, dtTestData, dtType, dtUser -OutputDir Data\Entities -ContextDir Data -Context dgdb -Namespace DanTech.Data -UseDatabaseNames -Force
 
 Google Client ID: 849195656550-mi3286esf9mrgk8gkacu2712c1qghi3m.apps.googleusercontent.com
 Google Client Secret: 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

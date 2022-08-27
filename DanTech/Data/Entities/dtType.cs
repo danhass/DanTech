@@ -9,6 +9,7 @@ namespace DanTech.Data
     {
         public dtType()
         {
+            dtConfigs = new HashSet<dtConfig>();
             dtUsers = new HashSet<dtUser>();
         }
 
@@ -16,6 +17,7 @@ namespace DanTech.Data
         public string title { get; set; }
         public string description { get; set; }
 
+        public virtual ICollection<dtConfig> dtConfigs { get; set; }
         public virtual ICollection<dtUser> dtUsers { get; set; }
     }
 }

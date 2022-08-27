@@ -62,9 +62,9 @@ namespace DanTech.Models.Data
                 }
 
             }
-            if (!string.IsNullOrEmpty(pStartTime) && !string.IsNullOrEmpty(pEndTime) && start < end)
+            if (!string.IsNullOrEmpty(pStartTime) && !string.IsNullOrEmpty(pEndTime) && start.HasValue && start.Value < end)
             {
-                duration = end - start;
+                duration = end - start.Value;
             }
             priority = pPriority.HasValue ? pPriority : 1000;
             addToCalendar = pAddToCalendar;
@@ -110,7 +110,8 @@ namespace DanTech.Models.Data
         public string note { get; set; }
         public DateTime day { get; set; }
         public DateTime? start { get; set; }
-        public TimeSpan? duration { get; set; }
+        //public TimeSpan? duration { get { return duration.HasValue ? duration.Value : new TimeSpan(0,0,0) ; } set { duration = value; } }
+        public TimeSpan duration { get; set; }
         public int? priority { get; set; }
         public bool? addToCalendar { get; set; }
         public bool? completed { get; set; }
@@ -138,6 +139,7 @@ namespace DanTech.Models.Data
                         .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode.HasValue ? c.colorCode : 0));
                     cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
                         .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
+                        //.ForMember(dest => dest.duration, src => src.MapFrom(src=> src.duration.HasValue ? src.duration.Value : new TimeSpan(0,0,0)))
                         .ForMember(dest => dest.projectId, src => src.MapFrom(src => src.project))
                         .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
                         .ForMember(dest => dest.projectTitle, src => src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))

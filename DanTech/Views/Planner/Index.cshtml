@@ -32,9 +32,9 @@
                             }
                         </div>
                         <div class="col-1 border border-dark">
-                            @if (item.duration.HasValue)
+                            @if (item.duration.Hours > 0 || item.duration.Minutes > 0)
                             {
-                                @item.duration.Value.ToString(@"hh\:mm");
+                                @item.duration.ToString(@"hh\:mm");
                             }
                         </div>
                         <div class="col-1 border border-dark">@item.priority</div>
