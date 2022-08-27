@@ -139,10 +139,12 @@ namespace DanTechTests
                 db.dtPlanItems.RemoveRange(planItems);
                 db.dtUsers.Remove(u);
                 db.SaveChanges();
-                DTDBDataService.ClearTestData();
+                var testData = (from x in _db.dtTestData where x.title != DTConstants.AuthTokensNeedToBeResetKey select x).ToList();
+                db.dtTestData.RemoveRange(testData);
+                db.SaveChanges();
             }
         }
-
+         
         [TestMethod]
         public void DTTestOrganizer_valid()
         {

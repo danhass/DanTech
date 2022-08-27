@@ -85,14 +85,6 @@ namespace DanTech.Services
 
             _db.SaveChanges();
         }
-
-        public static void ClearTestData()
-        {
-            if (_db == null) _db = new dgdb();
-            var testData = (from x in _db.dtTestData where x.title != DTConstants.AuthTokensNeedToBeResetKey select x).ToList();
-            _db.dtTestData.RemoveRange(testData);
-            _db.SaveChanges();
-        }
  
         public dtUserModel UserModelForSession(string session, string hostAddress)
         {
