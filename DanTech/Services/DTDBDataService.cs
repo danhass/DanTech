@@ -217,7 +217,11 @@ namespace DanTech.Services
         {
             if (_db == null) _db = new dgdb();
             if (user == null) return new List<dtPlanItemModel>();
-            var mapper = new Mapper(PlanItemMapConfig);       
+            var mapper = new Mapper(PlanItemMapConfig);
+            var dateToday = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var itemsToRemove = (from x in _db.dtPlanItems where x.user == user.id && x.preserve != true && x.day < dateToday select x);
+            _db.dtPlanItems.RemoveRange(itemsToRemove);
+            _db.SaveChanges();
             var items = (from x in _db.dtPlanItems where x.user == user.id select x)
                 .OrderBy(x => x.day)
                 .ThenBy(x => x.completed)
