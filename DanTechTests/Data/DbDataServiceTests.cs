@@ -189,12 +189,13 @@ namespace DanTechTests
         }
         
         [TestMethod]
-        public void PlanItemAdd_MinimumItem()
+        public void PlanItemSet_MinimumItem()
         {
             //Arrange
             var db = DTTestOrganizer.DB();
             var dataService = new DTDBDataService(db);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel()
@@ -216,10 +217,12 @@ namespace DanTechTests
 
             //Act
             var item = dataService.Set(model);
+            numItems++;
             int newItemId = item.id;
             item.note = DTTestConstants.TestValue;
             item = dataService.Set(item);
             var item2 = dataService.Set(model2);
+            numItems++;
             var itemList = dataService.GetPlanItems(testUser);
 
             //Assert
@@ -228,7 +231,7 @@ namespace DanTechTests
             Assert.AreEqual(item.note, DTTestConstants.TestValue, "Did not properly update plan item.");
             Assert.IsTrue(item2.id > item.id, "Order of item creation is not correct.");
             Assert.AreEqual(item2.note, DTTestConstants.TestValue2, "Second test value not set correctly.");
-            Assert.AreEqual(itemList.Count, 2, "Did not get list of plan items correctly.");
+            Assert.AreEqual(itemList.Count, numItems, "Did not get list of plan items correctly.");
             Assert.IsTrue(itemList[0].id > itemList[1].id, "Date ordering of plan items is not correct");
         }
 

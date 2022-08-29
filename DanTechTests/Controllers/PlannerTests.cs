@@ -78,10 +78,22 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             // Act
-            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, DTTestConstants.TestValue, null, null, null, null, null, null, null, null, true, null);
-
+            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, DTTestConstants.TestValue, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var returnedList = (List<dtPlanItemModel>) jsonRes.Value;
+            var testItem = returnedList.Where(x => x.title == DTTestConstants.TestValue).FirstOrDefault();
+            Console.WriteLine("Test item: " +  testItem.id + "; " + testItem.title);
+            var jsonResCompleted = _controller.SetPlanItem(DTTestConstants.TestSessionId, testItem.title, DTTestConstants.TestValue2, null, null, null, null, null, null, true, null, null, null, true, null, null, testItem.id);
+            Console.WriteLine("json: " + jsonResCompleted.Value.ToString());
+            var returnedListFromCompleted = (List<dtPlanItemModel>)jsonResCompleted.Value;
+            Console.WriteLine("Ct: " + returnedListFromCompleted.Count);
+            var completedTestItem = returnedListFromCompleted.Where(x => x.title == DTTestConstants.TestValue && x.note == DTTestConstants.TestValue2).FirstOrDefault();
+            Console.WriteLine("Completed Test item: " + completedTestItem.id.Value + "; " + completedTestItem.title);
             // Assert
             Assert.AreEqual(((List<dtPlanItemModel>) jsonRes.Value).Count, _numberOfPlanItems, "Did not add test plan item correctly.");
+            Assert.AreEqual(testItem.title, DTTestConstants.TestValue, "Test item title incorrect.");
+            Assert.AreEqual(completedTestItem.title, DTTestConstants.TestValue, "Completed test item wrong title.");
+            Assert.AreEqual(completedTestItem.note, DTTestConstants.TestValue2, "Note not set.");
+            Assert.IsTrue(completedTestItem.completed.Value);
         }
 
         [TestMethod]
@@ -93,9 +105,11 @@ namespace DanTechTests.Controllers
 
             // Act
             var jsonGet = _controller.PlanItems(DTTestConstants.TestSessionId);
+            var jsonGetWithCompleted = _controller.PlanItems(DTTestConstants.TestSessionId, null, true);
 
             // Assert
-            Assert.AreEqual(((List<dtPlanItemModel>)jsonGet.Value).Count, _numberOfPlanItems, "Did not retrieve plan items correctly.");
+            Assert.AreNotEqual(((List<dtPlanItemModel>)jsonGet.Value).Count, _numberOfPlanItems, "Did not retrieve plan items correctly.");
+            Assert.AreEqual(((List<dtPlanItemModel>)jsonGetWithCompleted.Value).Count, _numberOfPlanItems, "Did not retrieve completed plan items correctly.");
         }
 
         [TestMethod]

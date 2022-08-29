@@ -125,7 +125,6 @@ namespace DanTech.Services
             List<dtProjectModel> projects = new List<dtProjectModel>();
             return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
-
         public List<dtProjectModel> DTProjects(dtUser u)
         {
             if (_db == null) _db = new dgdb();
@@ -183,20 +182,26 @@ namespace DanTech.Services
             if (_db == null) _db = new dgdb();
             if (planItem == null) return null;
 
+            if (!planItem.userId.HasValue) throw new Exception("Setting plan item requires a user id.");
             //Assume the elements of the model are valid.
             // For example, assume that the user is a valid user
             dtPlanItem item = null;
-            if (planItem.id != null && planItem.id > 0) item = (from x in _db.dtPlanItems where x.id == planItem.id select x).FirstOrDefault();
+            if (planItem.id != null && planItem.id.Value > 0)
+            {
+                item = (from x in _db.dtPlanItems where x.id == planItem.id select x).FirstOrDefault();
+                if (item != null && (planItem.userId == null || planItem.userId.Value != item.user)) throw new Exception("Trying to set plan item of different user.");
+            }
             if (item == null)  item = new dtPlanItem();
             item.addToCalendar = planItem.addToCalendar;
-            item.completed = planItem.completed;
+            item.completed = planItem.completed;            
+            if (!(item.completed.HasValue && item.completed.Value)) item.completed = null;
             item.day = planItem.day;
             item.duration = planItem.duration;
             item.note = planItem.note;
             item.priority = planItem.priority;
             item.start = planItem.start;
             item.title = planItem.title;
-            item.user = planItem.userId??0;
+            item.user = planItem.userId.Value;
             item.project = planItem.projectId;
             item.preserve = planItem.preserve;
             if (item.id < 1) _db.dtPlanItems.Add(item);
@@ -213,7 +218,11 @@ namespace DanTech.Services
             if (_db == null) _db = new dgdb();
             if (user == null) return new List<dtPlanItemModel>();
             var mapper = new Mapper(PlanItemMapConfig);       
-            var items = (from x in _db.dtPlanItems where x.user == user.id select x).OrderBy(x => x.day).ThenBy(x=> x.start).ToList();
+            var items = (from x in _db.dtPlanItems where x.user == user.id select x)
+                .OrderBy(x => x.day)
+                .ThenBy(x => x.completed)
+                .ThenBy(x=> x.start)
+                .ToList();
             string result = "Items: " + items.Count + "; User: " + user.id;
             if (!getAll)
             {

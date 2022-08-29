@@ -99,9 +99,10 @@ namespace DanTech.Controllers
                                       bool? preserve,
                                       int? projectId,
                                       int? daysBack = 1,
-                                      bool? includeCompleted = false,
+                                      bool? includeCompleted = true,
                                       bool? getAll = false,
-                                      int? onlyProject = 0
+                                      int? onlyProject = 0,
+                                      int? id = null
                                       )
         {
             if (VM == null) return Json(null);
@@ -120,7 +121,8 @@ namespace DanTech.Controllers
                                          VM.User?? new dtUserModel() , 
                                          projectId, 
                                          new dtProject(), 
-                                         false
+                                         false,
+                                         id
                                          );
             svc.Set(pi);
             var x = Json(svc.GetPlanItems(VM.User));

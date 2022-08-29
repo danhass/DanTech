@@ -10,8 +10,9 @@ namespace DanTech.Models.Data
 #nullable enable
     public class dtPlanItemModel
     {
-        public dtPlanItemModel(string pTitle, string? pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, bool? pPreserve, int pUser, dtUserModel pdtUser, int? pProjectId, dtProject pdtProject, bool pLoadUser=false)
-        {            
+        public dtPlanItemModel(string pTitle, string? pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, bool? pPreserve, int pUser, dtUserModel pdtUser, int? pProjectId, dtProject pdtProject, bool pLoadUser=false, int? pId = null)
+        {
+            id = pId;
             title = pTitle;
             note = pNote ?? "";
             day = DateTime.Now;
