@@ -85,7 +85,18 @@ namespace DanTech.Services
 
             _db.SaveChanges();
         }
- 
+
+        public bool DeletePlanItem(int planItemId, int userId)
+        {
+            if (_db == null) _db = new dgdb();
+            var item = (from x in _db.dtPlanItems where x.id == planItemId && x.user == userId select x).FirstOrDefault();
+            if (item == null) return false;
+            _db.dtPlanItems.Remove(item);
+            _db.SaveChanges();
+            return true;
+        }
+
+
         public dtUserModel UserModelForSession(string session, string hostAddress)
         {
             dtUserModel mappedUser = null;

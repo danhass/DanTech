@@ -97,6 +97,26 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void PlanItemDelete()
+        {
+            //Arrange
+            _numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count + 1;
+            SetControllerQueryString();
+            string key = DTTestConstants.TestValue + " Delete Test";
+
+            // Act
+            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var itemSetCt = (from x in _db.dtPlanItems where x.title == key select x).ToList().Count;
+            var setItem = (from x in _db.dtPlanItems where x.title == key select x).FirstOrDefault();
+            var delRes = _controller.DeletePlanItem(DTTestConstants.TestSessionId, setItem.id);
+            var delItemCt = (from x in _db.dtPlanItems where x.title == key select x).ToList().Count;
+
+            //Assert
+            Assert.AreEqual(itemSetCt, delItemCt + 1, "When set, there should be one more item counts than once deleted.");
+            Assert.IsTrue((bool)delRes.Value, "Controller should have confirmed delete.");
+        }
+
+        [TestMethod]
         public void PlanItem_Get()
         {
             //Arrange

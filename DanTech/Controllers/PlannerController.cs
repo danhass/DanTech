@@ -48,6 +48,15 @@ namespace DanTech.Controllers
             return Json(svc.DTProjects(VM.User.id));
         }
 
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult DeletePlanItem(string sessionId, int planItemId)
+        {
+            DTDBDataService svc = new DTDBDataService(_db);
+            if (VM == null || VM.User == null) return Json(null);
+            var result = svc.DeletePlanItem(planItemId, VM.User.id);
+            var x = Json(result);
+            return Json(result);
+        }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0)

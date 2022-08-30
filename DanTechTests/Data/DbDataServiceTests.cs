@@ -187,7 +187,35 @@ namespace DanTechTests
             Assert.AreEqual(numProjs.Count, DTTestOrganizer._numberOfProjects, "Data service returns wrong number by user id.");
             Assert.AreEqual(numProjsByUser.Count, DTTestOrganizer._numberOfProjects, "Data service returns wrong number by user.");
         }
-        
+
+        [TestMethod]
+        public void PlanItemDelete()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
+            var mapper = new Mapper(config);
+            dtPlanItemModel model = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemMinimumTitle + " Delete Test",
+                day = DateTime.Now.AddDays(2).Date,
+                user = mapper.Map<dtUserModel>(testUser),
+                userId = testUser.id
+            };
+
+            //Act
+            var item = dataService.Set(model);
+            int newItemId = item.id;
+            int newItemUser = item.user;
+            var deleted = dataService.DeletePlanItem(newItemId, newItemUser);
+            var result = (from x in db.dtPlanItems where x.id == newItemId select x).FirstOrDefault();
+
+            //Assert
+            Assert.IsNull(result, "Plan item not properly deleted.");
+        }
+
         [TestMethod]
         public void PlanItemSet_MinimumItem()
         {
