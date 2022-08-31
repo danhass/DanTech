@@ -10,12 +10,93 @@ namespace DanTech.Models.Data
 #nullable enable
     public class dtPlanItemModel
     {
-        public dtPlanItemModel(string pTitle, string? pNote, string? pStart, string? pStartTime, string? pEnd, string? pEndTime, int? pPriority, bool? pAddToCalendar, bool? pCompleted, bool? pPreserve, int pUser, dtUserModel pdtUser, int? pProjectId, dtProject pdtProject, bool pLoadUser=false, int? pId = null)
+        public dtPlanItemModel(dtPlanItem pItem)
         {
+            title = "";
+            note = "";
+            string start = pItem.day.ToShortDateString();
+            string startTime = pItem.start.HasValue ? pItem.start.Value.ToString("HH:mm") : "";
+            string end = "";
+            string endTime = "";
+            if (pItem.duration.HasValue && pItem.start.HasValue)
+            {
+                var startDT = pItem.start!.Value;
+                var durTS = pItem.duration.Value;
+                end = startDT.AddHours(durTS.Hours).AddMinutes(durTS.Minutes).ToShortDateString();
+                endTime = startDT.AddHours(durTS.Hours).AddMinutes(durTS.Minutes).ToString("HH:mm");
+
+                startTime = DateTime.Parse(startDT.ToShortDateString()).AddHours(durTS.Hours).AddMinutes(durTS.Minutes).ToString("HH:mm");
+            }
+
+            init(pItem.title,
+                 pItem.note,
+                 string.IsNullOrEmpty(start) ? null : start,
+                 string.IsNullOrEmpty(startTime) ? null : start,
+                 string.IsNullOrEmpty(end) ? null : end,
+                 string.IsNullOrEmpty(endTime) ? null : endTime,
+                 pItem.priority,
+                 pItem.addToCalendar,
+                 pItem.completed,
+                 pItem.preserve,
+                 pItem.user,
+                 null,
+                 pItem.project,
+                 null,
+                 false,
+                 pItem.id,
+                 pItem.recurrance,
+                 pItem.recurranceData
+                 );
+        }
+
+        public dtPlanItemModel(string pTitle,
+                               string? pNote,
+                               string? pStart,
+                               string? pStartTime,
+                               string? pEnd,
+                               string? pEndTime,
+                               int? pPriority,
+                               bool? pAddToCalendar,
+                               bool? pCompleted,
+                               bool? pPreserve,
+                               int pUser,
+                               dtUserModel pdtUser,
+                               int? pProjectId,
+                               dtProject pdtProject,
+                               bool pLoadUser = false,
+                               int? pId = null,
+                               int? pRecurrance = null,
+                               string? pRecurranceData = null
+            )
+        {
+            title = "";
+            note = "";
+            init(pTitle, pNote, pStart, pStartTime, pEnd, pEndTime, pPriority, pAddToCalendar, pCompleted, pPreserve, pUser, pdtUser, pProjectId, pdtProject, pLoadUser, pId, pRecurrance, pRecurranceData);
+        }
+
+        private void init(string pTitle,
+                               string? pNote,
+                               string? pStart,
+                               string? pStartTime,
+                               string? pEnd,
+                               string? pEndTime,
+                               int? pPriority,
+                               bool? pAddToCalendar,
+                               bool? pCompleted,
+                               bool? pPreserve,
+                               int pUser,
+                               dtUserModel pdtUser,
+                               int? pProjectId,
+                               dtProject pdtProject,
+                               bool pLoadUser = false,
+                               int? pId = null,
+                               int? pRecurrance = null,
+                               string? pRecurranceData = null)
+        { 
             id = pId;
             title = pTitle;
             note = pNote ?? "";
-            day = DateTime.Now;
+            day = DateTime.Parse(DateTime.Now.ToShortDateString());
             if (pStart != null && !string.IsNullOrEmpty(pStart))
             {
                 DateTime dt;
@@ -24,10 +105,6 @@ namespace DanTech.Models.Data
                     day = dt;
                 }
             }
-            day = day.AddHours(0 - day.Hour);
-            day = day.AddMinutes(0 - day.Minute);
-            day = day.AddSeconds(0 - day.Second);
-            day = day.AddMilliseconds(0 - day.Millisecond);
             if (!string.IsNullOrEmpty(pStartTime))
             {
                 TimeSpan ts;
@@ -95,6 +172,8 @@ namespace DanTech.Models.Data
                 var mapper = new Mapper(cfg);
                 project = mapper.Map<dtProjectModel>(pdtProject);
             }
+            recurrance = pRecurrance;
+            recurranceData = pRecurranceData;
         }
 
         public dtPlanItemModel()
@@ -124,8 +203,11 @@ namespace DanTech.Models.Data
         public dtProjectModel? project { get; set; }
 #nullable disable
         public string projectMnemonic { get; set; } = "";
-        public string projectTitle { get; set; } = "";       
-        
+        public string projectTitle { get; set; } = "";
+        public int? recurrance { get; set; }
+        public int? parent { get; set; }
+        public string recurranceData { get; set; }
+
         public static MapperConfiguration mapperConfiguration
         {
             get
@@ -139,8 +221,7 @@ namespace DanTech.Models.Data
                         .ForMember(dest => dest.status, src => src.MapFrom(src => src.status))
                         .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode.HasValue ? c.colorCode : 0));
                     cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
-                        .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation))
-                        //.ForMember(dest => dest.duration, src => src.MapFrom(src=> src.duration.HasValue ? src.duration.Value : new TimeSpan(0,0,0)))
+                        .ForMember(dest => dest.recurrance, src => src.MapFrom(src => src.recurrance.HasValue ? src.recurrance : null))
                         .ForMember(dest => dest.projectId, src => src.MapFrom(src => src.project))
                         .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
                         .ForMember(dest => dest.projectTitle, src => src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))

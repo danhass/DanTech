@@ -9,12 +9,14 @@ using DanTech.Models.Data;
 using System.IO;
 using DanTech.Models;
 using System.Net;
+using System.Threading;
 
 namespace DanTech.Services
 {
     public class DTDBDataService
     {
         private static dgdb _db = null;
+        private static dtPlanItem _recurringItem = null;
         private const string _testFlagKey = "Testing in progress";
 
         //Mappings
@@ -67,7 +69,7 @@ namespace DanTech.Services
         {
             _db = db;
             if (_db == null) _db = new dgdb();
-        }       
+        }
 
         public void ToggleTestFlag()
         {
@@ -129,7 +131,7 @@ namespace DanTech.Services
             }
             return mappedUser;
 
-        }    
+        }
         public List<dtProjectModel> DTProjects(int userId)
         {
             if (_db == null) _db = new dgdb();
@@ -143,7 +145,7 @@ namespace DanTech.Services
             if (u == null) return projects;
             var ps = (from x in _db.dtProjects where x.user == u.id select x).ToList();
             var config = dtProjectModel.mapperConfiguration;
-            var mapper = new Mapper(config);            
+            var mapper = new Mapper(config);
             foreach (var p in ps)
             {
                 projects.Add(mapper.Map<dtProjectModel>(p));
@@ -183,9 +185,9 @@ namespace DanTech.Services
         }
 
         public dtPlanItem Set(dtPlanItem planItem)
-        {       
+        {
             var mapper = new Mapper(PlanItemMapConfig);
-            var item = mapper.Map<dtPlanItemModel>(planItem);
+            var item = new dtPlanItemModel(planItem);
             return Set(item);
         }
         public dtPlanItem Set(dtPlanItemModel planItem)
@@ -202,9 +204,9 @@ namespace DanTech.Services
                 item = (from x in _db.dtPlanItems where x.id == planItem.id select x).FirstOrDefault();
                 if (item != null && (planItem.userId == null || planItem.userId.Value != item.user)) throw new Exception("Trying to set plan item of different user.");
             }
-            if (item == null)  item = new dtPlanItem();
+            if (item == null) item = new dtPlanItem();
             item.addToCalendar = planItem.addToCalendar;
-            item.completed = planItem.completed;            
+            item.completed = planItem.completed;
             if (!(item.completed.HasValue && item.completed.Value)) item.completed = null;
             item.day = planItem.day;
             item.duration = planItem.duration;
@@ -215,28 +217,64 @@ namespace DanTech.Services
             item.user = planItem.userId.Value;
             item.project = planItem.projectId;
             item.preserve = planItem.preserve;
+            item.recurrance = planItem.recurrance;
+            List<dtPlanItem> rItems = new List<dtPlanItem>();
+            if (item.recurrance.HasValue && item.id < 1) 
+            {
+                _recurringItem = item;
+                rItems = PopulateRecurrances();
+            }
             if (item.id < 1) _db.dtPlanItems.Add(item);
+            if (rItems.Count > 0) _db.dtPlanItems.AddRange(rItems);
             _db.SaveChanges();
             return item;
-        }        
+        }
 
-        public List<dtPlanItemModel> GetPlanItems(dtUser user, 
-                                                    int daysBack = 1, 
-                                                    bool includeCompleted = false, 
-                                                    bool getAll = false, 
+        private static List<dtPlanItem> PopulateRecurrances()
+        {
+            List<dtPlanItem> items = new List<dtPlanItem>();
+            if (_db == null) return items;
+            if (_recurringItem == null) return items;            
+            var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
+            var mapper = new Mapper(config);
+            var seed = mapper.Map<dtPlanItem>(_recurringItem);
+            seed.recurrance = null;
+            seed.recurranceData = "";
+            
+            for (int i=0; i<30; i++)
+            {
+                items.Add(mapper.Map<dtPlanItem>(seed));
+                seed.day = seed.day.AddDays(1);
+            }
+            return items;
+        }
+
+        public List<dtPlanItemModel> PlanItems(dtUser user,
+                                                    int daysBack = 1,
+                                                    bool includeCompleted = false,
+                                                    bool getAll = false,
                                                     int onlyProject = 0)
         {
             if (_db == null) _db = new dgdb();
             if (user == null) return new List<dtPlanItemModel>();
             var mapper = new Mapper(PlanItemMapConfig);
             var dateToday = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var itemsToRemove = (from x in _db.dtPlanItems where x.user == user.id && x.preserve != true && x.day < dateToday select x);
+
+            //Use the data retrieval as the chance to clean up items that need to be removed
+            var itemsToRemove = (from x in _db.dtPlanItems
+                                 where x.user == user.id
+                                    && x.preserve != true
+                                    && x.completed.HasValue
+                                    && x.completed.Value == true
+                                    && x.day < dateToday
+                                    && x.recurrance == null
+                                 select x);
             _db.dtPlanItems.RemoveRange(itemsToRemove);
             _db.SaveChanges();
             var items = (from x in _db.dtPlanItems where x.user == user.id select x)
                 .OrderBy(x => x.day)
                 .ThenBy(x => x.completed)
-                .ThenBy(x=> x.start)
+                .ThenBy(x => x.start)
                 .ToList();
             string result = "Items: " + items.Count + "; User: " + user.id;
             if (!getAll)
@@ -246,38 +284,46 @@ namespace DanTech.Services
             }
             if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
             if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
-            var mapped = mapper.Map<List<dtPlanItemModel>>(items);
-            return mapped;
+            var results = new List<dtPlanItemModel>();
+            foreach (var i in items) results.Add(new dtPlanItemModel(i));
+            return results;
         }
 
-        public List<dtPlanItemModel> GetPlanItems(dtUserModel userModel, 
-                                                  int daysBack = 1, 
-                                                  bool includeCompleted = false, 
-                                                  bool getAll = false, 
+        public List<dtPlanItemModel> PlanItems(dtUserModel userModel,
+                                                  int daysBack = 1,
+                                                  bool includeCompleted = false,
+                                                  bool getAll = false,
                                                   int onlyProject = 0)
         {
             if (userModel == null || userModel.id < 1) return new List<dtPlanItemModel>();
-            return GetPlanItems(userModel.id, daysBack, includeCompleted, getAll);
+            return PlanItems(userModel.id, daysBack, includeCompleted, getAll);
         }
 
-        public List<dtPlanItemModel> GetPlanItems(int userId, 
+        public List<dtPlanItemModel> PlanItems(int userId,
                                                   int daysBack = 1,
-                                                  bool includeCompleted = false, 
-                                                  bool getAll = false, 
+                                                  bool includeCompleted = false,
+                                                  bool getAll = false,
                                                   int onlyProject = 0)
         {
             if (_db == null) _db = new dgdb();
-            return GetPlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll);
+            return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll);
         }
 
-        public List<dtStatusModel> GetStati()
+        public List<dtStatusModel> Stati()
         {
             if (_db == null) _db = new dgdb();
-            var mappr = new Mapper( new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
+            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
             return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
         }
 
-        public List<dtColorCodeModel> GetColorCodes()
+        public List<dtRecurranceModel> Recurrances()
+        {
+            if (_db == null) _db = new dgdb();
+            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtRecurrance, dtRecurranceModel>(); }));
+            return mappr.Map<List<dtRecurranceModel>>(from x in _db.dtRecurrances select x).ToList();
+        }
+
+        public List<dtColorCodeModel> ColorCodes()
         {
             if (_db == null) _db = new dgdb();
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtColorCode, dtColorCodeModel>(); }));
@@ -302,17 +348,11 @@ namespace DanTech.Services
             itm.day = DateTime.Parse("8/30/2022");
             var ts = TimeSpan.Parse("13:05");
             itm.start = itm.day + ts;
-            
+
             int ct = 2;
             ct++;
         }
 
-        static void Modify (int number) { number++; }
-        static void Modify (Person person) { person.Name = "Adjusted"; }
     }
 
-    public class Person
-    {
-        public string Name { get; set; }
-    }
 }

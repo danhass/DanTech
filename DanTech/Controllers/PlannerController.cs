@@ -22,22 +22,29 @@ namespace DanTech.Controllers
         public IActionResult Index()
         {
             DTDBDataService svc = new DTDBDataService(_db);
-            VM.PlanItems = svc.GetPlanItems(VM.User);
+            VM.PlanItems = svc.PlanItems(VM.User);
             return View(VM);
+        }
+
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult Recurrances(string sessionId)
+        {
+            DTDBDataService svc = new DTDBDataService(_db);
+            return Json(svc.Recurrances());
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Stati(string sessionId)
         {
             DTDBDataService svc = new DTDBDataService(_db);
-            return Json(svc.GetStati());
+            return Json(svc.Stati());
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult ColorCodes(string sessionId)
         {
             DTDBDataService svc = new DTDBDataService(_db);
-            return Json(svc.GetColorCodes());
+            return Json(svc.ColorCodes());
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
@@ -62,7 +69,7 @@ namespace DanTech.Controllers
         public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0)
         {
             DTDBDataService svc = new DTDBDataService(_db);
-            VM.PlanItems = svc.GetPlanItems(VM.User
+            VM.PlanItems = svc.PlanItems(VM.User
                 , daysBack.HasValue ? daysBack.Value : 1
                 , includeCompleted.HasValue ? includeCompleted.Value : false
                 , getAll.HasValue ? getAll.Value : false) ;
@@ -92,7 +99,6 @@ namespace DanTech.Controllers
             return Json(svc.DTProjects(VM.User.id));
         }
 
-
         [HttpPost]
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult SetPlanItem(string sessionId,
@@ -111,31 +117,35 @@ namespace DanTech.Controllers
                                       bool? includeCompleted = true,
                                       bool? getAll = false,
                                       int? onlyProject = 0,
-                                      int? id = null
+                                      int? id = null,
+                                      int? recurrance = null,
+                                      string? recurranceData = null
                                       )
         {
             if (VM == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db);
-            var pi = new dtPlanItemModel(title, 
-                                         note, 
-                                         start, 
-                                         startTime, 
-                                         end, 
-                                         endTime, 
-                                         priority, 
-                                         addToCalendar, 
-                                         completed, 
-                                         preserve, 
-                                         VM.User == null ? 0 : VM.User.id, 
-                                         VM.User?? new dtUserModel() , 
-                                         projectId, 
-                                         new dtProject(), 
+            var pi = new dtPlanItemModel(title,
+                                         note,
+                                         start,
+                                         startTime,
+                                         end,
+                                         endTime,
+                                         priority,
+                                         addToCalendar,
+                                         completed,
+                                         preserve,
+                                         VM.User == null ? 0 : VM.User.id,
+                                         VM.User ?? new dtUserModel(),
+                                         projectId,
+                                         new dtProject(),
                                          false,
-                                         id
+                                         id,
+                                         recurrance,
+                                         recurranceData
                                          );
             svc.Set(pi);
-            var x = Json(svc.GetPlanItems(VM.User));
-            return Json(svc.GetPlanItems(VM.User, 
+            var x = Json(svc.PlanItems(VM.User));
+            return Json(svc.PlanItems(VM.User, 
                                         daysBack.HasValue ? daysBack.Value : 1, 
                                         includeCompleted.HasValue ? includeCompleted.Value : false, 
                                         getAll.HasValue ? getAll.Value : false,

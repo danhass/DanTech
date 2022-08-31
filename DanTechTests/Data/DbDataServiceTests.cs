@@ -111,22 +111,37 @@ namespace DanTechTests
             var dataService = new DTDBDataService(db);
 
             //Act
-            var statuses = dataService.GetStati();
+            var statuses = dataService.Stati();
 
             //Assert
             Assert.AreEqual(statuses.Count, numStati, "Status not correctly retrieved.");
         }
 
         [TestMethod]
+        public void Recurrances_List()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var numRecurrances = (from x in db.dtRecurrances select x).ToList().Count;
+            var dataService = new DTDBDataService(db);
+
+            //Act
+            var recurrances = dataService.Recurrances();
+
+            //Assert
+            Assert.AreEqual(recurrances.Count, numRecurrances, "Recurrances not correctly received.");
+        }
+
+        [TestMethod]
         public void ColorCode_List()
         {
-            var db = DTTestOrganizer.DB();
             //Arrange
+            var db = DTTestOrganizer.DB();
             var numColorCodes = (from x in db.dtColorCodes select x).ToList().Count;
             var dataService = new DTDBDataService(db);
 
             //Act
-            var colorCodes = dataService.GetColorCodes();
+            var colorCodes = dataService.ColorCodes();
 
             //Assert
             Assert.AreEqual(colorCodes.Count, numColorCodes, "Color codes not correctly received.");
@@ -251,7 +266,7 @@ namespace DanTechTests
             item = dataService.Set(item);
             var item2 = dataService.Set(model2);
             numItems++;
-            var itemList = dataService.GetPlanItems(testUser);
+            var itemList = dataService.PlanItems(testUser);
 
             //Assert
             Assert.IsTrue(newItemId > 0, "Plan item creation failed.");

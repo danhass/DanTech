@@ -97,6 +97,21 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void PlanItemSetWithDailyRecurrance()
+        {
+            //Arrange
+            var numItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.completed == null || x.completed.Value == false) select x).ToList().Count;
+            var testProj = (from x in _db.dtProjects where x.user == _testUser.id select x).FirstOrDefault();  //Just use the first project
+            SetControllerQueryString();
+
+            //Act
+            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, DTTestConstants.TestValue + " with Recurrance", null, null, null, null, null, null, null, null, null, testProj.id, null, null, null, null, null, DTTestConstants.RecurranceId_Daily, null);
+            var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
+
+            Assert.AreEqual(returnedList.Count, numItems + 31, "Setting the recurring plan item should have increased number of plan items by 1.");
+        }
+
+        [TestMethod]
         public void PlanItemDelete()
         {
             //Arrange
@@ -120,7 +135,9 @@ namespace DanTechTests.Controllers
         public void PlanItem_Get()
         {
             //Arrange
-            _numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
+            var totalPlans = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
+            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.completed == null || x.completed.Value == false) select x).ToList().Count;
+            Console.WriteLine(_numberOfPlanItems);
             SetControllerQueryString();
 
             // Act
@@ -128,8 +145,8 @@ namespace DanTechTests.Controllers
             var jsonGetWithCompleted = _controller.PlanItems(DTTestConstants.TestSessionId, null, true);
 
             // Assert
-            Assert.AreNotEqual(((List<dtPlanItemModel>)jsonGet.Value).Count, _numberOfPlanItems, "Did not retrieve plan items correctly.");
-            Assert.AreEqual(((List<dtPlanItemModel>)jsonGetWithCompleted.Value).Count, _numberOfPlanItems, "Did not retrieve completed plan items correctly.");
+            Assert.AreEqual(((List<dtPlanItemModel>)jsonGet.Value).Count, numberOfNotCompletedPlanItems, "Did not retrieve plan items correctly.");
+            Assert.AreEqual(((List<dtPlanItemModel>)jsonGetWithCompleted.Value).Count, totalPlans, "Did not retrieve completed plan items correctly.");
         }
 
         [TestMethod]
@@ -162,6 +179,23 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(((List<dtProjectModel>)projectsWithNewItem.Value).Where(x => x.title.Contains("New_Test_Through_Controller")).ToList().Count, 1, "Should be one new project with the title showing it was created here.");
             Assert.AreEqual(((List<dtProjectModel>)projectsWithUpdatedItem.Value).Where(x => x.notes == "Updated by PlannerTests:SetProject").ToList().Count, 1, "Should be exactly one projected updated through this.");
  //           Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+        }
+
+        [TestMethod]
+        public void Recurrances()
+        {
+            //Arrange
+            int numberRecurrances = (from x in _db.dtRecurrances select x).ToList().Count;
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.Recurrances(DTTestConstants.TestSessionId);
+            var firstRecurrance = ((List<dtRecurranceModel>)res.Value)[0];
+            var fisttRecurranceInDB = (from x in _db.dtRecurrances where x.id == firstRecurrance.id select x).FirstOrDefault();
+
+            //Assert
+            Assert.AreEqual(((List<dtRecurranceModel>)res.Value).Count, numberRecurrances, "Recurrance numbers don't match.");
+            Assert.IsNotNull(fisttRecurranceInDB, "Did not retrieve any recurrances.");
         }
 
         [TestMethod]
