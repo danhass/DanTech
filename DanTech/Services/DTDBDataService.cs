@@ -218,15 +218,36 @@ namespace DanTech.Services
             item.project = planItem.projectId;
             item.preserve = planItem.preserve;
             item.recurrance = planItem.recurrance;
-            List<dtPlanItem> rItems = new List<dtPlanItem>();
-            if (item.recurrance.HasValue && item.id < 1) 
+            item.recurranceData = planItem.recurranceData;
+            if (item.id < 1) _db.dtPlanItems.Add(item);
+            try
+            {
+                _db.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                string eType = e.GetType().FullName;
+                Console.WriteLine(eType);
+            }
+            if (item.recurrance.HasValue) 
             {
                 _recurringItem = item;
-                rItems = PopulateRecurrances();
+                var rItems = PopulateRecurrances();
+                if (rItems.Count > 0)
+                {
+                    _db.dtPlanItems.AddRange(rItems);
+                    try
+                    {
+                        _db.SaveChanges();
+                    }
+                    catch (Exception e)
+                    {
+                        string eType = e.GetType().FullName;
+                        Console.WriteLine(eType);
+                    }
+                }
             }
-            if (item.id < 1) _db.dtPlanItems.Add(item);
-            if (rItems.Count > 0) _db.dtPlanItems.AddRange(rItems);
-            _db.SaveChanges();
+
             return item;
         }
 
@@ -234,17 +255,26 @@ namespace DanTech.Services
         {
             List<dtPlanItem> items = new List<dtPlanItem>();
             if (_db == null) return items;
-            if (_recurringItem == null) return items;            
+            if (_recurringItem == null) return items;
+            List<bool> AddOnThisDay = new List<bool>() { true, true, true, true, true, true, true };
+
+            if (!string.IsNullOrEmpty(_recurringItem.recurranceData))
+            {
+                for (int i = 0; i < _recurringItem.recurranceData.Length; i++) if (_recurringItem.recurranceData[i] != '*') AddOnThisDay[i] = false;
+            }
             var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
             var mapper = new Mapper(config);
             var seed = mapper.Map<dtPlanItem>(_recurringItem);
             seed.recurrance = null;
             seed.recurranceData = "";
+            seed.parent = _recurringItem.id;
+            seed.id = 0;
             
             for (int i=0; i<30; i++)
             {
-                items.Add(mapper.Map<dtPlanItem>(seed));
+                if (AddOnThisDay[(int)seed.day.DayOfWeek]) items.Add(mapper.Map<dtPlanItem>(seed));
                 seed.day = seed.day.AddDays(1);
+                seed.id = 0;
             }
             return items;
         }

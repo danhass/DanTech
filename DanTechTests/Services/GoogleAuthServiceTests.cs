@@ -75,6 +75,11 @@ namespace DanTechTests
         [TestMethod]
         public void UserInfo_FromAccessToken()
         {
+            if (DTTestConstants.TestControl_SkipAllGoogleAuth)
+            {
+                Assert.Inconclusive("Skipping UserInfo_FromAccessToken");
+            }
+
             //Arrange
             var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();

@@ -21,7 +21,7 @@ namespace DanTechTests
             var db = DTTestOrganizer.DB();
             Assert.IsNotNull(db);
         }
-         
+
         [TestMethod]
         public void DBAccessible()
         {
@@ -172,8 +172,8 @@ namespace DanTechTests
                 notes = "new test item from Test:Project_Set",
                 shortCode = "TST",
                 status = testStatus.id,
-                title = DTTestConstants.TestProjectTitlePrefix + "New_Test", 
-                user=testUser.id
+                title = DTTestConstants.TestProjectTitlePrefix + "New_Test",
+                user = testUser.id
             };
 
             //Act
@@ -193,7 +193,7 @@ namespace DanTechTests
             var db = DTTestOrganizer.DB();
             var dataService = new DTDBDataService(db);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            
+
             //Act
             var numProjs = dataService.DTProjects(testUser.id);
             var numProjsByUser = dataService.DTProjects(testUser);
@@ -246,7 +246,7 @@ namespace DanTechTests
                 title = DTTestConstants.TestPlanItemMinimumTitle,
                 day = DateTime.Now.AddDays(2).Date,
                 user = mapper.Map<dtUserModel>(testUser),
-                userId = testUser.id                
+                userId = testUser.id
             };
 
             dtPlanItemModel model2 = new dtPlanItemModel()
@@ -275,9 +275,65 @@ namespace DanTechTests
             Assert.IsTrue(item2.id > item.id, "Order of item creation is not correct.");
             Assert.AreEqual(item2.note, DTTestConstants.TestValue2, "Second test value not set correctly.");
             Assert.AreEqual(itemList.Count, numItems, "Did not get list of plan items correctly.");
-            Assert.IsTrue(itemList[0].id > itemList[1].id, "Date ordering of plan items is not correct");
+            Assert.IsTrue(itemList[0].day >= itemList[1].day, "Date ordering of plan items is not correct");
         }
 
+        [TestMethod]
+        public void PlanItemAddRecurrance()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            string recurranceTitle = DTTestConstants.TestValue + " for AddRecurrance Test";
+            var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
+            var beginningRecurranceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrance != null select x).ToList().Count;
+            dtPlanItem recurrance = new dtPlanItem() { title = recurranceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), recurrance = DTTestConstants.RecurranceId_Daily, user = testUser.id };
+
+            //Act
+            var results = dataService.Set(recurrance);
+            var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
+            var recurranceAdded = (from x in db.dtPlanItems where x.user == testUser.id && x.title == recurranceTitle select x).FirstOrDefault();
+            var endRecurranceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrance != null select x).ToList().Count;
+            var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurranceAdded.id select x).ToList().Count;
+
+            //Assert
+            Assert.AreEqual(endCount, beginningCount + 31, "Adding daily recurrance should have added 31 plan items: recurrance + 1 per day for 30 days.");
+            Assert.IsNotNull(recurranceAdded, "Cannot find the recurrance in the database.");
+            Assert.AreEqual(endRecurranceCt, beginningRecurranceCt + 1, "Adding a recurrance should have increased the recurrance count by 1.");
+            Assert.AreEqual(childItemCount, 30, "Should have generated 30 items with the recurrance as a parent.");
+        }
+
+        [TestMethod]
+        public void PlanItemAddRecurranceWith_TTh_Filter()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            string recurranceTitle = DTTestConstants.TestValue + " for T-Th Recurrance Test";
+            var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
+            var beginningRecurranceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrance != null select x).ToList().Count;
+            //Create a T-Th recurrance
+            dtPlanItem recurrance = new dtPlanItem() { title = recurranceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), recurrance = DTTestConstants.RecurranceId_Daily, recurranceData="--*-*--", user = testUser.id };
+            DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
+            //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
+            int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
+
+            //Act
+            var results = dataService.Set(recurrance);
+            var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
+            var recurranceAdded = (from x in db.dtPlanItems where x.user == testUser.id && x.title == recurranceTitle select x).FirstOrDefault();
+            var endRecurranceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrance != null select x).ToList().Count;
+            var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurranceAdded.id select x).ToList().Count;
+
+            //Assert
+            Assert.AreEqual(endCount, beginningCount + numberOfChildrenExpected + 1, "Adding daily recurrance should add plan items: recurrance + number of childrec expeced.");
+            Assert.IsNotNull(recurranceAdded, "Cannot find the recurrance in the database.");
+            Assert.AreEqual(endRecurranceCt, beginningRecurranceCt + 1, "Adding a recurrance should have increased the recurrance count by 1.");
+            Assert.AreEqual(childItemCount, numberOfChildrenExpected, "Should have generated number of children expected with a parent of the recurrance.");
+
+        }
         [TestMethod]
         public void PlanItemAdd_NoEndDate()
         {
