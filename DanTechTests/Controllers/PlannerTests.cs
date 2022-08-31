@@ -74,22 +74,22 @@ namespace DanTechTests.Controllers
         public void PlanItemSet()
         {
             //Arrange
-            _numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count + 1;
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var totalPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
+            var totalPlanItemsCurrent = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.completed.HasValue == false || x.completed.Value == false) && x.day >= today select x).ToList().Count;
             SetControllerQueryString();
 
             // Act
             var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, DTTestConstants.TestValue, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
             var returnedList = (List<dtPlanItemModel>) jsonRes.Value;
             var testItem = returnedList.Where(x => x.title == DTTestConstants.TestValue).FirstOrDefault();
-            Console.WriteLine("Test item: " +  testItem.id + "; " + testItem.title);
             var jsonResCompleted = _controller.SetPlanItem(DTTestConstants.TestSessionId, testItem.title, DTTestConstants.TestValue2, null, null, null, null, null, null, true, null, null, null, true, null, null, testItem.id);
-            Console.WriteLine("json: " + jsonResCompleted.Value.ToString());
             var returnedListFromCompleted = (List<dtPlanItemModel>)jsonResCompleted.Value;
-            Console.WriteLine("Ct: " + returnedListFromCompleted.Count);
             var completedTestItem = returnedListFromCompleted.Where(x => x.title == DTTestConstants.TestValue && x.note == DTTestConstants.TestValue2).FirstOrDefault();
-            Console.WriteLine("Completed Test item: " + completedTestItem.id.Value + "; " + completedTestItem.title);
+
             // Assert
-            Assert.AreEqual(((List<dtPlanItemModel>) jsonRes.Value).Count, _numberOfPlanItems, "Did not add test plan item correctly.");
+            Assert.AreEqual(returnedList.Count, totalPlanItemsCurrent + 1, "Did not add test plan item correctly.");
             Assert.AreEqual(testItem.title, DTTestConstants.TestValue, "Test item title incorrect.");
             Assert.AreEqual(completedTestItem.title, DTTestConstants.TestValue, "Completed test item wrong title.");
             Assert.AreEqual(completedTestItem.note, DTTestConstants.TestValue2, "Note not set.");
@@ -100,15 +100,38 @@ namespace DanTechTests.Controllers
         public void PlanItemSetWithDailyRecurrance()
         {
             //Arrange
-            var numItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.completed == null || x.completed.Value == false) select x).ToList().Count;
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            string planItemKey = DTTestConstants.TestValue + " set with Recurrance";
             var testProj = (from x in _db.dtProjects where x.user == _testUser.id select x).FirstOrDefault();  //Just use the first project
             SetControllerQueryString();
 
             //Act
-            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, DTTestConstants.TestValue + " with Recurrance", null, null, null, null, null, null, null, null, null, testProj.id, null, null, null, null, null, DTTestConstants.RecurranceId_Daily, null);
+            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, testProj.id, null, true, null, null, null, DTTestConstants.RecurranceId_Daily, null);
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
 
-            Assert.AreEqual(returnedList.Count, numItems + 31, "Setting the recurring plan item should have increased number of plan items by 1.");
+            //Assert
+            Assert.AreEqual(returnedList.Count, numberOfNotCompletedPlanItems + 31, "Setting the recurring plan item should have increased number of plan items by 1 and one for each of the next 30 days.");
+        }
+
+        [TestMethod] 
+        public void PlanItemSet_DailyRecurrance_TTh_Filter()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            string planItemKey = DTTestConstants.TestValue + " set item through API with TTh Recurrance";
+            //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
+            DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
+            int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
+            SetControllerQueryString();
+
+            //Act
+            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, DTTestConstants.RecurranceId_Daily, "--*-*--");            
+            var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
+
+            //Assert
+            Assert.AreEqual(returnedList.Count, numberOfPlanItems + numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children..");
         }
 
         [TestMethod]
@@ -135,9 +158,10 @@ namespace DanTechTests.Controllers
         public void PlanItem_Get()
         {
             //Arrange
-            var totalPlans = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
-            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.completed == null || x.completed.Value == false) select x).ToList().Count;
-            Console.WriteLine(_numberOfPlanItems);
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var totalPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
+            var totalPlanItemsCurrent = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.completed.HasValue == false || x.completed.Value == false) && x.day >= today select x).ToList().Count;
             SetControllerQueryString();
 
             // Act
@@ -146,7 +170,7 @@ namespace DanTechTests.Controllers
 
             // Assert
             Assert.AreEqual(((List<dtPlanItemModel>)jsonGet.Value).Count, numberOfNotCompletedPlanItems, "Did not retrieve plan items correctly.");
-            Assert.AreEqual(((List<dtPlanItemModel>)jsonGetWithCompleted.Value).Count, totalPlans, "Did not retrieve completed plan items correctly.");
+            Assert.AreEqual(((List<dtPlanItemModel>)jsonGetWithCompleted.Value).Count, totalPlanItemsCurrent, "Did not retrieve completed plan items correctly.");
         }
 
         [TestMethod]

@@ -232,6 +232,64 @@ namespace DanTechTests
         }
 
         [TestMethod]
+        public void PlanItem_ClearPastDue()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
+            dtPlanItemModel model = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemMinimumTitle,
+                day = DateTime.Parse(DateTime.Now.ToShortDateString()),
+                userId = testUser.id
+            };
+            dtPlanItemModel modelForPastDue = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemMinimumTitle + " 2 days old",
+                day = DateTime.Parse(DateTime.Now.AddDays(-2).ToShortDateString()),
+                completed = true,
+                userId = testUser.id
+            };
+            dtPlanItemModel modelForPastDuePreserve = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemMinimumTitle + " 2 days old preserved",
+                day = DateTime.Parse(DateTime.Now.AddDays(-2).ToShortDateString()),
+                completed = true,
+                preserve = true,
+                userId = testUser.id
+            };
+            dtPlanItemModel modelForPastDueNotComplete = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemMinimumTitle + " 2 days old not complete",
+                day = DateTime.Parse(DateTime.Now.AddDays(-2).ToShortDateString()),
+                userId = testUser.id
+            };
+            dtPlanItemModel modelForFutureItem = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemMinimumTitle + " 2 days in future",
+                day = DateTime.Parse(DateTime.Now.AddDays(+2).ToShortDateString()),
+                userId = testUser.id
+            };
+
+            //Act
+            var itemsBeforeSet = dataService.PlanItems(testUser.id);
+            var baseline = dataService.Set(model);
+            var pastDue = dataService.Set(modelForPastDue);
+            var preserve = dataService.Set(modelForPastDuePreserve);
+            var incomplete = dataService.Set(modelForPastDueNotComplete);
+            var future = dataService.Set(model);
+            var items = dataService.PlanItems(testUser.id);
+            var itemsAfterSets = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
+
+            //Assert
+            Assert.AreEqual(itemsAfterSets, numItems + 4, "Should be 4 more items in db after sets with completed past due deleted.");
+            Assert.AreEqual(itemsBeforeSet.Count + 2, items.Count, "Only baseline and future should be added to current items.");
+        }
+
+
+        [TestMethod]
         public void PlanItemSet_MinimumItem()
         {
             //Arrange
@@ -316,8 +374,8 @@ namespace DanTechTests
             var beginningRecurranceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrance != null select x).ToList().Count;
             //Create a T-Th recurrance
             dtPlanItem recurrance = new dtPlanItem() { title = recurranceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), recurrance = DTTestConstants.RecurranceId_Daily, recurranceData="--*-*--", user = testUser.id };
-            DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
             //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
+            DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
             int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
 
             //Act
