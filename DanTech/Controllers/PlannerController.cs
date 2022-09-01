@@ -22,7 +22,7 @@ namespace DanTech.Controllers
         public IActionResult Index()
         {
             DTDBDataService svc = new DTDBDataService(_db);
-            VM.PlanItems = svc.PlanItems(VM.User);
+            VM.PlanItems = svc.PlanItems(VM.User.id);
             return View(VM);
         }
 
@@ -68,8 +68,9 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0)
         {
+            if (VM == null || VM.User == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db);
-            VM.PlanItems = svc.PlanItems(VM.User
+            VM.PlanItems = svc.PlanItems(VM.User.id
                 , daysBack.HasValue ? daysBack.Value : 1
                 , includeCompleted.HasValue ? includeCompleted.Value : false
                 , getAll.HasValue ? getAll.Value : false) ;
@@ -144,8 +145,10 @@ namespace DanTech.Controllers
                                          recurranceData
                                          );
             svc.Set(pi);
-            var x = Json(svc.PlanItems(VM.User));
-            return Json(svc.PlanItems(VM.User, 
+            int uid = 0;
+            if (VM != null) if (VM.User != null) uid = VM.User.id;
+            var x = Json(svc.PlanItems(uid));
+            return Json(svc.PlanItems(VM.User.id, 
                                         daysBack.HasValue ? daysBack.Value : 1, 
                                         includeCompleted.HasValue ? includeCompleted.Value : false, 
                                         getAll.HasValue ? getAll.Value : false,

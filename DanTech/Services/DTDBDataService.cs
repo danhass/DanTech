@@ -274,6 +274,11 @@ namespace DanTech.Services
             {
                 if (AddOnThisDay[(int)seed.day.DayOfWeek]) items.Add(mapper.Map<dtPlanItem>(seed));
                 seed.day = seed.day.AddDays(1);
+                if (seed.start.HasValue)
+                {
+                    var date = seed.start.Value.AddDays(1);
+                    seed.start = date;
+                }
                 seed.id = 0;
             }
             return items;
@@ -319,6 +324,7 @@ namespace DanTech.Services
             return results;
         }
 
+        /*
         public List<dtPlanItemModel> PlanItems(dtUserModel userModel,
                                                   int daysBack = 1,
                                                   bool includeCompleted = false,
@@ -328,6 +334,7 @@ namespace DanTech.Services
             if (userModel == null || userModel.id < 1) return new List<dtPlanItemModel>();
             return PlanItems(userModel.id, daysBack, includeCompleted, getAll);
         }
+        */
 
         public List<dtPlanItemModel> PlanItems(int userId,
                                                   int daysBack = 1,

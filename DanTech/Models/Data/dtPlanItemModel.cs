@@ -24,14 +24,12 @@ namespace DanTech.Models.Data
                 var durTS = pItem.duration.Value;
                 end = startDT.AddHours(durTS.Hours).AddMinutes(durTS.Minutes).ToShortDateString();
                 endTime = startDT.AddHours(durTS.Hours).AddMinutes(durTS.Minutes).ToString("HH:mm");
-
-                startTime = DateTime.Parse(startDT.ToShortDateString()).AddHours(durTS.Hours).AddMinutes(durTS.Minutes).ToString("HH:mm");
             }
 
             init(pItem.title,
                  pItem.note,
                  string.IsNullOrEmpty(start) ? null : start,
-                 string.IsNullOrEmpty(startTime) ? null : start,
+                 string.IsNullOrEmpty(startTime) ? null : startTime,
                  string.IsNullOrEmpty(end) ? null : end,
                  string.IsNullOrEmpty(endTime) ? null : endTime,
                  pItem.priority,
