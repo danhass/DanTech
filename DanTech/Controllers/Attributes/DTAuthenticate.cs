@@ -29,7 +29,6 @@ namespace DanTech.Controllers
         }
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-
             //The session id must be the first parameter on the query string. If not then it can be a cookie on the request,
             //  but CORS can prevent receiving request cookies.
             var hostAddress = context.HttpContext.Request.Host.Value;

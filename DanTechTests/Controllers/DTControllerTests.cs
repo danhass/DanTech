@@ -44,9 +44,9 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var db = DTDB.getDB();
-            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
-            var controller = DTTestOrganizer.InitializeHomeController(db, goodSession == null, "", goodSession == null ? "" : goodSession.session);
+            var controller = DTTestOrganizer.InitializeHomeController(db, goodSession != null, DTTestConstants.TestUserEmail, goodSession == null ? "" : goodSession.session);
             goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
 
             //Act
@@ -61,16 +61,39 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
 
         }
+                
+        [TestMethod]
+        public void HomeController_LoginFromMultipleLocations()
+        {
+            //Arrange
+            var db = DTDB.getDB();
+            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            dtSession firstSession = new dtSession() { user = goodUser.id, session = Guid.NewGuid().ToString(), hostAddress = DTTestConstants.TestRemoteHost, expires = DateTime.Now.AddDays(30) };
+            dtSession secondSession = new dtSession() { user = goodUser.id, session = Guid.NewGuid().ToString(), hostAddress = "AnoterTest.com", expires = DateTime.Now.AddDays(30) };
+            db.dtSessions.Add(firstSession);
+            db.dtSessions.Add(secondSession);
+            db.SaveChanges();
+
+            db.dtSessions.Remove(firstSession);
+            db.dtSessions.Remove(secondSession);
+            db.SaveChanges();
+
+            //Assert
+            Assert.IsNotNull(firstSession);
+            Assert.IsNotNull(secondSession);
+        }
+        
 
         [TestMethod]
         public void HomeController_LoginWithSessionId_NoCookie()
         {
             //Arrange
             var db = DTDB.getDB();
-            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
             var controller = DTTestOrganizer.InitializeHomeController(db, goodSession == null, "", goodSession == null ? "" : goodSession.session);
             goodSession = (from x in db.dtSessions where x.user == goodUser.id select x).FirstOrDefault();
+            Console.WriteLine("Good session: " + goodSession.id);
 
             //Act
             var login = controller.Login(goodSession.session);
@@ -114,6 +137,7 @@ namespace DanTechTests.Controllers
             var db = DTDB.getDB();
             var controller = DTTestOrganizer.InitializeHomeController(db, false);
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            if (string.IsNullOrEmpty(goodUser.refreshToken)) Assert.Inconclusive();
             var cookieCount = 0;
 
             //Act

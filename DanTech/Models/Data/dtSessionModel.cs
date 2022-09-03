@@ -21,8 +21,6 @@ namespace DanTech.Models.Data
                 return new MapperConfiguration(cfg =>
                 {
                     cfg.CreateMap<dtSession, dtSessionModel>();
-                    cfg.CreateMap<dtUser, dtUserModel>().
-                        ForMember(dest => dest.session, act => act.MapFrom(src => src.dtSession));
                 });
             } }
     }

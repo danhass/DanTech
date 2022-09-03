@@ -100,6 +100,7 @@ namespace DanTechTests
             //Arrange
             var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            if (string.IsNullOrEmpty(goodUser.refreshToken)) Assert.Inconclusive();
 
             //Act
             var userInfo = DTGoogleAuthService.GetUserInfo(TEST_AUTH_CODE, goodUser.refreshToken);           
@@ -115,6 +116,7 @@ namespace DanTechTests
             //Arrange
             var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            if (string.IsNullOrEmpty(goodUser.refreshToken)) Assert.Inconclusive();
             var config = InitConfiguration();
 
             //Act

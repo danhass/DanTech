@@ -86,15 +86,17 @@ namespace DanTechTests
         }
 
         public static HomeController InitializeHomeController(dgdb db, bool withLoggedInUser, string userEmail = "", string sessionId = "")
-        {
+        { 
+            string testHost = DTTestConstants.TestRemoteHost;        
             if (withLoggedInUser)
             {
                 if (string.IsNullOrEmpty(userEmail)) userEmail = DTTestConstants.TestUserEmail;
                 var user = (from x in db.dtUsers where x.email == userEmail select x).FirstOrDefault();
-                var testSession = (from x in db.dtSessions where x.user == user.id && x.hostAddress == DTTestConstants.TestRemoteHost select x).FirstOrDefault();
+                var testSession = (from x in db.dtSessions where x.user == user.id  select x).FirstOrDefault();
                 if (testSession == null)
                 {
                     testSession = new dtSession() { user = user.id, hostAddress = DTTestConstants.TestRemoteHostAddress };
+                    testHost = testSession.hostAddress;
                     db.dtSessions.Add(testSession);
                 }
                 testSession.expires = DateTime.Now.AddDays(7);
@@ -107,7 +109,7 @@ namespace DanTechTests
             return ctl;
         }
 
-        public static DefaultHttpContext InitializeContext(string host, bool withLoggedInUser, string sessionId = "", bool noCookie = false)
+        public static DefaultHttpContext InitializeContext(string host, bool withLoggedInUser, string sessionId = "", bool noCookie = false, string ipAddress = "")
         {
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(host);
@@ -122,7 +124,7 @@ namespace DanTechTests
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
-            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
+            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(string.IsNullOrEmpty(ipAddress) ? DTTestConstants.TestRemoteHostAddress : ipAddress);
             return httpContext;
         }
 

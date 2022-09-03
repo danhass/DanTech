@@ -19,8 +19,7 @@ namespace DanTech.Models.Data
         public string refreshToken { get; set; }
         public DateTime? lastLogin { get; set; }
         public byte? suspended { get; set; }
-        public dtSessionModel session { get; set; }
-
+  
         public static MapperConfiguration mapperConfiguration
         {
             get
@@ -28,8 +27,7 @@ namespace DanTech.Models.Data
                 return new MapperConfiguration(cfg =>
                 {
                     cfg.CreateMap<dtSession, dtSessionModel>();
-                    cfg.CreateMap<dtUser, dtUserModel>().
-                        ForMember(dest => dest.session, act => act.MapFrom(src => src.dtSession));
+                    cfg.CreateMap<dtUser, dtUserModel>();
                 });
             }
         }

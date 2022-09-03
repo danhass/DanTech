@@ -237,8 +237,7 @@ namespace DanTech.Data
             {
                 entity.ToTable("dtSession");
 
-                entity.HasIndex(e => e.user, "user_UNIQUE")
-                    .IsUnique();
+                entity.HasIndex(e => e.user, "fk_session_user_idx");
 
                 entity.Property(e => e.id).HasColumnType("int(11)");
 
@@ -249,8 +248,8 @@ namespace DanTech.Data
                 entity.Property(e => e.user).HasColumnType("int(11)");
 
                 entity.HasOne(d => d.userNavigation)
-                    .WithOne(p => p.dtSession)
-                    .HasForeignKey<dtSession>(d => d.user)
+                    .WithMany(p => p.dtSessions)
+                    .HasForeignKey(d => d.user)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_session_user");
             });

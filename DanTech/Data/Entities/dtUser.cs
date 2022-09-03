@@ -12,6 +12,7 @@ namespace DanTech.Data
             dtConfigs = new HashSet<dtConfig>();
             dtPlanItems = new HashSet<dtPlanItem>();
             dtProjects = new HashSet<dtProject>();
+            dtSessions = new HashSet<dtSession>();
         }
 
         public int id { get; set; }
@@ -26,9 +27,9 @@ namespace DanTech.Data
         public byte? suspended { get; set; }
 
         public virtual dtType typeNavigation { get; set; }
-        public virtual dtSession dtSession { get; set; }
         public virtual ICollection<dtConfig> dtConfigs { get; set; }
         public virtual ICollection<dtPlanItem> dtPlanItems { get; set; }
         public virtual ICollection<dtProject> dtProjects { get; set; }
+        public virtual ICollection<dtSession> dtSessions { get; set; }
     }
 }

@@ -162,8 +162,8 @@ namespace DanTech.Services
         public static dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, dgdb db, string accessToken, string refreshToken)
         {
             dtLogin login = new dtLogin();
-            Guid sessionGuid = Guid.NewGuid(); ;
-            if (!string.IsNullOrEmpty(userInfo.Email) && !(string.IsNullOrEmpty(userInfo.GivenName) && string.IsNullOrEmpty(userInfo.FamilyName)))
+            Guid sessionGuid = Guid.NewGuid();
+            if (userInfo != null && !string.IsNullOrEmpty(userInfo.Email) && !(string.IsNullOrEmpty(userInfo.GivenName) && string.IsNullOrEmpty(userInfo.FamilyName)))
             {
                 var user = (from x in db.dtUsers where x.email.ToLower() == userInfo.Email.ToLower() select x).FirstOrDefault();
                 if (user == null)
@@ -187,12 +187,6 @@ namespace DanTech.Services
                 var session = (from x in db.dtSessions where x.user == user.id && x.hostAddress == hostAddress select x).FirstOrDefault();
                 if (session == null)
                 {
-                    var oldSession = (from x in db.dtSessions where x.user == user.id select x).FirstOrDefault();
-                    if (oldSession!=null) // Must purge old session
-                    {
-                        db.dtSessions.Remove(oldSession);
-                        db.SaveChanges();
-                    }
                     session = new dtSession() { user = user.id, hostAddress = hostAddress};
                     db.dtSessions.Add(session);
                 }
