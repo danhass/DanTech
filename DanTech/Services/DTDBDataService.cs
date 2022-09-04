@@ -16,6 +16,7 @@ namespace DanTech.Services
     public class DTDBDataService
     {
         private static dgdb _db = null;
+        private static dtUser _currentUser = null;
         private static dtPlanItem _recurringItem = null;
         private const string _testFlagKey = "Testing in progress";
 
@@ -305,21 +306,6 @@ namespace DanTech.Services
             var mapper = new Mapper(PlanItemMapConfig);
             var dateToday = DateTime.Parse(DateTime.Now.ToShortDateString());
 
-            // Need to process recurrences
-            var recurrances = (from x in _db.dtPlanItems where x.user == user.id && x.recurrence != null select x).ToList();
-            List<dtPlanItem> recurranceItems = new List<dtPlanItem>();
-            foreach (var r in recurrances)
-            {
-                _recurringItem = r;
-                recurranceItems.AddRange(PopulateRecurrences());
-            }
-            if (recurranceItems.Count > 0)
-            {
-                _db.dtPlanItems.AddRange(recurranceItems);
-                _db.SaveChanges();
-
-            }
-
             //Use the data retrieval as the chance to clean up items that need to be removed
             var itemsToRemove = (from x in _db.dtPlanItems
                                  where x.user == user.id
@@ -346,7 +332,30 @@ namespace DanTech.Services
             if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
             var results = new List<dtPlanItemModel>();
             foreach (var i in items) results.Add(new dtPlanItemModel(i));
+            ThreadStart updateRecurrencesRef = new ThreadStart(UpdateRecurrances);
+            Thread updateRecurrences = new Thread(updateRecurrencesRef);
+            updateRecurrences.Start();
             return results;
+        }
+
+        private void UpdateRecurrances()
+        {
+            if (_currentUser == null || _db == null) return;
+            var user = _currentUser;
+            // Need to process recurrences
+            var recurrances = (from x in _db.dtPlanItems where x.user == user.id && x.recurrence != null select x).ToList();
+            List<dtPlanItem> recurranceItems = new List<dtPlanItem>();
+            foreach (var r in recurrances)
+            {
+                _recurringItem = r;
+                recurranceItems.AddRange(PopulateRecurrences());
+            }
+            if (recurranceItems.Count > 0)
+            {
+                _db.dtPlanItems.AddRange(recurranceItems);
+                _db.SaveChanges();
+
+            }
         }
 
         /*
