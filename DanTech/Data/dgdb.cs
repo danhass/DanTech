@@ -116,7 +116,7 @@ namespace DanTech.Data
 
                 entity.HasIndex(e => e.project, "fk_PlanItem_Project_idx");
 
-                entity.HasIndex(e => e.recurrence, "fk_PlanItem_Recurrence_idx");
+                entity.HasIndex(e => e.recurrence, "fk_PlanItem_Recurrance_idx");
 
                 entity.HasIndex(e => e.user, "fk_PlanItem_User_idx");
 

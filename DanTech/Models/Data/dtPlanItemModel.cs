@@ -43,7 +43,8 @@ namespace DanTech.Models.Data
                  false,
                  pItem.id,
                  pItem.recurrence,
-                 pItem.recurrenceData
+                 pItem.recurrenceData,
+                 pItem.parent
                  );
         }
 
@@ -89,11 +90,13 @@ namespace DanTech.Models.Data
                                bool pLoadUser = false,
                                int? pId = null,
                                int? pRecurrence = null,
-                               string? pRecurrenceData = null)
+                               string? pRecurrenceData = null,
+                               int? pParent = null)
         { 
             id = pId;
             title = pTitle;
             note = pNote ?? "";
+            parent = pParent;
             day = DateTime.Parse(DateTime.Now.ToShortDateString());
             if (pStart != null && !string.IsNullOrEmpty(pStart))
             {

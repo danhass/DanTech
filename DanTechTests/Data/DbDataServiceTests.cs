@@ -163,27 +163,34 @@ namespace DanTechTests
             var dataService = new DTDBDataService(db);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testStatus = (from x in db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
-            var allProjects = (from x in db.dtProjects select x).OrderBy(x => x.id).ToList();
-            var existingProject = allProjects[allProjects.Count - 1]; //The last three are test projects
-            var copyOfExisting = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtProject, dtProject>(); })).Map<dtProject>(existingProject);
-            copyOfExisting.notes = "Updated by Test:Project_Set";
+            var allProjects = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
             var newProj = new dtProject()
             {
-                notes = "new test item from Test:Project_Set",
                 shortCode = "TST",
                 status = testStatus.id,
-                title = DTTestConstants.TestProjectTitlePrefix + "New_Test",
+                title = DTTestConstants.TestProjectTitlePrefix + "New_Test #1",
+                user = testUser.id
+            };
+            var newProj2 = new dtProject()
+            {
+                shortCode = "T2",
+                status = testStatus.id,
+                title = DTTestConstants.TestProjectTitlePrefix + "New_Test #2",
                 user = testUser.id
             };
 
             //Act
             var setNew_Result = dataService.Set(newProj);
-            var setExist_Result = dataService.Set(copyOfExisting);
+            var setNew2 = dataService.Set(newProj2);
+            setNew2.notes = DTTestConstants.TestValue;
+            var setExist_Result = dataService.Set(setNew2);
+            var allProjectsAfter = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
+            var notesUpdated = (from x in db.dtProjects where x.id == setNew_Result.id select x).FirstOrDefault();
             DTTestOrganizer._numberOfProjects++;
 
             //Assert
-            Assert.AreEqual(setNew_Result.id, existingProject.id + 1, "Should have inserted a new project just after the last current one.");
-            Assert.AreEqual(setExist_Result.notes, existingProject.notes, "Should have updated existing project to show new note.");
+            Assert.AreEqual(allProjects.Count + 2, allProjectsAfter.Count, "Should have added 2 new projects.");
+            Assert.AreEqual(setNew2.notes, DTTestConstants.TestValue, "Should have updated existing project to show new note.");
         }
 
         [TestMethod]
@@ -193,14 +200,15 @@ namespace DanTechTests
             var db = DTTestOrganizer.DB();
             var dataService = new DTDBDataService(db);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var numProjects = (from x in db.dtProjects where x.user == testUser.id select x).ToList().Count;
 
             //Act
-            var numProjs = dataService.DTProjects(testUser.id);
+            var numProjsFromAPI = dataService.DTProjects(testUser.id);
             var numProjsByUser = dataService.DTProjects(testUser);
 
             //Assert
-            Assert.AreEqual(numProjs.Count, DTTestOrganizer._numberOfProjects, "Data service returns wrong number by user id.");
-            Assert.AreEqual(numProjsByUser.Count, DTTestOrganizer._numberOfProjects, "Data service returns wrong number by user.");
+            Assert.AreEqual(numProjsFromAPI.Count, numProjects, "Data service returns wrong number by user id.");
+            Assert.AreEqual(numProjsByUser.Count, numProjects, "Data service returns wrong number by user.");
         }
 
         [TestMethod]
@@ -237,7 +245,7 @@ namespace DanTechTests
             //Arrange
             var db = DTTestOrganizer.DB();
             var dataService = new DTDBDataService(db);
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testUser = DTTestOrganizer.TestUser;
             var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
             dtPlanItemModel model = new dtPlanItemModel()
             {

@@ -47,13 +47,13 @@ namespace DanTechTests.Controllers
             if (testSession == null)
             {
                 testSession = new dtSession() { user = _testUser.id, hostAddress = DTTestConstants.TestRemoteHostAddress };
+                testSession.expires = DateTime.Now.AddDays(1);
+                testSession.session = DTTestConstants.TestSessionId;
                 _db.dtSessions.Add(testSession);
+                _db.SaveChanges();
             }
-            testSession.expires = DateTime.Now.AddDays(1);
-            testSession.session = DTTestConstants.TestSessionId;
             _controller.VM = new DanTech.Models.DTViewModel();
             _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(_testUser);
-            _db.SaveChanges();
         }
         private void SetControllerQueryString()
         {
@@ -96,11 +96,28 @@ namespace DanTechTests.Controllers
             Assert.IsTrue(completedTestItem.completed.Value);
         }
 
-
+        [TestMethod]
         public void PlanItem_RecurrenceNotCurrent()
         {
-            // If a recurrence is set 
+            // If a recurrence is set for a previous date, when the plan items are retrieved, there should be items populated for the next 30 days.
 
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            string planItemKey = DTTestConstants.TestValue + " for  Out of Date Recurrence Test";
+            var testProj = (from x in _db.dtProjects where x.user == _testUser.id select x).FirstOrDefault();  //Just use the first project
+            var targDate = DateTime.Now.AddDays(-50);
+            DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
+            int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
+            SetControllerQueryString();
+
+            //Act
+            var jsonSetResult = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, targDate.ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, DTTestConstants.RecurrenceId_Daily, "--*-*--");
+            var itemList = (List<dtPlanItemModel>) _controller.PlanItems(DTTestConstants.TestSessionId, null, true).Value;
+            Console.WriteLine(itemList.Count);
+
+            //Assert
+            Assert.AreEqual(itemList.Count, numberOfPlanItems + numberOfChildrenExpected, "When getting the plan items, it should have populated up the number of items to include the expected number of children plus 1 for the recurrence.");
         }
 
         [TestMethod]

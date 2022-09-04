@@ -24,7 +24,7 @@ namespace DanTech.Services
 
         public static void ClearResetFlags()
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             var element = (from x in _db.dtMiscs where x.title == DTConstants.AuthTokensNeedToBeResetKey select x).FirstOrDefault();
             if (element != null)
             {
@@ -43,7 +43,7 @@ namespace DanTech.Services
 
         public static bool SetIfTesting(string key, string value)
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             var TestingFlag = (from x in _db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
             if (TestingFlag == null || TestingFlag.value != "1") return false;
 
@@ -68,12 +68,11 @@ namespace DanTech.Services
         public DTDBDataService(dgdb db)
         {
             _db = db;
-            if (_db == null) _db = new dgdb();
         }
 
         public void ToggleTestFlag()
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             var testFlag = (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
             if (testFlag == null)
             {
@@ -90,7 +89,7 @@ namespace DanTech.Services
 
         public bool DeletePlanItem(int planItemId, int userId)
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             var item = (from x in _db.dtPlanItems where x.id == planItemId && x.user == userId select x).FirstOrDefault();
             if (item == null) return false;
             _db.dtPlanItems.Remove(item);
@@ -134,13 +133,13 @@ namespace DanTech.Services
         }
         public List<dtProjectModel> DTProjects(int userId)
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             List<dtProjectModel> projects = new List<dtProjectModel>();
             return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
         public List<dtProjectModel> DTProjects(dtUser u)
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             List<dtProjectModel> projects = new List<dtProjectModel>();
             if (u == null) return projects;
             var ps = (from x in _db.dtProjects where x.user == u.id select x).ToList();
@@ -156,6 +155,7 @@ namespace DanTech.Services
 
         public dtProject Set(dtProject project)
         {
+            if (_db == null) throw new Exception("DB not set");
             dtProject existing = null;
             if (project.id > 0)
             {
@@ -186,13 +186,14 @@ namespace DanTech.Services
 
         public dtPlanItem Set(dtPlanItem planItem)
         {
+            if (_db == null) throw new Exception("DB not set");
             var mapper = new Mapper(PlanItemMapConfig);
             var item = new dtPlanItemModel(planItem);
             return Set(item);
         }
         public dtPlanItem Set(dtPlanItemModel planItem)
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             if (planItem == null) return null;
 
             if (!planItem.userId.HasValue) throw new Exception("Setting plan item requires a user id.");
@@ -238,6 +239,7 @@ namespace DanTech.Services
                     _db.dtPlanItems.AddRange(rItems);
                     try
                     {
+                        foreach (var i in rItems) i.recurrence = null;
                         _db.SaveChanges();
                     }
                     catch (Exception e)
@@ -253,6 +255,7 @@ namespace DanTech.Services
 
         private static List<dtPlanItem> PopulateRecurrences()
         {
+            if (_db == null) throw new Exception("DB not set");
             List<dtPlanItem> items = new List<dtPlanItem>();
             if (_db == null) return items;
             if (_recurringItem == null) return items;
@@ -269,10 +272,17 @@ namespace DanTech.Services
             seed.recurrenceData = "";
             seed.parent = _recurringItem.id;
             seed.id = 0;
+            seed.day = DateTime.Parse(DateTime.Now.ToShortDateString());
             
             for (int i=0; i<30; i++)
             {
-                if (AddOnThisDay[(int)seed.day.DayOfWeek]) items.Add(mapper.Map<dtPlanItem>(seed));
+                if (AddOnThisDay[(int)seed.day.DayOfWeek])
+                {
+                    if ((from x in _db.dtPlanItems where x.recurrence == null && x.day == seed.day && x.parent == seed.parent select x).FirstOrDefault() == null)
+                    {
+                        items.Add(mapper.Map<dtPlanItem>(seed));
+                    }
+                }
                 seed.day = seed.day.AddDays(1);
                 if (seed.start.HasValue)
                 {
@@ -290,10 +300,25 @@ namespace DanTech.Services
                                                     bool getAll = false,
                                                     int onlyProject = 0)
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             if (user == null) return new List<dtPlanItemModel>();
             var mapper = new Mapper(PlanItemMapConfig);
             var dateToday = DateTime.Parse(DateTime.Now.ToShortDateString());
+
+            // Need to process recurrences
+            var recurrances = (from x in _db.dtPlanItems where x.user == user.id && x.recurrence != null select x).ToList();
+            List<dtPlanItem> recurranceItems = new List<dtPlanItem>();
+            foreach (var r in recurrances)
+            {
+                _recurringItem = r;
+                recurranceItems.AddRange(PopulateRecurrences());
+            }
+            if (recurranceItems.Count > 0)
+            {
+                _db.dtPlanItems.AddRange(recurranceItems);
+                _db.SaveChanges();
+
+            }
 
             //Use the data retrieval as the chance to clean up items that need to be removed
             var itemsToRemove = (from x in _db.dtPlanItems
@@ -342,27 +367,27 @@ namespace DanTech.Services
                                                   bool getAll = false,
                                                   int onlyProject = 0)
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll);
         }
 
         public List<dtStatusModel> Stati()
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
             return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
         }
 
         public List<dtRecurrenceModel> Recurrences()
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtRecurrence, dtRecurrenceModel>(); }));
             return mappr.Map<List<dtRecurrenceModel>>(from x in _db.dtRecurrences select x).ToList();
         }
 
         public List<dtColorCodeModel> ColorCodes()
         {
-            if (_db == null) _db = new dgdb();
+            if (_db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtColorCode, dtColorCodeModel>(); }));
             return mappr.Map<List<dtColorCodeModel>>((from x in _db.dtColorCodes select x).OrderBy(x => x.title).ToList());
         }

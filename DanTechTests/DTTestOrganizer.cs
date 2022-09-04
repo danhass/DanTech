@@ -25,12 +25,20 @@ namespace DanTechTests
         private static dgdb _db = null;
         public static int _numberOfProjects = 0;
         public static dgdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }
+        public static dtUser TestUser { get; set; }
 
         [AssemblyInitialize()]
         public static void Init(TestContext context)
         {
             _db = DB(DTTestConstants.DefaultNumberOfTestPropjects);
-            _numberOfProjects = DTTestConstants.DefaultNumberOfTestPropjects;
+            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            if (testUser == null)
+            {
+                testUser = new dtUser() { type = 1, fName = DTTestConstants.TestUserFName, lName = DTTestConstants.TestUserLName, email = DTTestConstants.TestUserEmail };
+                _db.dtUsers.Add(testUser);
+                _db.SaveChanges();
+            }
+            TestUser = testUser;
         }
 
         [AssemblyCleanup]
@@ -137,7 +145,10 @@ namespace DanTechTests
                 db.dtProjects.RemoveRange(projs);
                 var sess = (from x in db.dtSessions where x.user == u.id select x).ToList();
                 db.dtSessions.RemoveRange(sess);
-                var planItems = (from x in db.dtPlanItems where x.user == u.id select x).ToList();
+                var planItems = (from x in db.dtPlanItems where x.user == u.id && x.parent != null select x).ToList();
+                db.dtPlanItems.RemoveRange(planItems);
+                db.SaveChanges();
+                planItems = (from x in db.dtPlanItems where x.user == u.id select x).ToList();
                 db.dtPlanItems.RemoveRange(planItems);
                 db.dtUsers.Remove(u);
                 db.SaveChanges();
