@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace DanTech.Data
 {
-    public partial class dtRecurrance
+    public partial class dtRecurrence
     {
-        public dtRecurrance()
+        public dtRecurrence()
         {
             dtPlanItems = new HashSet<dtPlanItem>();
         }

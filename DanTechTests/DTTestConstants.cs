@@ -32,7 +32,7 @@ namespace DanTechTests
         public const string LocalProtocol = "https";
         public const string LocalHostDomain = "localhost:44324";
         public const string GoogleSigninHandler = "Home/GoogleSignin";
-        public const int RecurranceId_Daily = 1; //This is not expected to change.
+        public const int RecurrenceId_Daily = 1; //This is not expected to change.
         public const string SessionCookieKey = "dtSessionId";
         public const string TestElementKey = "Test data element";
         public const string TestGoogleCodeTitle = "Google code";

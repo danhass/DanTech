@@ -24,13 +24,13 @@ namespace DanTech.Data
         public bool? addToCalendar { get; set; }
         public bool? completed { get; set; }
         public bool? preserve { get; set; }
-        public int? recurrance { get; set; }
+        public int? recurrence { get; set; }
         public int? parent { get; set; }
-        public string recurranceData { get; set; }
+        public string recurrenceData { get; set; }
 
         public virtual dtPlanItem parentNavigation { get; set; }
         public virtual dtProject projectNavigation { get; set; }
-        public virtual dtRecurrance recurranceNavigation { get; set; }
+        public virtual dtRecurrence recurrenceNavigation { get; set; }
         public virtual dtUser userNavigation { get; set; }
         public virtual ICollection<dtPlanItem> InverseparentNavigation { get; set; }
     }

@@ -30,7 +30,7 @@ namespace DanTechTests.Controllers
         private dtUser _testUser = null;
         // Valid values for tests
         private int _numberOfPlanItems = 4;
-
+        
         public PlannerTests()
         {
             _db = DTTestOrganizer.DB();
@@ -69,7 +69,7 @@ namespace DanTechTests.Controllers
         {
             Assert.IsNotNull(_controller, "Planner controller not correctly initialized.");
         }
-
+        
         [TestMethod]
         public void PlanItemSet()
         {
@@ -96,18 +96,25 @@ namespace DanTechTests.Controllers
             Assert.IsTrue(completedTestItem.completed.Value);
         }
 
+
+        public void PlanItem_RecurrenceNotCurrent()
+        {
+            // If a recurrence is set 
+
+        }
+
         [TestMethod]
-        public void PlanItemSetWithDailyRecurrance()
+        public void PlanItemSetWithDailyRecurrence()
         {
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
-            string planItemKey = DTTestConstants.TestValue + " set with Recurrance";
+            string planItemKey = DTTestConstants.TestValue + " set with Recurrence";
             var testProj = (from x in _db.dtProjects where x.user == _testUser.id select x).FirstOrDefault();  //Just use the first project
             SetControllerQueryString();
 
             //Act
-            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, testProj.id, null, true, null, null, null, DTTestConstants.RecurranceId_Daily, null);
+            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, testProj.id, null, true, null, null, null, DTTestConstants.RecurrenceId_Daily, null);
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
 
             //Assert
@@ -115,19 +122,19 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod] 
-        public void PlanItemSet_DailyRecurrance_TTh_Filter()
+        public void PlanItemSet_DailyRecurrence_TTh_Filter()
         {
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
-            string planItemKey = DTTestConstants.TestValue + " set item through API with TTh Recurrance";
+            string planItemKey = DTTestConstants.TestValue + " set item through API with TTh Recurrence";
             //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
             DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
             int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
             SetControllerQueryString();
 
             //Act
-            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, DTTestConstants.RecurranceId_Daily, "--*-*--");            
+            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, DTTestConstants.RecurrenceId_Daily, "--*-*--");            
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
 
             //Assert
@@ -195,8 +202,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var projectsWithNewItem = _controller.SetProject("", newProj.title, newProj.shortCode, newProj.status, newProj.colorCode.HasValue ? newProj.colorCode.Value : 0, newProj.priority, newProj.sortOrder, newProj.notes);
-            var projectsWithUpdatedItem = _controller.SetProject("", copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode.HasValue ? copyOfExisting.colorCode.Value : 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
+            var projectsWithNewItem = _controller.SetProject("", newProj.title, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes);
+            var projectsWithUpdatedItem = _controller.SetProject("", copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode ?? 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
 //            var corsFlag = _controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
@@ -206,20 +213,20 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public void Recurrances()
+        public void Recurrences()
         {
             //Arrange
-            int numberRecurrances = (from x in _db.dtRecurrances select x).ToList().Count;
+            int numberRecurrences = (from x in _db.dtRecurrences select x).ToList().Count;
             SetControllerQueryString();
 
             //Act
-            var res = _controller.Recurrances(DTTestConstants.TestSessionId);
-            var firstRecurrance = ((List<dtRecurranceModel>)res.Value)[0];
-            var fisttRecurranceInDB = (from x in _db.dtRecurrances where x.id == firstRecurrance.id select x).FirstOrDefault();
+            var res = _controller.Recurrences(DTTestConstants.TestSessionId);
+            var firstRecurrence = ((List<dtRecurrenceModel>)res.Value)[0];
+            var fisttRecurrenceInDB = (from x in _db.dtRecurrences where x.id == firstRecurrence.id select x).FirstOrDefault();
 
             //Assert
-            Assert.AreEqual(((List<dtRecurranceModel>)res.Value).Count, numberRecurrances, "Recurrance numbers don't match.");
-            Assert.IsNotNull(fisttRecurranceInDB, "Did not retrieve any recurrances.");
+            Assert.AreEqual(((List<dtRecurrenceModel>)res.Value).Count, numberRecurrences, "Recurrence numbers don't match.");
+            Assert.IsNotNull(fisttRecurrenceInDB, "Did not retrieve any recurrences.");
         }
 
         [TestMethod]

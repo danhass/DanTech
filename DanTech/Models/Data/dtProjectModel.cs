@@ -29,7 +29,7 @@ namespace DanTech.Models.Data
                        cfg.CreateMap<dtColorCode, dtColorCode>();
                        cfg.CreateMap<dtUser, dtUserModel>();
                        cfg.CreateMap<dtProject, dtProjectModel>()
-                           .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode.HasValue ? c.colorCode.Value: 0))
+                           .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode ?? 0))
                            .ForMember(dest => dest.user, src => src.MapFrom(src => src.userNavigation));
                    }
                 );

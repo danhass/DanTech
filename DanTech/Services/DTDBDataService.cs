@@ -217,8 +217,8 @@ namespace DanTech.Services
             item.user = planItem.userId.Value;
             item.project = planItem.projectId;
             item.preserve = planItem.preserve;
-            item.recurrance = planItem.recurrance;
-            item.recurranceData = planItem.recurranceData;
+            item.recurrence = planItem.recurrence;
+            item.recurrenceData = planItem.recurrenceData;
             if (item.id < 1) _db.dtPlanItems.Add(item);
             try
             {
@@ -229,10 +229,10 @@ namespace DanTech.Services
                 string eType = e.GetType().FullName;
                 Console.WriteLine(eType);
             }
-            if (item.recurrance.HasValue) 
+            if (item.recurrence.HasValue) 
             {
                 _recurringItem = item;
-                var rItems = PopulateRecurrances();
+                var rItems = PopulateRecurrences();
                 if (rItems.Count > 0)
                 {
                     _db.dtPlanItems.AddRange(rItems);
@@ -251,22 +251,22 @@ namespace DanTech.Services
             return item;
         }
 
-        private static List<dtPlanItem> PopulateRecurrances()
+        private static List<dtPlanItem> PopulateRecurrences()
         {
             List<dtPlanItem> items = new List<dtPlanItem>();
             if (_db == null) return items;
             if (_recurringItem == null) return items;
             List<bool> AddOnThisDay = new List<bool>() { true, true, true, true, true, true, true };
 
-            if (!string.IsNullOrEmpty(_recurringItem.recurranceData))
+            if (!string.IsNullOrEmpty(_recurringItem.recurrenceData))
             {
-                for (int i = 0; i < _recurringItem.recurranceData.Length; i++) if (_recurringItem.recurranceData[i] != '*') AddOnThisDay[i] = false;
+                for (int i = 0; i < _recurringItem.recurrenceData.Length; i++) if (_recurringItem.recurrenceData[i] != '*') AddOnThisDay[i] = false;
             }
             var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
             var mapper = new Mapper(config);
             var seed = mapper.Map<dtPlanItem>(_recurringItem);
-            seed.recurrance = null;
-            seed.recurranceData = "";
+            seed.recurrence = null;
+            seed.recurrenceData = "";
             seed.parent = _recurringItem.id;
             seed.id = 0;
             
@@ -302,7 +302,7 @@ namespace DanTech.Services
                                     && x.completed.HasValue
                                     && x.completed.Value == true
                                     && x.day < dateToday
-                                    && x.recurrance == null
+                                    && x.recurrence == null
                                  select x);
             _db.dtPlanItems.RemoveRange(itemsToRemove);
             _db.SaveChanges();
@@ -353,11 +353,11 @@ namespace DanTech.Services
             return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
         }
 
-        public List<dtRecurranceModel> Recurrances()
+        public List<dtRecurrenceModel> Recurrences()
         {
             if (_db == null) _db = new dgdb();
-            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtRecurrance, dtRecurranceModel>(); }));
-            return mappr.Map<List<dtRecurranceModel>>(from x in _db.dtRecurrances select x).ToList();
+            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtRecurrence, dtRecurrenceModel>(); }));
+            return mappr.Map<List<dtRecurrenceModel>>(from x in _db.dtRecurrences select x).ToList();
         }
 
         public List<dtColorCodeModel> ColorCodes()

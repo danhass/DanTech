@@ -42,8 +42,8 @@ namespace DanTech.Models.Data
                  null,
                  false,
                  pItem.id,
-                 pItem.recurrance,
-                 pItem.recurranceData
+                 pItem.recurrence,
+                 pItem.recurrenceData
                  );
         }
 
@@ -63,13 +63,13 @@ namespace DanTech.Models.Data
                                dtProject pdtProject,
                                bool pLoadUser = false,
                                int? pId = null,
-                               int? pRecurrance = null,
-                               string? pRecurranceData = null
+                               int? pRecurrence = null,
+                               string? pRecurrenceData = null
             )
         {
             title = "";
             note = "";
-            init(pTitle, pNote, pStart, pStartTime, pEnd, pEndTime, pPriority, pAddToCalendar, pCompleted, pPreserve, pUser, pdtUser, pProjectId, pdtProject, pLoadUser, pId, pRecurrance, pRecurranceData);
+            init(pTitle, pNote, pStart, pStartTime, pEnd, pEndTime, pPriority, pAddToCalendar, pCompleted, pPreserve, pUser, pdtUser, pProjectId, pdtProject, pLoadUser, pId, pRecurrence, pRecurrenceData);
         }
 
         private void init(string pTitle,
@@ -83,13 +83,13 @@ namespace DanTech.Models.Data
                                bool? pCompleted,
                                bool? pPreserve,
                                int pUser,
-                               dtUserModel pdtUser,
+                               dtUserModel? pdtUser,
                                int? pProjectId,
-                               dtProject pdtProject,
+                               dtProject? pdtProject,
                                bool pLoadUser = false,
                                int? pId = null,
-                               int? pRecurrance = null,
-                               string? pRecurranceData = null)
+                               int? pRecurrence = null,
+                               string? pRecurrenceData = null)
         { 
             id = pId;
             title = pTitle;
@@ -114,7 +114,7 @@ namespace DanTech.Models.Data
                     start = start.Value.AddMinutes(ts.Minutes);
                 }
             }
-            var end = start.HasValue ? start.Value : day;
+            var end = start ?? day;
             if (!string.IsNullOrEmpty(pEnd))
             {
                 DateTime dt;
@@ -170,8 +170,8 @@ namespace DanTech.Models.Data
                 var mapper = new Mapper(cfg);
                 project = mapper.Map<dtProjectModel>(pdtProject);
             }
-            recurrance = pRecurrance;
-            recurranceData = pRecurranceData;
+            recurrence = pRecurrence;
+            recurrenceData = pRecurrenceData;
         }
 
         public dtPlanItemModel()
@@ -202,9 +202,9 @@ namespace DanTech.Models.Data
 #nullable disable
         public string projectMnemonic { get; set; } = "";
         public string projectTitle { get; set; } = "";
-        public int? recurrance { get; set; }
+        public int? recurrence { get; set; }
         public int? parent { get; set; }
-        public string recurranceData { get; set; }
+        public string recurrenceData { get; set; }
 
         public static MapperConfiguration mapperConfiguration
         {
@@ -219,12 +219,12 @@ namespace DanTech.Models.Data
                         .ForMember(dest => dest.status, src => src.MapFrom(src => src.status))
                         .ForMember(dest => dest.colorCodeId, src => src.MapFrom(c => c.colorCode.HasValue ? c.colorCode : 0));
                     cfg.CreateMap<dtPlanItem, dtPlanItemModel>()
-                        .ForMember(dest => dest.recurrance, src => src.MapFrom(src => src.recurrance.HasValue ? src.recurrance : null))
+                        .ForMember(dest => dest.recurrence, src => src.MapFrom(src => src.recurrence.HasValue ? src.recurrence : null))
                         .ForMember(dest => dest.projectId, src => src.MapFrom(src => src.project))
                         .ForMember(dest => dest.project, src => src.MapFrom(src => src.projectNavigation))
                         .ForMember(dest => dest.projectTitle, src => src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.title))
                         .ForMember(dest => dest.projectMnemonic, src => src.MapFrom(src => src.projectNavigation == null ? "" : src.projectNavigation.shortCode))
-                        .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority.HasValue ? src.priority.Value : 1000))
+                        .ForMember(dest => dest.priority, src => src.MapFrom(src => src.priority ?? 1000))
                         .ForMember(dest => dest.userId, src => src.MapFrom(src => src.user));
                 });
             }

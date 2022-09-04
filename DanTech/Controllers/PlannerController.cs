@@ -27,10 +27,10 @@ namespace DanTech.Controllers
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult Recurrances(string sessionId)
+        public JsonResult Recurrences(string sessionId)
         {
             DTDBDataService svc = new DTDBDataService(_db);
-            return Json(svc.Recurrances());
+            return Json(svc.Recurrences());
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
@@ -71,9 +71,9 @@ namespace DanTech.Controllers
             if (VM == null || VM.User == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db);
             VM.PlanItems = svc.PlanItems(VM.User.id
-                , daysBack.HasValue ? daysBack.Value : 1
-                , includeCompleted.HasValue ? includeCompleted.Value : false
-                , getAll.HasValue ? getAll.Value : false) ;
+                , daysBack ?? 1
+                , includeCompleted ?? false
+                , getAll ?? false) ;
             return Json(VM.PlanItems);
         }
 
@@ -119,8 +119,8 @@ namespace DanTech.Controllers
                                       bool? getAll = false,
                                       int? onlyProject = 0,
                                       int? id = null,
-                                      int? recurrance = null,
-                                      string? recurranceData = null
+                                      int? recurrence = null,
+                                      string? recurrenceData = null
                                       )
         {
             if (VM == null) return Json(null);
@@ -141,18 +141,18 @@ namespace DanTech.Controllers
                                          new dtProject(),
                                          false,
                                          id,
-                                         recurrance,
-                                         recurranceData
+                                         recurrence,
+                                         recurrenceData
                                          );
             svc.Set(pi);
             int uid = 0;
             if (VM != null) if (VM.User != null) uid = VM.User.id;
             var x = Json(svc.PlanItems(uid));
-            return Json(svc.PlanItems(VM.User.id, 
-                                        daysBack.HasValue ? daysBack.Value : 1, 
-                                        includeCompleted.HasValue ? includeCompleted.Value : false, 
-                                        getAll.HasValue ? getAll.Value : false,
-                                        onlyProject.HasValue ? onlyProject.Value : 0));
+            return Json(svc.PlanItems(VM.User.id,
+                                        daysBack ?? 1, 
+                                        includeCompleted ?? false, 
+                                        getAll ?? false,
+                                        onlyProject ?? 0));
         }
     }
 #nullable disable

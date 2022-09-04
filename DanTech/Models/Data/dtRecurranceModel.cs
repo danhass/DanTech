@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DanTech.Models.Data
 {
-    public class dtRecurranceModel
+    public class dtRecurrenceModel
     {
         public int id { get; set; }
         public string title { get; set; }

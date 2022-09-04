@@ -23,7 +23,7 @@ namespace DanTech.Data
         public virtual DbSet<dtMisc> dtMiscs { get; set; }
         public virtual DbSet<dtPlanItem> dtPlanItems { get; set; }
         public virtual DbSet<dtProject> dtProjects { get; set; }
-        public virtual DbSet<dtRecurrance> dtRecurrances { get; set; }
+        public virtual DbSet<dtRecurrence> dtRecurrences { get; set; }
         public virtual DbSet<dtSession> dtSessions { get; set; }
         public virtual DbSet<dtStatus> dtStatuses { get; set; }
         public virtual DbSet<dtTestDatum> dtTestData { get; set; }
@@ -116,7 +116,7 @@ namespace DanTech.Data
 
                 entity.HasIndex(e => e.project, "fk_PlanItem_Project_idx");
 
-                entity.HasIndex(e => e.recurrance, "fk_PlanItem_Recurrance_idx");
+                entity.HasIndex(e => e.recurrence, "fk_PlanItem_Recurrence_idx");
 
                 entity.HasIndex(e => e.user, "fk_PlanItem_User_idx");
 
@@ -136,7 +136,7 @@ namespace DanTech.Data
 
                 entity.Property(e => e.project).HasColumnType("int(11)");
 
-                entity.Property(e => e.recurrance).HasColumnType("int(11)");
+                entity.Property(e => e.recurrence).HasColumnType("int(11)");
 
                 entity.Property(e => e.title)
                     .IsRequired()
@@ -154,10 +154,10 @@ namespace DanTech.Data
                     .HasForeignKey(d => d.project)
                     .HasConstraintName("fk_PlanItem_Project");
 
-                entity.HasOne(d => d.recurranceNavigation)
+                entity.HasOne(d => d.recurrenceNavigation)
                     .WithMany(p => p.dtPlanItems)
-                    .HasForeignKey(d => d.recurrance)
-                    .HasConstraintName("fk_PlanItem_Recurrance");
+                    .HasForeignKey(d => d.recurrence)
+                    .HasConstraintName("fk_PlanItem_Recurrence");
 
                 entity.HasOne(d => d.userNavigation)
                     .WithMany(p => p.dtPlanItems)
@@ -214,9 +214,9 @@ namespace DanTech.Data
                     .HasConstraintName("fk_project_user");
             });
 
-            modelBuilder.Entity<dtRecurrance>(entity =>
+            modelBuilder.Entity<dtRecurrence>(entity =>
             {
-                entity.ToTable("dtRecurrance");
+                entity.ToTable("dtRecurrence");
 
                 entity.Property(e => e.id).HasColumnType("int(11)");
 
