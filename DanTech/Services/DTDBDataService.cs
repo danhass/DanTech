@@ -260,38 +260,55 @@ namespace DanTech.Services
             List<dtPlanItem> items = new List<dtPlanItem>();
             if (_db == null) return items;
             if (_recurringItem == null) return items;
-            List<bool> AddOnThisDay = new List<bool>() { true, true, true, true, true, true, true };
 
-            if (!string.IsNullOrEmpty(_recurringItem.recurrenceData))
-            {
-                for (int i = 0; i < _recurringItem.recurrenceData.Length; i++) if (_recurringItem.recurrenceData[i] != '*') AddOnThisDay[i] = false;
-            }
             var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
             var mapper = new Mapper(config);
             var seed = mapper.Map<dtPlanItem>(_recurringItem);
-            seed.recurrence = null;
-            seed.recurrenceData = "";
-            seed.parent = _recurringItem.id;
             seed.id = 0;
-            seed.day = DateTime.Parse(DateTime.Now.ToShortDateString());
-            
-            for (int i=0; i<30; i++)
+            seed.recurrence = null;
+            seed.recurrenceData = null;
+            seed.parent = _recurringItem.id;
+
+            // Set up the days in the next 30 days when the recurrence should be placed.
+            List<bool> AddOnThisDay = new List<bool>() { false, false, false, false, false, false, false, false, false, false,
+                                                         false, false, false, false, false, false, false, false, false, false,
+                                                         false, false, false, false, false, false, false, false, false, false};
+            if (string.IsNullOrEmpty (_recurringItem.recurrenceData) || _recurringItem.recurrenceData == "-------") 
+                AddOnThisDay = new List<bool>() { true, true, true, true, true, true, true, true, true, true,
+                                                         true, true, true, true, true, true, true, true, true, true,
+                                                         true, true, true, true, true, true, true, true, true, true};
+            if (_recurringItem.recurrence == (int)DtRecurrence.Monthly)
             {
-                if (AddOnThisDay[(int)seed.day.DayOfWeek])
+                int iBuf = 0;
+                foreach (var s in _recurringItem.recurrenceData.Split(','))
                 {
-                    if ((from x in _db.dtPlanItems where x.recurrence == null && x.day == seed.day && x.parent == seed.parent select x).FirstOrDefault() == null)
+                    iBuf = 0;
+                    if (int.TryParse(s, out iBuf)) AddOnThisDay[iBuf] = true;
+                }
+            }
+            for (int i = 0; i <= 30; i++)
+            {
+                DateTime test = DateTime.Now.AddDays(i);
+                if (_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
+                     !string.IsNullOrEmpty(_recurringItem.recurrenceData) &&
+                     _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
+                     _recurringItem.recurrenceData[(int)test.DayOfWeek] == '*')
+                    AddOnThisDay[i] = true;
+            }
+
+            for (int i = 0; i < 30; i++)
+            {
+                DateTime test = DateTime.Parse(DateTime.Now.ToShortDateString()).AddDays(i);
+                if (AddOnThisDay[i])
+                {
+                   if((from x in _db.dtPlanItems where x.recurrence == null && x.day == test && x.parent == _recurringItem.id select x).FirstOrDefault() == null)
                     {
+                        seed.day = test;
                         items.Add(mapper.Map<dtPlanItem>(seed));
                     }
                 }
-                seed.day = seed.day.AddDays(1);
-                if (seed.start.HasValue)
-                {
-                    var date = seed.start.Value.AddDays(1);
-                    seed.start = date;
-                }
-                seed.id = 0;
             }
+
             return items;
         }
 
