@@ -194,9 +194,15 @@ namespace DanTechTests.Controllers
             //Act
             var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Monthly, dayOfMonthTargets);
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
+            var setItem = (from x in _db.dtPlanItems where x.title == planItemKey && x.recurrence == (int)DtRecurrence.Monthly select x).FirstOrDefault();
+            var childItemFor1st = returnedList.Where(x => x.day.Day == 1 && x.parent.HasValue && x.parent.Value == setItem.id).FirstOrDefault();
+            var childItemFor15th = returnedList.Where(x => x.day.Day == 15 && x.parent.HasValue && x.parent.Value == setItem.id).FirstOrDefault();
 
             //Assert
+            Assert.IsNotNull(setItem, "Did not set the recurrance.");
             Assert.AreEqual(returnedList.Count, numberOfPlanItems + numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children..");
+            Assert.IsNotNull(childItemFor1st, "No item set for 1st.");
+            Assert.IsNotNull(childItemFor15th, "No item set for 15th.");
         }
 
         [TestMethod]

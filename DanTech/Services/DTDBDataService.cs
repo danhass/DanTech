@@ -277,22 +277,27 @@ namespace DanTech.Services
                 AddOnThisDay = new List<bool>() { true, true, true, true, true, true, true, true, true, true,
                                                          true, true, true, true, true, true, true, true, true, true,
                                                          true, true, true, true, true, true, true, true, true, true};
+            Dictionary<int, bool> dateMap = new Dictionary<int, bool>();
             if (_recurringItem.recurrence == (int)DtRecurrence.Monthly)
             {
                 int iBuf = 0;
                 foreach (var s in _recurringItem.recurrenceData.Split(','))
                 {
                     iBuf = 0;
-                    if (int.TryParse(s, out iBuf)) AddOnThisDay[iBuf] = true;
+                    if (int.TryParse(s, out iBuf)) dateMap[iBuf] = true;
                 }
             }
+
             for (int i = 0; i <= 30; i++)
             {
                 DateTime test = DateTime.Now.AddDays(i);
-                if (_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
+                if ((_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
                      !string.IsNullOrEmpty(_recurringItem.recurrenceData) &&
                      _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
-                     _recurringItem.recurrenceData[(int)test.DayOfWeek] == '*')
+                     _recurringItem.recurrenceData[(int)test.DayOfWeek] == '*') ||
+                    (_recurringItem.recurrence == (int)DtRecurrence.Monthly &&
+                     dateMap.ContainsKey(test.Day) &&
+                     dateMap[test.Day]))                     
                     AddOnThisDay[i] = true;
             }
 
@@ -303,12 +308,14 @@ namespace DanTech.Services
                 {
                    if((from x in _db.dtPlanItems where x.recurrence == null && x.day == test && x.parent == _recurringItem.id select x).FirstOrDefault() == null)
                     {
-                        seed.day = test;
+                        test = test.AddHours(seed.start.Value.Hour);
+                        test = test.AddMinutes(seed.start.Value.Minute);
+                        seed.day = DateTime.Parse(test.ToShortDateString());
+                        seed.start = test;
                         items.Add(mapper.Map<dtPlanItem>(seed));
                     }
                 }
             }
-
             return items;
         }
 
