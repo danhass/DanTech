@@ -106,13 +106,13 @@ namespace DanTech.Models.Data
                     day = dt;
                 }
             }
+            start = day;
             if (!string.IsNullOrEmpty(pStartTime))
             {
                 TimeSpan ts;
                 TimeSpan.TryParse(pStartTime, out ts);
                 if (ts.Ticks > 0)
                 {
-                    start = day;
                     start = start.Value.AddHours(ts.Hours);
                     start = start.Value.AddMinutes(ts.Minutes);
                 }

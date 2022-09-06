@@ -66,14 +66,16 @@ namespace DanTech.Controllers
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0)
+        public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0, bool? onlyRecurrences = false)
         {
             if (VM == null || VM.User == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db);
             VM.PlanItems = svc.PlanItems(VM.User.id
                 , daysBack ?? 1
                 , includeCompleted ?? false
-                , getAll ?? false) ;
+                , getAll ?? false
+                , onlyProject ?? 0
+                , onlyRecurrences ?? false);
             return Json(VM.PlanItems);
         }
 

@@ -16,10 +16,18 @@ namespace DanTechTests
         private static string classTestName = "";
 
         [TestMethod]
-        public void InstantiateDB()
+        public void ColorCode_List()
         {
+            //Arrange
             var db = DTTestOrganizer.DB();
-            Assert.IsNotNull(db);
+            var numColorCodes = (from x in db.dtColorCodes select x).ToList().Count;
+            var dataService = new DTDBDataService(db);
+
+            //Act
+            var colorCodes = dataService.ColorCodes();
+
+            //Assert
+            Assert.AreEqual(colorCodes.Count, numColorCodes, "Color codes not correctly received.");
         }
 
         [TestMethod]
@@ -67,176 +75,36 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public void SetTestingFlag()
+        public void InstantiateDB()
         {
             var db = DTTestOrganizer.DB();
-
-            //Arrange
-            var dataService = new DTDBDataService(db);
-
-            //Act
-
-            //Turn off testing
-            bool testFlagBeforeToggle = dataService.InTesting;
-            if (testFlagBeforeToggle)
-            {
-                dataService.ToggleTestFlag();
-                testFlagBeforeToggle = dataService.InTesting;
-            }
-
-            //Now turn it on.
-            dataService.ToggleTestFlag();
-            bool testFlagShouldBeSet = dataService.InTesting;
-            var testInProgressFlag = (from x in db.dtTestData where x.title == dataService.TestFlagKey select x).FirstOrDefault();
-            bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
-            var testDataElementFlag = (from x in db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
-
-            //Assert
-            Assert.IsFalse(testFlagBeforeToggle, "Did not set initial state to 'not testing'.");
-            Assert.AreNotEqual(testFlagBeforeToggle, testFlagShouldBeSet, "Did not toggel test flag correctly.");
-            Assert.IsNotNull(testInProgressFlag, "Failed to set test in progress element");
-            Assert.IsTrue(testFlagShouldBeSet, "Data service does not reflect db in test state.");
-            Assert.AreEqual(testInProgressFlag.value, DTTestConstants.TestStringTrueValue, "Test in progress element has wrong value");
-            Assert.IsTrue(setTestDataElementResult, "Failed to set test element.");
-            Assert.IsNotNull(testDataElementFlag, "Test data element not correctly set.");
-            Assert.AreEqual(testDataElementFlag.value, DTTestConstants.TestValue, "Testing flag not set.");
+            Assert.IsNotNull(db);
         }
 
         [TestMethod]
-        public void Statuses_List()
-        {
-            //Arrange
-            var db = DTTestOrganizer.DB();
-            var numStati = (from x in db.dtStatuses select x).ToList().Count;
-            var dataService = new DTDBDataService(db);
-
-            //Act
-            var statuses = dataService.Stati();
-
-            //Assert
-            Assert.AreEqual(statuses.Count, numStati, "Status not correctly retrieved.");
-        }
-
-        [TestMethod]
-        public void Recurrences_List()
-        {
-            //Arrange
-            var db = DTTestOrganizer.DB();
-            var numRecurrences = (from x in db.dtRecurrences select x).ToList().Count;
-            var dataService = new DTDBDataService(db);
-
-            //Act
-            var recurrences = dataService.Recurrences();
-
-            //Assert
-            Assert.AreEqual(recurrences.Count, numRecurrences, "Recurrences not correctly received.");
-        }
-
-        [TestMethod]
-        public void ColorCode_List()
-        {
-            //Arrange
-            var db = DTTestOrganizer.DB();
-            var numColorCodes = (from x in db.dtColorCodes select x).ToList().Count;
-            var dataService = new DTDBDataService(db);
-
-            //Act
-            var colorCodes = dataService.ColorCodes();
-
-            //Assert
-            Assert.AreEqual(colorCodes.Count, numColorCodes, "Color codes not correctly received.");
-        }
-
-        [TestMethod]
-        public void UserModelForSession_NotLoggedIn()
-        {
-            //Arrange 
-            var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
-        }
-
-        [TestMethod]
-        public void Project_Set()
+        public void PlanItemAddRecurrence()
         {
             //Arrange
             var db = DTTestOrganizer.DB();
             var dataService = new DTDBDataService(db);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            var testStatus = (from x in db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
-            var allProjects = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
-            var newProj = new dtProject()
-            {
-                shortCode = "TST",
-                status = testStatus.id,
-                title = DTTestConstants.TestProjectTitlePrefix + "New_Test #1",
-                user = testUser.id
-            };
-            var newProj2 = new dtProject()
-            {
-                shortCode = "T2",
-                status = testStatus.id,
-                title = DTTestConstants.TestProjectTitlePrefix + "New_Test #2",
-                user = testUser.id
-            };
+            string recurrenceTitle = DTTestConstants.TestValue + " for AddRecurrence Test";
+            var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
+            var beginningRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
+            dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(13), recurrence = DTTestConstants.RecurrenceId_Daily, user = testUser.id };
 
             //Act
-            var setNew_Result = dataService.Set(newProj);
-            var setNew2 = dataService.Set(newProj2);
-            setNew2.notes = DTTestConstants.TestValue;
-            var setExist_Result = dataService.Set(setNew2);
-            var allProjectsAfter = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
-            var notesUpdated = (from x in db.dtProjects where x.id == setNew_Result.id select x).FirstOrDefault();
-            DTTestOrganizer._numberOfProjects++;
+            var results = dataService.Set(recurrence);
+            var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
+            var recurrenceAdded = (from x in db.dtPlanItems where x.user == testUser.id && x.title == recurrenceTitle select x).FirstOrDefault();
+            var endRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
+            var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id select x).ToList().Count;
 
             //Assert
-            Assert.AreEqual(allProjects.Count + 2, allProjectsAfter.Count, "Should have added 2 new projects.");
-            Assert.AreEqual(setNew2.notes, DTTestConstants.TestValue, "Should have updated existing project to show new note.");
-        }
-
-        [TestMethod]
-        public void ProjectsListByUser()
-        {
-            //Arrange
-            var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            var numProjects = (from x in db.dtProjects where x.user == testUser.id select x).ToList().Count;
-
-            //Act
-            var numProjsFromAPI = dataService.DTProjects(testUser.id);
-            var numProjsByUser = dataService.DTProjects(testUser);
-
-            //Assert
-            Assert.AreEqual(numProjsFromAPI.Count, numProjects, "Data service returns wrong number by user id.");
-            Assert.AreEqual(numProjsByUser.Count, numProjects, "Data service returns wrong number by user.");
-        }
-
-        [TestMethod]
-        public void PlanItemDelete()
-        {
-            //Arrange
-            var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
-            var mapper = new Mapper(config);
-            dtPlanItemModel model = new dtPlanItemModel()
-            {
-                title = DTTestConstants.TestPlanItemMinimumTitle + " Delete Test",
-                day = DateTime.Now.AddDays(2).Date,
-                user = mapper.Map<dtUserModel>(testUser),
-                userId = testUser.id
-            };
-
-            //Act
-            var item = dataService.Set(model);
-            int newItemId = item.id;
-            int newItemUser = item.user;
-            var deleted = dataService.DeletePlanItem(newItemId, newItemUser);
-            var result = (from x in db.dtPlanItems where x.id == newItemId select x).FirstOrDefault();
-
-            //Assert
-            Assert.IsNull(result, "Plan item not properly deleted.");
+            Assert.AreEqual(endCount, beginningCount + 31, "Adding daily recurrence should have added 31 plan items: recurrence + 1 per day for 30 days.");
+            Assert.IsNotNull(recurrenceAdded, "Cannot find the recurrence in the database.");
+            Assert.AreEqual(endRecurrenceCt, beginningRecurrenceCt + 1, "Adding a recurrence should have increased the recurrence count by 1.");
+            Assert.AreEqual(childItemCount, 30, "Should have generated 30 items with the recurrence as a parent.");
         }
 
         [TestMethod]
@@ -296,7 +164,6 @@ namespace DanTechTests
             Assert.AreEqual(itemsBeforeSet.Count + 2, items.Count, "Only baseline and future should be added to current items.");
         }
 
-
         [TestMethod]
         public void PlanItemSet_MinimumItem()
         {
@@ -345,62 +212,6 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public void PlanItemAddRecurrence()
-        {
-            //Arrange
-            var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            string recurrenceTitle = DTTestConstants.TestValue + " for AddRecurrence Test";
-            var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var beginningRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
-            dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), recurrence = DTTestConstants.RecurrenceId_Daily, user = testUser.id };
-
-            //Act
-            var results = dataService.Set(recurrence);
-            var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var recurrenceAdded = (from x in db.dtPlanItems where x.user == testUser.id && x.title == recurrenceTitle select x).FirstOrDefault();
-            var endRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
-            var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id select x).ToList().Count;
-
-            //Assert
-            Assert.AreEqual(endCount, beginningCount + 31, "Adding daily recurrence should have added 31 plan items: recurrence + 1 per day for 30 days.");
-            Assert.IsNotNull(recurrenceAdded, "Cannot find the recurrence in the database.");
-            Assert.AreEqual(endRecurrenceCt, beginningRecurrenceCt + 1, "Adding a recurrence should have increased the recurrence count by 1.");
-            Assert.AreEqual(childItemCount, 30, "Should have generated 30 items with the recurrence as a parent.");
-        }
-
-        [TestMethod]
-        public void PlanItemAddRecurrenceWith_TTh_Filter()
-        {
-            //Arrange
-            var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            string recurrenceTitle = DTTestConstants.TestValue + " for T-Th Recurrence Test";
-            var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var beginningRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
-            //Create a T-Th recurrence
-            dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), recurrence = DTTestConstants.RecurrenceId_Daily, recurrenceData="--*-*--", user = testUser.id };
-            //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
-            DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
-            int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
-
-            //Act
-            var results = dataService.Set(recurrence);
-            var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var recurrenceAdded = (from x in db.dtPlanItems where x.user == testUser.id && x.title == recurrenceTitle select x).FirstOrDefault();
-            var endRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
-            var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id select x).ToList().Count;
-
-            //Assert
-            Assert.AreEqual(endCount, beginningCount + numberOfChildrenExpected + 1, "Adding daily recurrence should add plan items: recurrence + number of childrec expeced.");
-            Assert.IsNotNull(recurrenceAdded, "Cannot find the recurrence in the database.");
-            Assert.AreEqual(endRecurrenceCt, beginningRecurrenceCt + 1, "Adding a recurrence should have increased the recurrence count by 1.");
-            Assert.AreEqual(childItemCount, numberOfChildrenExpected, "Should have generated number of children expected with a parent of the recurrence.");
-
-        }
-        [TestMethod]
         public void PlanItemAdd_NoEndDate()
         {
             //Arrange
@@ -436,7 +247,196 @@ namespace DanTechTests
             Assert.AreEqual(ts.Value.Hours, tsExpected.Hours, "Hours are not what is expected.");
             Assert.AreEqual(ts.Value.Minutes, tsExpected.Minutes, "Minutes are not what is expected.");
             Assert.AreEqual(ts.Value.Seconds, tsExpected.Seconds, "Something is wrong with seconds.");
-            
+
+        }
+
+        [TestMethod]
+        public void PlanItemDelete()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
+            var mapper = new Mapper(config);
+            dtPlanItemModel model = new dtPlanItemModel()
+            {
+                title = DTTestConstants.TestPlanItemMinimumTitle + " Delete Test",
+                day = DateTime.Now.AddDays(2).Date,
+                user = mapper.Map<dtUserModel>(testUser),
+                userId = testUser.id
+            };
+
+            //Act
+            var item = dataService.Set(model);
+            int newItemId = item.id;
+            int newItemUser = item.user;
+            var deleted = dataService.DeletePlanItem(newItemId, newItemUser);
+            var result = (from x in db.dtPlanItems where x.id == newItemId select x).FirstOrDefault();
+
+            //Assert
+            Assert.IsNull(result, "Plan item not properly deleted.");
+        }
+
+        [TestMethod]
+        public void PlanItemAddRecurrenceWith_TTh_Filter()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            string recurrenceTitle = DTTestConstants.TestValue + " for T-Th Recurrence Test";
+            var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
+            var beginningRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
+            //Create a T-Th recurrence
+            dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(14), recurrence = DTTestConstants.RecurrenceId_Daily, recurrenceData = "--*-*--", user = testUser.id };
+            //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
+            DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
+            int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
+
+            //Act
+            var results = dataService.Set(recurrence);
+            var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
+            var recurrenceAdded = (from x in db.dtPlanItems where x.user == testUser.id && x.title == recurrenceTitle select x).FirstOrDefault();
+            var endRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
+            var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id select x).ToList().Count;
+
+            //Assert
+            Assert.AreEqual(endCount, beginningCount + numberOfChildrenExpected + 1, "Adding daily recurrence should add plan items: recurrence + number of childrec expeced.");
+            Assert.IsNotNull(recurrenceAdded, "Cannot find the recurrence in the database.");
+            Assert.AreEqual(endRecurrenceCt, beginningRecurrenceCt + 1, "Adding a recurrence should have increased the recurrence count by 1.");
+            Assert.AreEqual(childItemCount, numberOfChildrenExpected, "Should have generated number of children expected with a parent of the recurrence.");
+
+        }
+
+        [TestMethod]
+        public void ProjectsListByUser()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var numProjects = (from x in db.dtProjects where x.user == testUser.id select x).ToList().Count;
+
+            //Act
+            var numProjsFromAPI = dataService.DTProjects(testUser.id);
+            var numProjsByUser = dataService.DTProjects(testUser);
+
+            //Assert
+            Assert.AreEqual(numProjsFromAPI.Count, numProjects, "Data service returns wrong number by user id.");
+            Assert.AreEqual(numProjsByUser.Count, numProjects, "Data service returns wrong number by user.");
+        }
+
+        [TestMethod]
+        public void Project_Set()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testStatus = (from x in db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
+            var allProjects = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
+            var newProj = new dtProject()
+            {
+                shortCode = "TST",
+                status = testStatus.id,
+                title = DTTestConstants.TestProjectTitlePrefix + "New_Test #1",
+                user = testUser.id
+            };
+            var newProj2 = new dtProject()
+            {
+                shortCode = "T2",
+                status = testStatus.id,
+                title = DTTestConstants.TestProjectTitlePrefix + "New_Test #2",
+                user = testUser.id
+            };
+
+            //Act
+            var setNew_Result = dataService.Set(newProj);
+            var setNew2 = dataService.Set(newProj2);
+            setNew2.notes = DTTestConstants.TestValue;
+            var setExist_Result = dataService.Set(setNew2);
+            var allProjectsAfter = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
+            var notesUpdated = (from x in db.dtProjects where x.id == setNew_Result.id select x).FirstOrDefault();
+            DTTestOrganizer._numberOfProjects++;
+
+            //Assert
+            Assert.AreEqual(allProjects.Count + 2, allProjectsAfter.Count, "Should have added 2 new projects.");
+            Assert.AreEqual(setNew2.notes, DTTestConstants.TestValue, "Should have updated existing project to show new note.");
+        }
+
+        [TestMethod]
+        public void Recurrences_List()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var numRecurrences = (from x in db.dtRecurrences select x).ToList().Count;
+            var dataService = new DTDBDataService(db);
+
+            //Act
+            var recurrences = dataService.Recurrences();
+
+            //Assert
+            Assert.AreEqual(recurrences.Count, numRecurrences, "Recurrences not correctly received.");
+        }
+
+        [TestMethod]
+        public void SetTestingFlag()
+        {
+            var db = DTTestOrganizer.DB();
+
+            //Arrange
+            var dataService = new DTDBDataService(db);
+
+            //Act
+
+            //Turn off testing
+            bool testFlagBeforeToggle = dataService.InTesting;
+            if (testFlagBeforeToggle)
+            {
+                dataService.ToggleTestFlag();
+                testFlagBeforeToggle = dataService.InTesting;
+            }
+
+            //Now turn it on.
+            dataService.ToggleTestFlag();
+            bool testFlagShouldBeSet = dataService.InTesting;
+            var testInProgressFlag = (from x in db.dtTestData where x.title == dataService.TestFlagKey select x).FirstOrDefault();
+            bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
+            var testDataElementFlag = (from x in db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
+
+            //Assert
+            Assert.IsFalse(testFlagBeforeToggle, "Did not set initial state to 'not testing'.");
+            Assert.AreNotEqual(testFlagBeforeToggle, testFlagShouldBeSet, "Did not toggel test flag correctly.");
+            Assert.IsNotNull(testInProgressFlag, "Failed to set test in progress element");
+            Assert.IsTrue(testFlagShouldBeSet, "Data service does not reflect db in test state.");
+            Assert.AreEqual(testInProgressFlag.value, DTTestConstants.TestStringTrueValue, "Test in progress element has wrong value");
+            Assert.IsTrue(setTestDataElementResult, "Failed to set test element.");
+            Assert.IsNotNull(testDataElementFlag, "Test data element not correctly set.");
+            Assert.AreEqual(testDataElementFlag.value, DTTestConstants.TestValue, "Testing flag not set.");
+        }
+
+        [TestMethod]
+        public void Statuses_List()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB();
+            var numStati = (from x in db.dtStatuses select x).ToList().Count;
+            var dataService = new DTDBDataService(db);
+
+            //Act
+            var statuses = dataService.Stati();
+
+            //Assert
+            Assert.AreEqual(statuses.Count, numStati, "Status not correctly retrieved.");
+        }
+
+        [TestMethod]
+        public void UserModelForSession_NotLoggedIn()
+        {
+            //Arrange 
+            var db = DTTestOrganizer.DB();
+            var dataService = new DTDBDataService(db);
         }
 
     }
