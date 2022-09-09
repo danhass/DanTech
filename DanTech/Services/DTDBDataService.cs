@@ -375,16 +375,25 @@ namespace DanTech.Services
                     if (int.TryParse(s, out iBuf)) dateMap[iBuf] = true;
                 }
             }
+            int numWksInCycle = -1;
+            string mask = _recurringItem.recurrenceData;
+            if (_recurringItem.recurrence == (int) DtRecurrence.Semi_monthly && _recurringItem.recurrenceData.Split(":").Length > 0)
+                int.TryParse(_recurringItem.recurrenceData.Split(":")[0], out numWksInCycle);
+            if (!string.IsNullOrEmpty(_recurringItem.recurrenceData) && _recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
 
             for (int i = 0; i < 30 && !string.IsNullOrEmpty(_recurringItem.recurrenceData); i++)
             {
                 DateTime test = DateTime.Now.AddDays(i);
                 if ((_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&                      
                      _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
-                     _recurringItem.recurrenceData[(int)test.DayOfWeek] == '*') ||
+                     mask[(int)test.DayOfWeek] == '*') ||
                     (_recurringItem.recurrence == (int)DtRecurrence.Monthly &&
                      dateMap.ContainsKey(test.Day) &&
-                     dateMap[test.Day]))
+                     dateMap[test.Day]) ||
+                    (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly &&
+                      (((int)(test.AddDays(1) - _recurringItem.start.Value).TotalDays / 7)) % numWksInCycle == 0 && 
+                       mask[(int)test.DayOfWeek] == '*')
+                   )                       
                     AddOnThisDay[i] = true;
             }
 
@@ -405,18 +414,6 @@ namespace DanTech.Services
             }
             return items;
         }
-
-        /*
-        public List<dtPlanItemModel> PlanItems(dtUserModel userModel,
-                                                  int daysBack = 1,
-                                                  bool includeCompleted = false,
-                                                  bool getAll = false,
-                                                  int onlyProject = 0)
-        {
-            if (userModel == null || userModel.id < 1) return new List<dtPlanItemModel>();
-            return PlanItems(userModel.id, daysBack, includeCompleted, getAll);
-        }
-        */
 
         public List<dtPlanItemModel> PlanItems(int userId,
                                                   int daysBack = 1,
