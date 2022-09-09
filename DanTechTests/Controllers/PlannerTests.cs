@@ -285,6 +285,33 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void PlanItem_SemiMonthlyRecurrence_Future()
+        {
+            // Setting a recurrence with a 3 week cycle on M & F => 3:-*---*-. We are setting the start date equal to 14 days in the future.
+            // This means that it is 2 weeks until the beginning the 3rd week, and we expect to see entries on the next Monday and Friday after,
+            // but the next cycle is 35 days aways, so there should be only these two.
+
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            string planItemKey = DTTestConstants.TestValue + " future recurrence with 3 weeks MF Recurrence";
+            //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
+            int expectedChildren = 2;
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(14).ToShortDateString(), "13:00", null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
+            var recurrence = (from x in _db.dtPlanItems where x.user == _testUser.id && x.recurrence.HasValue && x.title == planItemKey select x).FirstOrDefault();
+            var children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
+
+            //Assert
+            Assert.IsNotNull(res, "Recurrence not saved.");
+            Assert.AreEqual(children.Count, expectedChildren, "Unexpected number of children.");
+            Assert.IsTrue(children[0].start.Value >= recurrence.start.Value, "Child should not start before the recurrence.");
+
+        }
+
+        [TestMethod]
         public void PlanItem_SetWithDailyRecurrence()
         {
             //Arrange

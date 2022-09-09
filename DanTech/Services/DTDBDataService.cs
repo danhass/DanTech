@@ -391,6 +391,7 @@ namespace DanTech.Services
                      dateMap.ContainsKey(test.Day) &&
                      dateMap[test.Day]) ||
                     (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly &&
+                        test >= _recurringItem.start.Value &&
                       (((int)(test.AddDays(1) - _recurringItem.start.Value).TotalDays / 7)) % numWksInCycle == 0 && 
                        mask[(int)test.DayOfWeek] == '*')
                    )                       
