@@ -89,6 +89,15 @@ namespace DanTech.Services
             if (_db == null) throw new Exception("DB not set");
             var item = (from x in _db.dtPlanItems where x.id == planItemId && x.user == userId select x).FirstOrDefault();
             if (item == null) return false;
+            if (item.recurrence.HasValue) 
+            {
+                var children = (from x in _db.dtPlanItems where x.parent.Value == item.id select x).ToList();
+                foreach (var c in children)
+                {
+                    c.parent = null;
+                }
+                _db.SaveChanges();
+            }
             _db.dtPlanItems.Remove(item);
             _db.SaveChanges();
             return true;
