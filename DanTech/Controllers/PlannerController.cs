@@ -156,6 +156,15 @@ namespace DanTech.Controllers
                                         getAll ?? false,
                                         onlyProject ?? 0));
         }
+
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult Propagate(string sessionId, int seedId)
+        {
+            if (VM == null) return Json(null);
+            DTDBDataService svc = new DTDBDataService(_db);
+            var result = Json(svc.Propagate(seedId, VM.User.id));
+            return result;
+        }
     }
 #nullable disable
 }

@@ -281,7 +281,6 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(res, "Recurrence not saved.");
             Assert.AreEqual(children.Count, expectedChildren, "Unexpected number of children.");
-
         }
 
         [TestMethod]
@@ -327,6 +326,72 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.AreEqual(returnedList.Count, numberOfNotCompletedPlanItems + 31, "Setting the recurring plan item should have increased number of plan items by 1 and one for each of the next 30 days.");
+        }
+
+        [TestMethod]
+        public void Propagate_FromChild()
+        {
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            string planItemKey = DTTestConstants.TestValue + " for propagate_fromchild";
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var recurrenceItem = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
+            string recurrenceItemTitle = recurrenceItem.title;
+            string recurrenceItemNote = recurrenceItem.note;
+            var children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
+            string childrenTitle = children[0].title;
+            string childrenNote = children[0].note;
+            // Change note, and propagate.
+            var changeRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " changed.", "Note set", null, null, null, null, null, null, null, null, null, null, true, null, null, children[0].id, null, null);
+            var propRes = _controller.Propagate(DTTestConstants.TestSessionId, children[0].id);
+            recurrenceItem = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == (planItemKey + " changed.") && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
+            children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
+
+            //Assert
+            Assert.AreEqual(recurrenceItemTitle, planItemKey, "Recurrence item not correctly set.");
+            Assert.AreEqual(children.Count, 30, "Should have been 30 children.");
+            Assert.AreEqual(childrenTitle, planItemKey, "Child items not correctly set.");
+            Assert.AreEqual(recurrenceItem.title, planItemKey + " changed.", "Recurrence item not updated correctly.");
+            Assert.AreEqual(recurrenceItem.note, "Note set", "Recurrence item note not updated correctly.");
+            Assert.AreEqual(children[0].title, planItemKey + " changed.", "Child item not updated correctly.");
+            Assert.AreEqual(children[0].note, "Note set", "Child item note not updated correctly.");
+            Assert.AreEqual(children[29].title, planItemKey + " changed.", "Last child item not updated correctly.");
+            Assert.AreEqual(children[29].note, "Note set", "Last child item note not updated correctly.");
+        }
+
+        [TestMethod]
+        public void Propagate_Recurrence()
+        {
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            string planItemKey = DTTestConstants.TestValue + " for propagate_recurrence";
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var recurrenceItem = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
+            string recurrenceItemTitle = recurrenceItem.title;
+            string recurrenceItemNote = recurrenceItem.note;
+            var children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
+            string childrenTitle = children[0].title;
+            string childrenNote = children[0].note;
+            // Change note, and propagate.
+            var changeRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " changed.", "Note set", null, null, null, null, null, null, null, null, null, null, true, null, null, recurrenceItem.id, (int)DtRecurrence.Daily_Weekly, null);
+            var propRes = _controller.Propagate(DTTestConstants.TestSessionId, recurrenceItem.id);
+            recurrenceItem = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == (planItemKey + " changed.") && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
+            children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
+
+            //Assert
+            Assert.AreEqual(recurrenceItemTitle, planItemKey, "Recurrence item not correctly set.");
+            Assert.AreEqual(children.Count, 30, "Should have been 30 children.");
+            Assert.AreEqual(childrenTitle, planItemKey, "Child items not correctly set.");
+            Assert.AreEqual(recurrenceItem.title, planItemKey + " changed.", "Recurrence item not updated correctly.");
+            Assert.AreEqual(recurrenceItem.note, "Note set", "Recurrence item note not updated correctly.");
+            Assert.AreEqual(children[0].title, planItemKey + " changed.", "Child item not updated correctly.");
+            Assert.AreEqual(children[0].note, "Note set", "Child item note not updated correctly.");
+            Assert.AreEqual(children[29].title, planItemKey + " changed.", "Last child item not updated correctly.");
+            Assert.AreEqual(children[29].note, "Note set", "Last child item note not updated correctly.");
         }
 
         [TestMethod]
