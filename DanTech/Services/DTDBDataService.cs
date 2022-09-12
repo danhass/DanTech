@@ -227,7 +227,9 @@ namespace DanTech.Services
             if (!getAll)
             {
                 var minDate = DateTime.Parse(DateTime.Now.AddDays(1 - daysBack).ToShortDateString());
-                items = items.Where(x => x.day >= minDate).ToList();
+                // If we are not getting all items, we want the items that have a day that is current or later,
+                // and items from the past days that were not completed
+                items = items.Where(x => x.day >= minDate || (x.completed == null && x.recurrence == null)).ToList();
             }
             if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
             if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();

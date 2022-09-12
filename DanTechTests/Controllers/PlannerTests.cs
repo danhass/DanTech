@@ -120,18 +120,28 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var totalPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
-            var totalPlanItemsCurrent = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
-            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.completed.HasValue == false || x.completed.Value == false) && x.day >= today select x).ToList().Count;
+            var totalPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList();
+            var totalPlanItemsCurrent = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList();
+            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.completed == null && (x.recurrence == null  || x.day >= today) select x).ToList();
             SetControllerQueryString();
 
             // Act
-            var jsonGet = _controller.PlanItems(DTTestConstants.TestSessionId);
-            var jsonGetWithCompleted = _controller.PlanItems(DTTestConstants.TestSessionId, null, true);
+            var getResults = (List<dtPlanItemModel>) _controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var getWithCompleted = (List<dtPlanItemModel>) _controller.PlanItems(DTTestConstants.TestSessionId, null, true).Value;
+
+            List<int> missing = new List<int>();
+            dtMisc log = new dtMisc() { title = "Test Results" };
+            foreach (var i in getWithCompleted)
+            {
+                if (totalPlanItemsCurrent.Where(x => x.id == i.id).FirstOrDefault() == null)
+                {
+                    missing.Add(i.id.Value);
+                }
+            }
 
             // Assert
-            Assert.AreEqual(((List<dtPlanItemModel>)jsonGet.Value).Count, numberOfNotCompletedPlanItems, "Did not retrieve plan items correctly.");
-            Assert.AreEqual(((List<dtPlanItemModel>)jsonGetWithCompleted.Value).Count, totalPlanItemsCurrent, "Did not retrieve completed plan items correctly.");
+            Assert.AreEqual(getResults.Count, numberOfNotCompletedPlanItems.Count, "Did not retrieve plan items correctly.");
+            Assert.AreEqual(getWithCompleted.Count, totalPlanItemsCurrent.Count, "Did not retrieve completed plan items correctly.");
         }
 
         [TestMethod]
@@ -140,8 +150,8 @@ namespace DanTechTests.Controllers
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var totalPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
-            var totalPlanItemsCurrent = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
-            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.completed.HasValue == false || x.completed.Value == false) && x.day >= today select x).ToList().Count;
+            var totalPlanItemsCurrent = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList().Count;
+            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && ((x.completed.HasValue == false || x.completed.Value == false) || x.day >= today) select x).ToList().Count;
             SetControllerQueryString();
 
             // Act
@@ -187,7 +197,7 @@ namespace DanTechTests.Controllers
 
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed==null)) select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " for  Out of Date Recurrence Test";
             var testProj = (from x in _db.dtProjects where x.user == _testUser.id select x).FirstOrDefault();  //Just use the first project
             var targDate = DateTime.Now.AddDays(-50);
@@ -209,7 +219,7 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " set item through API with TTh Recurrence";
             //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
             DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
@@ -229,7 +239,7 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " set item through API with 1st & 15th Recurrence";
             string dayOfMonthTargets = "1,15";
             //We expect to generate 2 children.
@@ -295,7 +305,8 @@ namespace DanTechTests.Controllers
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " future recurrence with 3 weeks MF Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
-            int expectedChildren = 2;
+            int expectedChildren = today.DayOfWeek == DayOfWeek.Monday ? 1 : 2;
+
             SetControllerQueryString();
 
             //Act
@@ -315,7 +326,7 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " set with Recurrence";
             var testProj = (from x in _db.dtProjects where x.user == _testUser.id select x).FirstOrDefault();  //Just use the first project
             SetControllerQueryString();

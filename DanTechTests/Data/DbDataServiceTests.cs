@@ -161,7 +161,7 @@ namespace DanTechTests
 
             //Assert
             Assert.AreEqual(itemsAfterSets, numItems + 4, "Should be 4 more items in db after sets with completed past due deleted.");
-            Assert.AreEqual(itemsBeforeSet.Count + 2, items.Count, "Only baseline and future should be added to current items.");
+            Assert.AreEqual(itemsBeforeSet.Count + 3, items.Count, "Only baseline and future should be added to current items.");
         }
 
         [TestMethod]
