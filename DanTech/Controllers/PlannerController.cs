@@ -81,7 +81,7 @@ namespace DanTech.Controllers
 
         [HttpPost]
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult SetProject(string sessionId, string title, string shortCode, int status, int? colorCode=null, int? priority=null, int? sortOrder=null, string notes = "")
+        public JsonResult SetProject(string sessionId, string title, string shortCode, int status, int? colorCode=null, int? priority=null, int? sortOrder=null, string notes = "", int? id= null)
         {
             if (!Response.Headers.Keys.Contains("Access-Control-Allow-Origin")) 
                 Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -95,7 +95,8 @@ namespace DanTech.Controllers
                 sortOrder = sortOrder,
                 status = status,
                 title = title,
-                user = VM.User.id
+                user = VM.User.id,
+                id = id.HasValue ? id.Value : 0
             };
             DTDBDataService svc = new DTDBDataService(_db);
             svc.Set(newProj);
