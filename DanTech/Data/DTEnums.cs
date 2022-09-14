@@ -9,6 +9,7 @@ namespace DanTech.Data
     {
         Daily_Weekly = 1,
         Monthly = 2,
-        Semi_monthly = 3
+        Semi_monthly = 3,
+        Monthly_nth_day = 4
     }
 }

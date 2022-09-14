@@ -75,8 +75,12 @@ namespace DanTech.Services
             }
             int numWksInCycle = -1;
             string mask = _recurringItem.recurrenceData;
-            if (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly && _recurringItem.recurrenceData.Split(":").Length > 0)
+            if ((_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly && _recurringItem.recurrenceData.Split(":").Length > 0) ||
+                (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day && _recurringItem.recurrenceData.Split(":").Length > 0))
+            {
                 int.TryParse(_recurringItem.recurrenceData.Split(":")[0], out numWksInCycle);
+                if (_recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
+            }
             if (!string.IsNullOrEmpty(_recurringItem.recurrenceData) && _recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
 
             for (int i = 0; i < 30 && !string.IsNullOrEmpty(_recurringItem.recurrenceData); i++)
@@ -91,7 +95,11 @@ namespace DanTech.Services
                     (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly &&
                         test >= _recurringItem.start.Value &&
                       (((int)(test.AddDays(1) - _recurringItem.start.Value).TotalDays / 7)) % numWksInCycle == 0 &&
-                       mask[(int)test.DayOfWeek] == '*')
+                       mask[(int)test.DayOfWeek] == '*') ||
+                    (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day &&
+                        numWksInCycle > 0 &&
+                        ((int)(test.Day/7) + 1) == numWksInCycle &&
+                        mask[(int)test.DayOfWeek] == '*')
                    )
                     AddOnThisDay[i] = true;
             }
@@ -298,6 +306,7 @@ namespace DanTech.Services
             _db.SaveChanges();
             return result;
         }
+        
         public List<dtRecurrenceModel> Recurrences()
         {
             if (_db == null) throw new Exception("DB not set");

@@ -235,6 +235,31 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void PlanItemSet_Monthly_nth_Monday_past()
+        {
+            // Setting a recurrence with a 3 week cycle on M & F => 3:-*---*-. We are setting the start date equal to 14 days previous to today.
+            // This means that we are beginning the 3rd week, and we expect to see entries on the next Monday and Friday, and then again in 3 weeks.
+
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
+            string planItemKey = DTTestConstants.TestValue + " past recurrence with 3rd Monday & Wednesday of month Recurrence";
+            //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
+            int expectedChildren = 2;
+            SetControllerQueryString();
+
+            //Act
+            var setRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(-14).ToShortDateString(), "13:00", null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly_nth_day, "3:-*-*---");
+            var recurrence = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Monthly_nth_day select x).FirstOrDefault();
+            var children = (from x in _db.dtPlanItems where x.user == _testUser.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
+
+            //Assert
+            Assert.IsNotNull(recurrence, "Recurrence not set.");
+            Assert.AreEqual(expectedChildren, children.Count, "Did not propogate correctly.");
+            Assert.IsTrue(children[0].day.DayOfWeek == DayOfWeek.Monday || children[0].day.DayOfWeek == DayOfWeek.Wednesday, "Day of week incorrect.");
+        }
+
+        [TestMethod]
         public void PlanItemSet_MonthlyRecurrence()
         {
             //Arrange
@@ -280,7 +305,7 @@ namespace DanTechTests.Controllers
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " recurrence with 3 weeks MF Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
-            int expectedChildren = DateTime.Now.DayOfWeek == DayOfWeek.Tuesday ? 2 : 3;
+            int expectedChildren = (DateTime.Now.DayOfWeek == DayOfWeek.Monday || DateTime.Now.DayOfWeek == DayOfWeek.Tuesday) ? 3 : 2;
             SetControllerQueryString();
 
             //Act
@@ -305,7 +330,7 @@ namespace DanTechTests.Controllers
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " future recurrence with 3 weeks MF Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
-            int expectedChildren = today.DayOfWeek == DayOfWeek.Monday ? 1 : 2;
+            int expectedChildren = (today.DayOfWeek == DayOfWeek.Monday || today.DayOfWeek == DayOfWeek.Tuesday) ? 1 : 2;
 
             SetControllerQueryString();
 
