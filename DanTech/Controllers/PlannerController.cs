@@ -22,7 +22,7 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public IActionResult Index()
         {
-            DTDBDataService svc = new DTDBDataService(_db);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             VM.PlanItems = svc.PlanItems(VM.User.id);
             return View(VM);
         }
@@ -30,54 +30,64 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Recurrences(string sessionId)
         {
-            DTDBDataService svc = new DTDBDataService(_db);
-            return Json(svc.Recurrences());
-        }
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
+            var result = Json(svc.Recurrences());
+            DTDBDataService.ClearBusy();
+            return result;
+         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Stati(string sessionId)
         {
-            DTDBDataService svc = new DTDBDataService(_db);
-            return Json(svc.Stati());
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
+            var result = Json(svc.Stati());
+            DTDBDataService.ClearBusy();
+            return result;
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult ColorCodes(string sessionId)
         {
-            DTDBDataService svc = new DTDBDataService(_db);
-            return Json(svc.ColorCodes());
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
+            var result = Json(svc.ColorCodes());
+            DTDBDataService.ClearBusy();
+            return result;
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Projects(string sessionId)
         {
             if (VM == null || VM.User == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db);
-            return Json(svc.DTProjects(VM.User.id));
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
+            var projs = svc.DTProjects(VM.User.id);
+            DTDBDataService.ClearBusy();
+            return Json(projs);
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult DeletePlanItem(string sessionId, int planItemId)
         {
-            DTDBDataService svc = new DTDBDataService(_db);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             if (VM == null || VM.User == null) return Json(null);
             var result = svc.DeletePlanItem(planItemId, VM.User.id);
-            var x = Json(result);
-            return Json(result);
+            DTDBDataService.ClearBusy();
+            var json = Json(result);
+
+            return json;
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0, bool? onlyRecurrences = false)
         {
             if (VM == null || VM.User == null) return Json(null);
-            while (DTDBDataService.Updating()) Thread.Sleep(1000);
-            DTDBDataService svc = new DTDBDataService(_db);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             VM.PlanItems = svc.PlanItems(VM.User.id
                 , daysBack ?? 1
                 , includeCompleted ?? false
                 , getAll ?? false
                 , onlyProject ?? 0
                 , onlyRecurrences ?? false);
+            DTDBDataService.ClearBusy();
             svc.SetConnString(_configuration.GetConnectionString("dg"));
             svc.SetUser(VM.User.id);
             svc.LaunchUpdateRecurrences();
@@ -91,7 +101,6 @@ namespace DanTech.Controllers
             if (!Response.Headers.Keys.Contains("Access-Control-Allow-Origin")) 
                 Response.Headers.Add("Access-Control-Allow-Origin", "*");
             if (VM == null) return Json(null);
-            while (DTDBDataService.Updating()) Thread.Sleep(1000);
             var newProj = new dtProject()
             {
                 colorCode = colorCode,
@@ -104,9 +113,11 @@ namespace DanTech.Controllers
                 user = VM.User.id,
                 id = id.HasValue ? id.Value : 0
             };
-            DTDBDataService svc = new DTDBDataService(_db);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             svc.Set(newProj);
-            return Json(svc.DTProjects(VM.User.id));
+            var projs = svc.DTProjects(VM.User.id);
+            DTDBDataService.ClearBusy();
+            return Json(projs);
         }
 
         [HttpPost]
@@ -134,7 +145,7 @@ namespace DanTech.Controllers
         {
             if (VM == null) return Json(null);
             while (DTDBDataService.Updating()) Thread.Sleep(1000);
-            DTDBDataService svc = new DTDBDataService(_db);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             svc.SetConnString(_configuration.GetConnectionString("dg"));
             var pi = new dtPlanItemModel(title,
                                          note,
@@ -158,20 +169,22 @@ namespace DanTech.Controllers
             svc.Set(pi);
             int uid = 0;
             if (VM != null) if (VM.User != null) uid = VM.User.id;
-            return Json(svc.PlanItems(VM.User.id,
+            var items = svc.PlanItems(VM.User.id,
                                         daysBack ?? 1, 
                                         includeCompleted ?? false, 
                                         getAll ?? false,
-                                        onlyProject ?? 0));
+                                        onlyProject ?? 0);
+            DTDBDataService.ClearBusy();
+            return Json(items);
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Propagate(string sessionId, int seedId)
         {
             if (VM == null) return Json(null);
-            while (DTDBDataService.Updating()) Thread.Sleep(1000);
-            DTDBDataService svc = new DTDBDataService(_db);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             var result = Json(svc.Propagate(seedId, VM.User.id));
+            DTDBDataService.ClearBusy();
             return result;
         }
     }

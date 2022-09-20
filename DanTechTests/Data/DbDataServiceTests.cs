@@ -14,6 +14,8 @@ namespace DanTechTests
     public class DbDataServiceTests
     {
         private static string classTestName = "";
+        private const string _testFlagKey = "Testing in progress";
+
 
         [TestMethod]
         public void ColorCode_List()
@@ -21,7 +23,7 @@ namespace DanTechTests
             //Arrange
             var db = DTTestOrganizer.DB();
             var numColorCodes = (from x in db.dtColorCodes select x).ToList().Count;
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
 
             //Act
             var colorCodes = dataService.ColorCodes();
@@ -86,7 +88,7 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             string recurrenceTitle = DTTestConstants.TestValue + " for AddRecurrence Test";
             var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
@@ -112,7 +114,7 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
             var testUser = DTTestOrganizer.TestUser;
             var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
             dtPlanItemModel model = new dtPlanItemModel()
@@ -169,7 +171,7 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
@@ -216,7 +218,7 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
@@ -255,7 +257,7 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
@@ -283,7 +285,7 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             string recurrenceTitle = DTTestConstants.TestValue + " for T-Th Recurrence Test";
             var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
@@ -314,7 +316,7 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var numProjects = (from x in db.dtProjects where x.user == testUser.id select x).ToList().Count;
 
@@ -332,7 +334,7 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testStatus = (from x in db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
             var allProjects = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
@@ -371,7 +373,7 @@ namespace DanTechTests
             //Arrange
             var db = DTTestOrganizer.DB();
             var numRecurrences = (from x in db.dtRecurrences select x).ToList().Count;
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
 
             //Act
             var recurrences = dataService.Recurrences();
@@ -386,22 +388,22 @@ namespace DanTechTests
             var db = DTTestOrganizer.DB();
 
             //Arrange
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
 
             //Act
 
             //Turn off testing
-            bool testFlagBeforeToggle = dataService.InTesting;
+            bool testFlagBeforeToggle = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
             if (testFlagBeforeToggle)
             {
                 dataService.ToggleTestFlag();
-                testFlagBeforeToggle = dataService.InTesting;
+                testFlagBeforeToggle = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
             }
 
             //Now turn it on.
             dataService.ToggleTestFlag();
-            bool testFlagShouldBeSet = dataService.InTesting;
-            var testInProgressFlag = (from x in db.dtTestData where x.title == dataService.TestFlagKey select x).FirstOrDefault();
+            bool testFlagShouldBeSet = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
+            var testInProgressFlag = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
             bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
             var testDataElementFlag = (from x in db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
 
@@ -422,7 +424,7 @@ namespace DanTechTests
             //Arrange
             var db = DTTestOrganizer.DB();
             var numStati = (from x in db.dtStatuses select x).ToList().Count;
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
 
             //Act
             var statuses = dataService.Stati();
@@ -436,7 +438,7 @@ namespace DanTechTests
         {
             //Arrange 
             var db = DTTestOrganizer.DB();
-            var dataService = new DTDBDataService(db);
+            var dataService = new DTDBDataService(db, DTTestOrganizer.Conn);
         }
 
     }

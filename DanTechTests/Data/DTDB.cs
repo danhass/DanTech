@@ -10,6 +10,7 @@ namespace DanTechTests.Data
     public class DTDB
     {
         private static string _conn = "server=162.241.218.73;user id=dimgaard_WPXTY;password=@TheMan001;database=dimgaard_WPXTY;port=3306";
+        public static string Conn() { return _conn; }
         private static dgdb _db = null;
 
         public dgdb DB { get { return _db; } }

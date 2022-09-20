@@ -24,13 +24,17 @@ namespace DanTech.Services
         private static int _userId = -1;
         private static dtPlanItem _recurringItem = null;
         private static string _conn = string.Empty;
-        private static bool _recurrencesPopulating = false;
-        public static bool Updating() { return _recurrencesPopulating; }
+        private static bool _dbBusy = false;
         private const string _testFlagKey = "Testing in progress";
+        public static bool Updating() { return _dbBusy; }
+        public static void ClearBusy() { _dbBusy = false; }
+      
 
-        public DTDBDataService(dgdb db)
+        public DTDBDataService(dgdb db, string conn)
         {
+            _conn = conn;
             _db = db;
+            _dbBusy = true;
         }
 
         public DTDBDataService(string conn)
@@ -150,7 +154,6 @@ namespace DanTech.Services
                 throw ex;
             }
             return items;
-
         }
 
         public static DTViewModel SetCredentials(string token)
@@ -211,7 +214,7 @@ namespace DanTech.Services
 
         public List<dtProjectModel> DTProjects(int userId)
         {
-            if (_db == null) throw new Exception("DB not set");
+            if (_db == null) _db = instantiateDB();
             List<dtProjectModel> projects = new List<dtProjectModel>();
             return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
@@ -232,15 +235,15 @@ namespace DanTech.Services
             return projects;
         }
 
-        public bool InTesting { get { return (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null; } }
-
         public void LaunchUpdateRecurrences()
         {
-            if (_recurrencesPopulating) return;
-            _recurrencesPopulating = true;
-            ThreadStart updateRecurrencesRef = new ThreadStart(UpdateRecurrances);
+            if (_dbBusy) return;
+            _dbBusy = true;
+            UpdateRecurrances();
+          /*  ThreadStart updateRecurrencesRef = new ThreadStart(UpdateRecurrances);
             Thread updateRecurrences = new Thread(updateRecurrencesRef);
             updateRecurrences.Start();
+          */
         }
 
         public List<dtPlanItemModel> PlanItems(dtUser user,
@@ -250,7 +253,8 @@ namespace DanTech.Services
                                                     int onlyProject = 0,
                                                     bool onlyRecurrences = false)
         {
-            if (_db == null) throw new Exception("DB not set");
+            var results = new List<dtPlanItemModel>();
+            if (_db == null) _db = instantiateDB();
             if (user == null) return new List<dtPlanItemModel>();
             _currentUser = user;
             var mapper = new Mapper(PlanItemMapConfig);
@@ -283,7 +287,6 @@ namespace DanTech.Services
             if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
             if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
             if (onlyRecurrences) items = items.Where(x => (x.recurrence.HasValue && x.recurrence.Value > 0)).ToList();
-            var results = new List<dtPlanItemModel>();
             foreach (var i in items) results.Add(new dtPlanItemModel(i));
             return results;
         }
@@ -298,7 +301,10 @@ namespace DanTech.Services
                                                   bool onlyRecurrences = false
                                                   )
         {
-            if (_db == null) throw new Exception("DB not set");
+            if (_db == null)
+            {
+                _db = instantiateDB();
+            }
             return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll, onlyProject, onlyRecurrences);
         }
 
@@ -354,7 +360,7 @@ namespace DanTech.Services
 
         public dtProject Set(dtProject project)
         {
-            if (_db == null) throw new Exception("DB not set");
+            if (_db == null) _db = instantiateDB();
             dtProject existing = null;
             if (project.id > 0)
             {
@@ -393,7 +399,7 @@ namespace DanTech.Services
 
         public dtPlanItem Set(dtPlanItemModel planItem)
         {
-            if (_db == null) throw new Exception("DB not set");
+            if (_db == null) _db = instantiateDB();
             if (planItem == null) return null;
 
             if (!planItem.userId.HasValue) throw new Exception("Setting plan item requires a user id.");
@@ -448,8 +454,6 @@ namespace DanTech.Services
             return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
         }
 
-        public string TestFlagKey { get { return _testFlagKey; } }
-
         public void ToggleTestFlag()
         {
             if (_db == null) throw new Exception("DB not set");
@@ -469,6 +473,7 @@ namespace DanTech.Services
 
         public dtUserModel UserModelForSession(string session, string hostAddress)
         {
+            if (_db == null) _db = instantiateDB();
             dtUserModel mappedUser = null;
             if (!string.IsNullOrEmpty(session))
             {
@@ -517,11 +522,11 @@ namespace DanTech.Services
                     _recurringItem = r;
                     PopulateRecurrences(db);
                 }
-                _recurrencesPopulating = false;
+                _dbBusy = false;
             }
             catch(Exception)
             {
-                _recurrencesPopulating = false;
+                _dbBusy = false;
             }
         }
 

@@ -167,7 +167,7 @@ namespace DanTech.Controllers
             
             if (VM.TestEnvironment)
             {
-                DTDBDataService dataService = new DTDBDataService(_db);
+                DTDBDataService dataService = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
                 dataService.ToggleTestFlag();
                 string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
                 return Redirect(DTGoogleAuthService.AuthService(domain, "Home/GoogleSignin", _configuration));

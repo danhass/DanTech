@@ -21,6 +21,7 @@ namespace DanTech.Controllers
     {
         private readonly IConfiguration _configuration;
         private dgdb _db = null;
+        private const string _testFlagKey = "Testing in progress";
 
         public DTAuthenticate(IConfiguration configuration, dgdb db)
         {
@@ -44,8 +45,8 @@ namespace DanTech.Controllers
             var host = context.HttpContext.Request.Host;
             controller.VM = new DTViewModel();
             controller.VM.TestEnvironment = host.ToString().StartsWith("localhost");
-            var dataService = new DTDBDataService(_db);
-            controller.VM.IsTesting = dataService.InTesting;
+            var dataService = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
+            controller.VM.IsTesting = (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
             controller.VM.User = dataService.UserModelForSession(session, hostAddress);            
             if (controller.VM.User == null) context.HttpContext.Response.Cookies.Delete("dtSessionId");
 

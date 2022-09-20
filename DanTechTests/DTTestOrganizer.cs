@@ -25,11 +25,13 @@ namespace DanTechTests
         private static dgdb _db = null;
         public static int _numberOfProjects = 0;
         public static dgdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }
+        public static string Conn = string.Empty;
         public static dtUser TestUser { get; set; }
 
         [AssemblyInitialize()]
         public static void Init(TestContext context)
         {
+            Conn = DTDB.Conn();
             _db = DB(DTTestConstants.DefaultNumberOfTestPropjects);
             var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             if (testUser == null)
