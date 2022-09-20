@@ -26,7 +26,7 @@ namespace DanTech.Services
         private static string _conn = string.Empty;
         private static bool _dbBusy = false;
         private const string _testFlagKey = "Testing in progress";
-        public static bool Updating() { return _dbBusy; }
+       // public static bool Updating() { return _dbBusy; }
         public static void ClearBusy() { _dbBusy = false; }
       
 

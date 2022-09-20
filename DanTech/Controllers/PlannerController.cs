@@ -90,7 +90,7 @@ namespace DanTech.Controllers
             DTDBDataService.ClearBusy();
             svc.SetConnString(_configuration.GetConnectionString("dg"));
             svc.SetUser(VM.User.id);
-            svc.LaunchUpdateRecurrences();
+            //svc.LaunchUpdateRecurrences();
             return Json(VM.PlanItems);
         }
 
@@ -144,7 +144,6 @@ namespace DanTech.Controllers
                                       )
         {
             if (VM == null) return Json(null);
-            while (DTDBDataService.Updating()) Thread.Sleep(1000);
             DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             svc.SetConnString(_configuration.GetConnectionString("dg"));
             var pi = new dtPlanItemModel(title,
