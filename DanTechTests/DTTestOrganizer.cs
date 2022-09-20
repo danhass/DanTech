@@ -28,6 +28,7 @@ namespace DanTechTests
         public static string Conn = string.Empty;
         public static dtUser TestUser { get; set; }
 
+
         [AssemblyInitialize()]
         public static void Init(TestContext context)
         {
