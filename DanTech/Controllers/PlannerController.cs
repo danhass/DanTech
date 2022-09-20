@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DanTech.Models.Data;
 using System.Web.Http.Cors;
+using System.Threading;
 
 namespace DanTech.Controllers
 {
@@ -69,6 +70,7 @@ namespace DanTech.Controllers
         public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0, bool? onlyRecurrences = false)
         {
             if (VM == null || VM.User == null) return Json(null);
+            while (DTDBDataService.Updating()) Thread.Sleep(1000);
             DTDBDataService svc = new DTDBDataService(_db);
             VM.PlanItems = svc.PlanItems(VM.User.id
                 , daysBack ?? 1
@@ -76,6 +78,9 @@ namespace DanTech.Controllers
                 , getAll ?? false
                 , onlyProject ?? 0
                 , onlyRecurrences ?? false);
+            svc.SetConnString(_configuration.GetConnectionString("dg"));
+            svc.SetUser(VM.User.id);
+            svc.LaunchUpdateRecurrences();
             return Json(VM.PlanItems);
         }
 
@@ -86,6 +91,7 @@ namespace DanTech.Controllers
             if (!Response.Headers.Keys.Contains("Access-Control-Allow-Origin")) 
                 Response.Headers.Add("Access-Control-Allow-Origin", "*");
             if (VM == null) return Json(null);
+            while (DTDBDataService.Updating()) Thread.Sleep(1000);
             var newProj = new dtProject()
             {
                 colorCode = colorCode,
@@ -127,7 +133,9 @@ namespace DanTech.Controllers
                                       )
         {
             if (VM == null) return Json(null);
+            while (DTDBDataService.Updating()) Thread.Sleep(1000);
             DTDBDataService svc = new DTDBDataService(_db);
+            svc.SetConnString(_configuration.GetConnectionString("dg"));
             var pi = new dtPlanItemModel(title,
                                          note,
                                          start,
@@ -150,7 +158,6 @@ namespace DanTech.Controllers
             svc.Set(pi);
             int uid = 0;
             if (VM != null) if (VM.User != null) uid = VM.User.id;
-            var x = Json(svc.PlanItems(uid));
             return Json(svc.PlanItems(VM.User.id,
                                         daysBack ?? 1, 
                                         includeCompleted ?? false, 
@@ -162,6 +169,7 @@ namespace DanTech.Controllers
         public JsonResult Propagate(string sessionId, int seedId)
         {
             if (VM == null) return Json(null);
+            while (DTDBDataService.Updating()) Thread.Sleep(1000);
             DTDBDataService svc = new DTDBDataService(_db);
             var result = Json(svc.Propagate(seedId, VM.User.id));
             return result;

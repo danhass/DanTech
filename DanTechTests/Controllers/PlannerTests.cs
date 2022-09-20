@@ -90,24 +90,29 @@ namespace DanTechTests.Controllers
         {
             // This tests the ability to retrieve recurrences through the api
             // We are going to set four recurrences.
-            // #1 is dated twenty days ago, and is an everyday recurrence.
+            // #1 is dated twenty days ago, and is an everyday recurrence. It should add 30 children.
             // #2 is dated ten days ago, and is a T/Th recurrence.
-            // #3 is dated three days ago, and is a 1st & 15th recurrence
-            // #4 is dated today and is an everyday recurrence.
+            //  It should add 8 plus an additional child if today is Sunday, Monday, Wednesday, or Thursday
+            //  Or two if today is Tuesady
+            // #3 is dated three days ago, and is a 1st & 15th recurrence. This should generate 2 children.
+            // #4 is dated today and is an everyday recurrence,. It should add 30 children.
             // We then get the plan items.
             // The we get the recurrence items.
 
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.recurrence.HasValue && x.recurrence.Value > 0 select x).ToList().Count;
-            string planItemKey = DTTestConstants.TestValue + " for Getting Recurrences ";            
+            string planItemKey = DTTestConstants.TestValue + " for Getting Recurrences ";
+            int numberOfChildren = 30+8+2+30;
+            if (today.DayOfWeek >= DayOfWeek.Sunday && today.DayOfWeek <= DayOfWeek.Thursday) numberOfChildren++;
+            if (today.DayOfWeek == DayOfWeek.Tuesday) numberOfChildren++;
             SetControllerQueryString();
 
             //Act
             var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #1", null, DateTime.Now.AddDays(-20).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Daily_Weekly, null);
             res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #2", null, DateTime.Now.AddDays(-10).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Daily_Weekly, "--*-*--");
             res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #3", null, DateTime.Now.AddDays(-3).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Monthly, "1,15");
-            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #4", null, DateTime.Now.AddDays(-10).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #4", null, DateTime.Now.ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             res = _controller.PlanItems(DTTestConstants.TestSessionId);
             var recurrenceList = (List<dtPlanItemModel>) _controller.PlanItems(DTTestConstants.TestSessionId, 1, false, true, null, true).Value;
 
@@ -329,8 +334,9 @@ namespace DanTechTests.Controllers
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " future recurrence with 3 weeks MF Recurrence";
-            //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
-            int expectedChildren = (today.DayOfWeek == DayOfWeek.Monday || today.DayOfWeek == DayOfWeek.Tuesday) ? 1 : 2;
+            //For this test we always expect 2 children to be populated. By setting the start date 14 days ahead, the next M & F including the
+            // possible start should be in the 30 day range that is populated, but  the next cycle would be at day 35-41.
+            int expectedChildren = 2;
 
             SetControllerQueryString();
 
@@ -353,11 +359,10 @@ namespace DanTechTests.Controllers
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " set with Recurrence";
-            var testProj = (from x in _db.dtProjects where x.user == _testUser.id select x).FirstOrDefault();  //Just use the first project
             SetControllerQueryString();
 
             //Act
-            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, testProj.id, null, true, null, null, null, DTTestConstants.RecurrenceId_Daily, null);
+            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
 
             //Assert
@@ -469,8 +474,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var projectsWithNewItem = _controller.SetProject("", newProj.title, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes);
-            var projectsWithUpdatedItem = _controller.SetProject("", copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode ?? 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
+            var projectsWithNewItem = _controller.SetProject(DTTestConstants.TestSessionId, newProj.title, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes);
+            var projectsWithUpdatedItem = _controller.SetProject(DTTestConstants.TestSessionId, copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode ?? 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
 //            var corsFlag = _controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
