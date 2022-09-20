@@ -12,4 +12,17 @@ namespace DanTech.Data
         Semi_monthly = 3,
         Monthly_nth_day = 4
     }
+
+    public enum DtStatus
+    {
+        Active = 1,
+        Pending = 2,
+        Closed = 3,
+        Complete = 4,
+        Cancelled = 5,
+        Inactive = 6,
+        Postponed = 7,
+        Delayed = 8,
+        Test = 9
+    }
 }

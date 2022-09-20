@@ -24,26 +24,21 @@ namespace DanTech.Services
         private static int _userId = -1;
         private static dtPlanItem _recurringItem = null;
         private static string _conn = string.Empty;
-        private static bool _dbBusy = false;
         private const string _testFlagKey = "Testing in progress";
-       // public static bool Updating() { return _dbBusy; }
-        public static void ClearBusy() { _dbBusy = false; }
-      
 
         public DTDBDataService(dgdb db, string conn)
         {
             _conn = conn;
             _db = db;
-            _dbBusy = true;
         }
 
         public DTDBDataService(string conn)
         {
             _conn = conn;
-            _db = instantiateDB();
+            _db = InstantiateDB();
         }
 
-        private dgdb instantiateDB ()
+        private dgdb InstantiateDB ()
         {
             var optionsBuilder = new DbContextOptionsBuilder<dgdb>();
             optionsBuilder.UseMySQL(_conn);
@@ -114,18 +109,18 @@ namespace DanTech.Services
                     DateTime test = DateTime.Now.AddDays(i);
                     if ((_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
                          _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
-                         mask[(int)test.DayOfWeek] == '*') ||
+                         (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-') ||
                         (_recurringItem.recurrence == (int)DtRecurrence.Monthly &&
                          dateMap.ContainsKey(test.Day) &&
                          dateMap[test.Day]) ||
                         (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly &&
                             test >= _recurringItem.start.Value &&
                           (((int)(test - _recurringItem.start.Value).TotalDays / 7)) % numWksInCycle == 0 &&
-                           mask[(int)test.DayOfWeek] == '*') ||
+                           (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'))) ||
                         (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day &&
                             numWksInCycle > 0 &&
                             ((int)(test.Day / 7) + 1) == numWksInCycle &&
-                            mask[(int)test.DayOfWeek] == '*')
+                            (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'))
                        )
                         AddOnThisDay[i] = true;
                 }
@@ -214,7 +209,7 @@ namespace DanTech.Services
 
         public List<dtProjectModel> DTProjects(int userId)
         {
-            if (_db == null) _db = instantiateDB();
+            if (_db == null) _db = InstantiateDB();
             List<dtProjectModel> projects = new List<dtProjectModel>();
             return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
@@ -233,18 +228,7 @@ namespace DanTech.Services
             }
             _db.SaveChanges();
             return projects;
-        }
-
-        public void LaunchUpdateRecurrences()
-        {
-            if (_dbBusy) return;
-            _dbBusy = true;
-            UpdateRecurrances();
-          /*  ThreadStart updateRecurrencesRef = new ThreadStart(UpdateRecurrances);
-            Thread updateRecurrences = new Thread(updateRecurrencesRef);
-            updateRecurrences.Start();
-          */
-        }
+        }   
 
         public List<dtPlanItemModel> PlanItems(dtUser user,
                                                     int daysBack = 1,
@@ -254,7 +238,7 @@ namespace DanTech.Services
                                                     bool onlyRecurrences = false)
         {
             var results = new List<dtPlanItemModel>();
-            if (_db == null) _db = instantiateDB();
+            if (_db == null) _db = InstantiateDB();
             if (user == null) return new List<dtPlanItemModel>();
             _currentUser = user;
             var mapper = new Mapper(PlanItemMapConfig);
@@ -303,14 +287,14 @@ namespace DanTech.Services
         {
             if (_db == null)
             {
-                _db = instantiateDB();
+                _db = InstantiateDB();
             }
             return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll, onlyProject, onlyRecurrences);
         }
 
         public bool Propagate(int itemId, int userId)
         {
-            if (_db == null) throw new Exception("DB not set");
+            if (_db == null) _db = InstantiateDB();
             bool result = true;
             var item = (from x in _db.dtPlanItems where x.id == itemId && x.user == userId select x).FirstOrDefault();
             if (item == null || (!item.recurrence.HasValue && !item.parent.HasValue)) return false;
@@ -360,7 +344,7 @@ namespace DanTech.Services
 
         public dtProject Set(dtProject project)
         {
-            if (_db == null) _db = instantiateDB();
+            if (_db == null) _db = InstantiateDB();
             dtProject existing = null;
             if (project.id > 0)
             {
@@ -399,7 +383,7 @@ namespace DanTech.Services
 
         public dtPlanItem Set(dtPlanItemModel planItem)
         {
-            if (_db == null) _db = instantiateDB();
+            if (_db == null) _db = InstantiateDB();
             if (planItem == null) return null;
 
             if (!planItem.userId.HasValue) throw new Exception("Setting plan item requires a user id.");
@@ -473,7 +457,7 @@ namespace DanTech.Services
 
         public dtUserModel UserModelForSession(string session, string hostAddress)
         {
-            if (_db == null) _db = instantiateDB();
+            if (_db == null) _db = InstantiateDB();
             dtUserModel mappedUser = null;
             if (!string.IsNullOrEmpty(session))
             {
@@ -504,29 +488,32 @@ namespace DanTech.Services
             }
             return mappedUser;
         }
-        
-        private void UpdateRecurrances()
+        public void UpdateRecurrences(int userId, int sourceItem = 0)
         {
-            try
+            _userId = userId;
+            if (_db == null) _db = InstantiateDB();
+            var user = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
+            if (user == null) return;
+            _currentUser = user;
+            var recurrences = new List<dtPlanItem>();
+            if (sourceItem > 0)
             {
-                if (_userId < 1 || string.IsNullOrEmpty(_conn)) return;
-                dgdb db = instantiateDB();
-                var user = (from x in db.dtUsers where x.id == _userId select x).FirstOrDefault();
-                if (user == null) return;
-                _currentUser = user;
-                // Need to process recurrences
-                var recurrances = (from x in db.dtPlanItems where x.user == user.id && x.recurrence != null select x).ToList();
-                List<dtPlanItem> recurranceItems = new List<dtPlanItem>();
-                foreach (var r in recurrances)
+                var item = (from x in _db.dtPlanItems where x.id == sourceItem && x.user == _userId select x).FirstOrDefault();
+                if (item != null && item.parent.HasValue)
                 {
-                    _recurringItem = r;
-                    PopulateRecurrences(db);
+                    item = (from x in _db.dtPlanItems where x.id == item.parent.Value select x).FirstOrDefault();
                 }
-                _dbBusy = false;
+                if (item != null && item.recurrence.HasValue) recurrences.Add(item);
             }
-            catch(Exception)
+            else
             {
-                _dbBusy = false;
+                recurrences = (from x in _db.dtPlanItems where x.user == _userId && x.recurrence != null select x).ToList();
+            }
+            // Need to process recurrences
+            foreach (var r in recurrences)
+            {
+                _recurringItem = r;
+                PopulateRecurrences(_db);
             }
         }
 

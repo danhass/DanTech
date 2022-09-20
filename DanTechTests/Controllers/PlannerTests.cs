@@ -310,7 +310,7 @@ namespace DanTechTests.Controllers
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " recurrence with 3 weeks MF Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
-            int expectedChildren = (DateTime.Now.DayOfWeek == DayOfWeek.Monday || DateTime.Now.DayOfWeek == DayOfWeek.Tuesday) ? 3 : 2;
+            int expectedChildren = (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Monday) ? 3 : 2;
             SetControllerQueryString();
 
             //Act
@@ -493,11 +493,95 @@ namespace DanTechTests.Controllers
 
             //Act
             var res = _controller.Stati(DTTestConstants.TestSessionId);
-           //var corsFlag = _controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
             Assert.AreEqual(((List<dtStatusModel>)res.Value).Count, numberStati, "Stati numbers don't match.");
-            //Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+        }
+
+        [TestMethod]
+        public void UpdateRecurrence_PopulatesMissing()
+        {
+            //Arrange
+            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            SetControllerQueryString();
+            //Need to have a recurrence that has not populated the childrenn yet. Placing it directly into the database.
+            dtProject proj = new dtProject()
+            { 
+                title = DTTestConstants.TestValue + ": Project for Update Recurrennce - Populate Missing", 
+                shortCode = "UTST", 
+                user = testUser.id, 
+                status = (int)DtStatus.Active, 
+                colorCode = 4 
+            };
+            _db.dtProjects.Add(proj);
+            _db.SaveChanges();
+            // Placing a recurrence that is a M/F every 4 weeks, and setting the start of 3 weeks previous to current day.
+            dtPlanItem recurrence = new dtPlanItem()
+            {
+                title = DTTestConstants.TestValue + ": Recurrence that needs to be populated.",
+                project = proj.id,
+                user = testUser.id,
+                day = DateTime.Parse(DateTime.Now.AddDays(-21).ToShortDateString()),
+                start = DateTime.Parse(DateTime.Now.AddDays(-21).ToShortDateString()).AddHours(13),
+                duration = TimeSpan.Parse("01:30"),
+                recurrence = (int)DtRecurrence.Semi_monthly,
+                recurrenceData = "4:-*---*-"
+            };
+            _db.dtPlanItems.Add(recurrence);
+            _db.SaveChanges();            
+            int expectedNumberOfChildren = 2;
+
+            //Act
+            int startingChildren = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count;
+            var result = (List<dtPlanItemModel>)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId).Value);
+
+
+            //Assert
+            Assert.AreEqual(startingChildren, 0, "Should have no children to start.");
+            Assert.AreEqual(result.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
+        }
+
+        [TestMethod]
+        public void UpdateRecurrence_PopulatesMissingUsingMFMask()
+        {
+            //Arrange
+            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            SetControllerQueryString();
+            //Need to have a recurrence that has not populated the childrenn yet. Placing it directly into the database.
+            dtProject proj = new dtProject()
+            {
+                title = DTTestConstants.TestValue + ": Project for Update Recurrennce - Populate Missing",
+                shortCode = "UTST",
+                user = testUser.id,
+                status = (int)DtStatus.Active,
+                colorCode = 4
+            };
+            _db.dtProjects.Add(proj);
+            _db.SaveChanges();
+            // Placing a recurrence that is a M/F every 4 weeks, and setting the start of 3 weeks previous to current day.
+            dtPlanItem recurrence = new dtPlanItem()
+            {
+                title = DTTestConstants.TestValue + ": Recurrence that needs to be populated using M/F.",
+                project = proj.id,
+                user = testUser.id,
+                day = DateTime.Parse(DateTime.Now.AddDays(-21).ToShortDateString()),
+                start = DateTime.Parse(DateTime.Now.AddDays(-21).ToShortDateString()).AddHours(13),
+                duration = TimeSpan.Parse("01:30"),
+                recurrence = (int)DtRecurrence.Semi_monthly,
+                recurrenceData = "4:-M---F-"
+            };
+            _db.dtPlanItems.Add(recurrence);
+            _db.SaveChanges();
+            int expectedNumberOfChildren = 2;
+
+            //Act
+            int startingChildren = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count;
+            var result = (List<dtPlanItemModel>)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId).Value);
+
+
+            //Assert
+            Assert.AreEqual(startingChildren, 0, "Should have no children to start.");
+            Assert.AreEqual(result.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
         }
     }
 }
