@@ -47,6 +47,7 @@ namespace DanTech.Controllers
             // This method lets us use the web app kind of like a console app that is used a lot
             //   for ad hoc processing tasks, research, and experimentation.
             // We are leaving this here because it is used so often.
+            //DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             //DTDBDataService.GeneralUtil(_db);
             var typeCt = (from x in _db.dtTypes where 1 == 1 select x).ToList().Count;
             ViewBag.ipAddress = HttpContext.Connection.RemoteIpAddress;

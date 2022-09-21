@@ -520,6 +520,10 @@ namespace DanTech.Services
         // This is left at the bottom because it is a special method that is not part of normal use.
         public static void GeneralUtil(dgdb db)
         {
+            /*
+            _currentUser = (from x in db.dtUsers where x.id == 2 select x).FirstOrDefault();
+            _userId = _currentUser.id;
+            _recurringItem = (from x in db.dtPlanItems where x.id == 4919 select x).FirstOrDefault();
             var targets = (from x in db.dtPlanItems where x.parent != null select x).ToList();
             dtMisc log = new dtMisc() { title = "Util log", value = "There are " + targets.Count + " items." };
             db.dtMiscs.Add(log);
@@ -536,6 +540,7 @@ namespace DanTech.Services
                 }
             }
             db.SaveChanges();
+            */
          }
 
     }
