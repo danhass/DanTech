@@ -178,7 +178,7 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Propagate(string sessionId, int seedId)
         {
-            if (VM == null) return Json(null);
+            if (VM == null) return Json(null);            
             DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             var result = Json(svc.Propagate(seedId, VM.User.id));
             return result;

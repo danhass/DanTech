@@ -55,11 +55,12 @@ namespace DanTechTests.Controllers
             _controller.VM = new DanTech.Models.DTViewModel();
             _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(_testUser);
         }
-        private void SetControllerQueryString()
+        private void SetControllerQueryString(string sessionId = "")
         {
+            if (string.IsNullOrEmpty(sessionId)) sessionId = DTTestConstants.TestSessionId;
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
-            httpContext.Request.QueryString = new QueryString("?sessionId=" + DTTestConstants.TestSessionId);
+            httpContext.Request.QueryString = new QueryString("?sessionId=" + sessionId);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             _controller.ControllerContext = new ControllerContext(actionContext);
         }
@@ -583,5 +584,18 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(startingChildren, 0, "Should have no children to start.");
             Assert.AreEqual(result.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
         }
+
+        /*
+        [TestMethod]
+        public void BadProp()
+        {
+            SetControllerQueryString("fb02a99a-a84a-49a7-9836-9c837956364c");
+            var user = (from x in _db.dtUsers where x.id == 2 select x).FirstOrDefault();
+            _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(user);
+
+            var result = _controller.PopulateRecurrences("fb02a99a-a84a-49a7-9836-9c837956364c", 34888);
+
+        }
+        */
     }
 }
