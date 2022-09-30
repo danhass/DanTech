@@ -197,6 +197,46 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void PlanItem_Delete_KeepChildren()
+        {
+            //Arrange
+            SetControllerQueryString();
+            string key = DTTestConstants.TestValue + " - Delete Rec./Keep Children";
+            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            // Should have 30 children + the recurrence.
+            int totalItemsBeforeDelete = (from x in _db.dtPlanItems where x.title == key select x).ToList().Count;
+            var recurrence = (from x in _db.dtPlanItems where x.title == key && x.recurrence.HasValue select x).FirstOrDefault();
+
+            //Act
+            var delResult = _controller.DeletePlanItem(DTTestConstants.TestSessionId, recurrence.id);
+
+            //Assert
+            Assert.AreEqual(totalItemsBeforeDelete, 31, "Recurrence and children not set correctly.");
+            Assert.IsNull((from x in _db.dtPlanItems where x.title == key && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence not deleted.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.title == key select x).ToList().Count, 30, "Children not properly handled");
+        }
+
+        [TestMethod]
+        public void PlanItem_Delete_RecurrenceAndChildren()
+        {
+            //Arrange
+            SetControllerQueryString();
+            string key = DTTestConstants.TestValue + " - Delete Rec & Children";
+            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            // Should have 30 children + the recurrence.
+            int totalItemsBeforeDelete = (from x in _db.dtPlanItems where x.title == key select x).ToList().Count;
+            var recurrence = (from x in _db.dtPlanItems where x.title == key && x.recurrence.HasValue select x).FirstOrDefault();
+
+            //Act
+            var delResult = _controller.DeletePlanItem(DTTestConstants.TestSessionId, recurrence.id, true);
+
+            //Assert
+            Assert.AreEqual(totalItemsBeforeDelete, 31, "Recurrence and children not set correctly.");
+            Assert.IsNull((from x in _db.dtPlanItems where x.title == key && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence not deleted.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.title == key select x).ToList().Count, 0, "Children not properly handled");
+        }
+
+        [TestMethod]
         public void PlanItem_RecurrenceNotCurrent()
         {
             // If a recurrence is set for a previous date, when the plan items are retrieved, there should be items populated for the next 30 days.
@@ -311,7 +351,7 @@ namespace DanTechTests.Controllers
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " recurrence with 3 weeks MF Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
-            int expectedChildren = (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Monday) ? 3 : 2;
+            int expectedChildren = (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Monday || DateTime.Now.DayOfWeek==DayOfWeek.Friday) ? 3 : 2;
             SetControllerQueryString();
 
             //Act

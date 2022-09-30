@@ -61,11 +61,11 @@ namespace DanTech.Controllers
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult DeletePlanItem(string sessionId, int planItemId)
+        public JsonResult DeletePlanItem(string sessionId, int planItemId, bool? deleteChildren = false)
         {
             DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             if (VM == null || VM.User == null) return Json(null);
-            var result = svc.DeletePlanItem(planItemId, VM.User.id);
+            var result = svc.DeletePlanItem(planItemId, VM.User.id, deleteChildren.HasValue ? deleteChildren.Value : false);
             var json = Json(result);
 
             return json;

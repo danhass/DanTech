@@ -188,17 +188,24 @@ namespace DanTech.Services
             return mappr.Map<List<dtColorCodeModel>>((from x in _db.dtColorCodes select x).OrderBy(x => x.title).ToList());
         }
 
-        public bool DeletePlanItem(int planItemId, int userId)
+        public bool DeletePlanItem(int planItemId, int userId, bool deleteChildren = false)
         {
             if (_db == null) throw new Exception("DB not set");
             var item = (from x in _db.dtPlanItems where x.id == planItemId && x.user == userId select x).FirstOrDefault();
             if (item == null) return false;
             if (item.recurrence.HasValue)
-            {
+            {                
                 var children = (from x in _db.dtPlanItems where x.parent.Value == item.id select x).ToList();
-                foreach (var c in children)
+                if (deleteChildren)
                 {
-                    c.parent = null;
+                    _db.dtPlanItems.RemoveRange(children);
+                }
+                else
+                {
+                    foreach (var c in children)
+                    {
+                        c.parent = null;
+                    }
                 }
                 _db.SaveChanges();
             }
