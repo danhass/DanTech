@@ -411,8 +411,94 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void Project_Delete_DeleteItemsToo()
+        {
+            //Arrange
+            string projectKey = DTTestConstants.TestValue + " project for proj del test";
+            string projShortCode = "PDT";
+            string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test";
+            SetControllerQueryString();
+            _controller.SetProject(DTTestConstants.TestSessionId, projectKey, projShortCode, (int)DtStatus.Active);
+            var project = (from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault();
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var recurrence = (from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault();
+            var projItems = (from x in _db.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
+
+            //Act
+            _controller.DeleteProject(DTTestConstants.TestSessionId, project.id);
+
+            //Assert
+            Assert.IsNotNull(project, "Project not initially created.");
+            Assert.IsNotNull(recurrence, "Project recurrence not successfully created.");
+            Assert.AreEqual(projItems.Count, 30, "Project recurrence not correctly propagated.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, 0, "All propagated items not deleted.");
+            Assert.IsNull((from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence not deleted properly.");
+            Assert.IsNull((from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault(), "Project not deleted.");
+        }
+
+        [TestMethod]
+        public void Project_Delete_KeepItems()
+        {
+            //Arrange
+            string projectKey = DTTestConstants.TestValue + " project for proj del test (keep items)";
+            string projShortCode = "PKT"; // Project Keep Test
+            string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test (keep items)";
+            SetControllerQueryString();
+            _controller.SetProject(DTTestConstants.TestSessionId, projectKey, projShortCode, (int)DtStatus.Active);
+            var project = (from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault();
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var recurrence = (from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault();
+            var projItems = (from x in _db.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
+
+            //Act
+            _controller.DeleteProject(DTTestConstants.TestSessionId, project.id, false);
+
+            //Assert
+            Assert.IsNotNull(project, "Project not initially created.");
+            Assert.IsNotNull(recurrence, "Project recurrence not successfully created.");
+            Assert.AreEqual(projItems.Count, 30, "Project recurrence not correctly propagated.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, 30, "Propagated items deleted.");
+            Assert.IsNotNull((from x in _db.dtPlanItems where x.id == recurrence.id && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence deleted.");
+            Assert.IsNull((from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault(), "Project not deleted.");
+        }
+
+        [TestMethod]
+        public void Project_Delete_XferItems()
+        {
+            //Arrange
+            string projectKey = DTTestConstants.TestValue + " project for proj del test (xfer items)";
+            string projectXferKey = DTTestConstants.TestValue + " target project for tranfer";
+            string projShortCode = "PXT"; // Project Xfer Test
+            string projXferShortCode = "XXt"; //Transfer target project
+            string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test (xfer items)";
+            SetControllerQueryString();
+            _controller.SetProject(DTTestConstants.TestSessionId, projectKey, projShortCode, (int)DtStatus.Active);
+            var project = (from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault();
+            _controller.SetProject(DTTestConstants.TestSessionId, projectXferKey, projXferShortCode, (int)DtStatus.Active);
+            var xferProject = (from x in _db.dtProjects where x.title == projectXferKey select x).FirstOrDefault();
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var recurrence = (from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault();
+            var projItems = (from x in _db.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
+
+            //Act
+            _controller.DeleteProject(DTTestConstants.TestSessionId, project.id, false, xferProject.id);
+
+            //Assert
+            Assert.IsNotNull(project, "Project not initially created.");
+            Assert.IsNotNull(xferProject, "Transfer project not initially created.");
+            Assert.IsNotNull(recurrence, "Project recurrence not successfully created.");
+            Assert.AreEqual(projItems.Count, 30, "Project recurrence not correctly propagated.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, 0, "Propagated items still attached to project.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.project == xferProject.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, 30, "Propagated items deleted.");
+            Assert.IsNull((from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence not transferred.");
+            Assert.IsNotNull((from x in _db.dtPlanItems where x.project == xferProject.id && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence deleted.");
+            Assert.IsNull((from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault(), "Project not deleted.");
+        }
+
+        [TestMethod]
         public void Propagate_FromChild()
         {
+            //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string planItemKey = DTTestConstants.TestValue + " for propagate_fromchild";
             SetControllerQueryString();

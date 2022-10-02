@@ -63,12 +63,23 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult DeletePlanItem(string sessionId, int planItemId, bool? deleteChildren = false)
         {
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             if (VM == null || VM.User == null) return Json(null);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             var result = svc.DeletePlanItem(planItemId, VM.User.id, deleteChildren.HasValue ? deleteChildren.Value : false);
             var json = Json(result);
 
             return json;
+        }
+
+        [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult DeleteProject(string sessionId, int projectId, bool? deleteProjectItems = true, int? transferProject = null)
+        {
+            if (VM == null || VM.User == null) return Json(null);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
+            return Json(svc.DeleteProject(projectId, 
+                                          VM.User.id, 
+                                          deleteProjectItems.HasValue ? deleteProjectItems.Value : true, 
+                                          transferProject.HasValue ? transferProject.Value : 0));
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]

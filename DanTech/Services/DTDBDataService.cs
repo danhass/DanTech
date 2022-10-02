@@ -214,6 +214,37 @@ namespace DanTech.Services
             return true;
         }
 
+        public bool DeleteProject(int projectId, int userId, bool deleteProjItems=true, int transferProject = 0)
+        {
+            if (_db == null) throw new Exception("DB not set");
+            var project = (from x in _db.dtProjects where x.id == projectId select x).FirstOrDefault();
+            if (project == null) throw new Exception("Project does not exist.");
+            if (deleteProjItems)
+            {
+                var planItems = (from x in _db.dtPlanItems where x.project == project.id && x.recurrence == null select x).ToList();
+                _db.dtPlanItems.RemoveRange(planItems);
+                _db.SaveChanges();
+                planItems = (from x in _db.dtPlanItems where x.project == project.id select x).ToList();
+                _db.dtPlanItems.RemoveRange(planItems);
+                _db.SaveChanges();
+            }
+            if (transferProject > 0)
+            {
+                var newProj = (from x in _db.dtProjects where x.id == transferProject select x).FirstOrDefault();
+                if (newProj != null)
+                {
+                    var planItems = (from x in _db.dtPlanItems where x.project == project.id select x).ToList();
+                    foreach (var i in planItems) i.project = transferProject;
+                    _db.SaveChanges();
+                }
+            }
+            var remainingLinkedItems = (from x in _db.dtPlanItems where x.project == project.id select x).ToList();
+            foreach (var i in remainingLinkedItems) i.project = null;
+            _db.dtProjects.Remove(project);
+            _db.SaveChanges();
+            return true;
+        }
+
         public List<dtProjectModel> DTProjects(int userId)
         {
             if (_db == null) _db = InstantiateDB();
