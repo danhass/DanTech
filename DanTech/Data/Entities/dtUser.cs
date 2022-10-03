@@ -25,6 +25,7 @@ namespace DanTech.Data
         public string refreshToken { get; set; }
         public DateTime? lastLogin { get; set; }
         public byte? suspended { get; set; }
+        public DateTime? updated { get; set; }
 
         public virtual dtType typeNavigation { get; set; }
         public virtual ICollection<dtConfig> dtConfigs { get; set; }

@@ -97,11 +97,11 @@ namespace DanTech.Controllers
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
-        public JsonResult PopulateRecurrences(string sessionId, int? sourceItem = 0)
+        public JsonResult PopulateRecurrences(string sessionId, int? sourceItem = 0, bool? force = false)
         {
             if (VM == null || VM.User == null) return Json(null);
             DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            svc.UpdateRecurrences(VM.User.id, sourceItem.HasValue ? sourceItem.Value : 0);
+            svc.UpdateRecurrences(VM.User.id, sourceItem.HasValue ? sourceItem.Value : 0, force.HasValue ? force.Value : false);
             return Json(svc.PlanItems(VM.User.id));
         }
 

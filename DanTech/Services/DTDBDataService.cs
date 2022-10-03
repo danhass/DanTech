@@ -526,12 +526,15 @@ namespace DanTech.Services
             }
             return mappedUser;
         }
-        public void UpdateRecurrences(int userId, int sourceItem = 0)
+        public void UpdateRecurrences(int userId, int sourceItem = 0, bool force = false)
         {
             _userId = userId;
             if (_db == null) _db = InstantiateDB();
             var user = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
             if (user == null) return;
+            if (!force && user.updated.HasValue && (DateTime.Parse(DateTime.Now.ToShortDateString()) - DateTime.Parse(user.updated.Value.ToShortDateString())).TotalDays < 1) return;
+            user.updated = DateTime.Parse(DateTime.Now.ToShortDateString());
+            _db.SaveChanges();
             _currentUser = user;
             var recurrences = new List<dtPlanItem>();
             if (sourceItem > 0)

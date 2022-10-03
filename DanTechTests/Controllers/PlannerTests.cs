@@ -335,7 +335,7 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.IsNotNull(setItem, "Did not set the recurrance.");
-            Assert.AreEqual(returnedList.Count, numberOfPlanItems + numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children..");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.title == planItemKey select x).ToList().Count, numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children.."); ;
             Assert.IsNotNull(childItemFor1st, "No item set for 1st.");
             Assert.IsNotNull(childItemFor15th, "No item set for 15th.");
         }
