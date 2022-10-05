@@ -330,12 +330,14 @@ namespace DanTech.Services
             return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll, onlyProject, onlyRecurrences);
         }
 
+        // Returns false if no propagations are made. True if at least one propagation is made.
         public bool Propagate(int itemId, int userId)
         {
             if (_db == null) _db = InstantiateDB();
-            bool result = true;
+            bool result = false;
             var item = (from x in _db.dtPlanItems where x.id == itemId && x.user == userId select x).FirstOrDefault();
             if (item == null || (!item.recurrence.HasValue && !item.parent.HasValue)) return false;
+            if (item.id != itemId) result = true; // If the child was a seed, then AT LEAST the parent will be updated.
             dtPlanItem parent = null;
             if (item.parent.HasValue)
             {
@@ -357,6 +359,7 @@ namespace DanTech.Services
             }
             if (!parent.recurrence.HasValue) return false;
             var children = (from x in _db.dtPlanItems where x.parent.Value == parent.id select x).ToList();
+            if (children.Count > 0) result = true;
             foreach (var c in children)
             {
                 c.note = parent.note;
@@ -526,13 +529,16 @@ namespace DanTech.Services
             }
             return mappedUser;
         }
-        public void UpdateRecurrences(int userId, int sourceItem = 0, bool force = false)
-        {
+
+        // Returns the number of new items created by the update.
+        public int UpdateRecurrences(int userId, int sourceItem = 0, bool force = false)
+        { 
+            int itemCt = 0;
             _userId = userId;
             if (_db == null) _db = InstantiateDB();
             var user = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
-            if (user == null) return;
-            if (!force && user.updated.HasValue && (DateTime.Parse(DateTime.Now.ToShortDateString()) - DateTime.Parse(user.updated.Value.ToShortDateString())).TotalDays < 1) return;
+            if (user == null) return 0;
+            if (!force && user.updated.HasValue && (DateTime.Parse(DateTime.Now.ToShortDateString()) - DateTime.Parse(user.updated.Value.ToShortDateString())).TotalDays < 1) return 0;
             user.updated = DateTime.Parse(DateTime.Now.ToShortDateString());
             _db.SaveChanges();
             _currentUser = user;
@@ -554,8 +560,9 @@ namespace DanTech.Services
             foreach (var r in recurrences)
             {
                 _recurringItem = r;
-                PopulateRecurrences(_db);
+                itemCt += PopulateRecurrences(_db).Count;
             }
+            return itemCt;
         }
 
         // This is left at the bottom because it is a special method that is not part of normal use.
