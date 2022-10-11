@@ -297,6 +297,8 @@ namespace DanTech.Services
                 .OrderBy(x => x.day)
                 .ThenBy(x => x.completed)
                 .ThenBy(x => x.start)
+                .ThenBy(x => x.priority.Value)
+                .ThenByDescending(x => (x.projectNavigation == null ? 0 : (x.projectNavigation.priority.HasValue ? x.projectNavigation.priority.Value : 0)))
                 .ToList();
             string result = "Items: " + items.Count + "; User: " + user.id;
             if (!getAll)
