@@ -311,7 +311,35 @@ namespace DanTech.Services
             if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
             if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
             if (onlyRecurrences) items = items.Where(x => (x.recurrence.HasValue && x.recurrence.Value > 0)).ToList();
-            foreach (var i in items) results.Add(new dtPlanItemModel(i));
+            DateTime startOfToday = DateTime.Parse(DateTime.Now.ToShortDateString());
+            foreach (var i in items)
+            {
+                var mdl = new dtPlanItemModel(i);
+                if (!mdl.recurrence.HasValue)
+                {
+                    mdl.statusColor = "LightGray";
+                    if (mdl.day < startOfToday) mdl.statusColor = "DeepPink";
+                    if (mdl.day == startOfToday && mdl.start < DateTime.Now && (mdl.start + mdl.duration) < DateTime.Now) mdl.statusColor = "LightPink";
+                    if (mdl.completed.HasValue && mdl.completed.Value) mdl.statusColor = "DarkSeaGreen";
+                    if (mdl.day == startOfToday && !(mdl.completed.HasValue && mdl.completed.Value) && mdl.statusColor != "LightPink")
+                    {
+                        mdl.statusColor = "LightGoldenrodYellow";
+                        if (mdl.start < DateTime.Now && (mdl.start + mdl.duration) > DateTime.Now) mdl.statusColor = "Khaki";
+                        for (int j = results.Count - 1; j >= 0 && results[j].day == mdl.day && (mdl.statusColor == "LightGoldenrodYellow" || mdl.statusColor == "Khaki"); j--)
+                        {
+                            if (!results[j].recurrence.HasValue)
+                            {
+                                if (results[j].start <= mdl.start && (results[j].start + results[j].duration) >= mdl.start)
+                                {
+                                    mdl.statusColor = "DarkKhaki";
+                                    if (mdl.duration.TotalMinutes < 1) mdl.statusColor = "PaleGoldenrod";
+                                }
+                            }
+                        }
+                    }
+                }
+                results.Add(mdl);
+            }
             return results;
         }
 

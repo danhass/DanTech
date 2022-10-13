@@ -122,6 +122,172 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void PlanItem_ColorStatus_Complete()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            string key = DTTestConstants.TestValue + " Color: complete";
+            var colorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Complete) select x.colorCode).FirstOrDefault();
+            var color = (from x in _db.dtColorCodes where x.id == colorId select x).FirstOrDefault();
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(-40).ToString("HH:mm"), null, null, null, null, true, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId, null, true).Value;
+            var item = items.Where(x => x.title == key).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item, "Did not set complete item");
+            Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+        }
+
+        [TestMethod]
+        public void PlanItem_ColorStatus_Conflict()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            string key = DTTestConstants.TestValue + " Color: conflict";
+            var colorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Conflict) select x.colorCode).FirstOrDefault();
+            var color = (from x in _db.dtColorCodes where x.id == colorId select x).FirstOrDefault();
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key + " Pre", null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(100).ToString("HH:mm"), null, DateTime.Now.AddMinutes(160).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
+            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(105).ToString("HH:mm"), null, DateTime.Now.AddMinutes(110).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var item = items.Where(x => x.title == key).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item, "Did not set conflict item");
+            Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+        }
+
+        [TestMethod]
+        public void PlanItem_ColorStatus_Current()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            string key = DTTestConstants.TestValue + " Color: current";
+            var colorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Current) select x.colorCode).FirstOrDefault();
+            var color = (from x in _db.dtColorCodes where x.id == colorId select x).FirstOrDefault();
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(200).ToString("HH:mm"), null, DateTime.Now.AddMinutes(210).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var item = items.Where(x => x.title == key).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item, "Did not set current item");
+            Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+        }
+
+        [TestMethod]
+        public void PlanItem_ColorStatus_Future()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            string key = DTTestConstants.TestValue + " Color: future";
+            var futureColorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Future) select x.colorCode).FirstOrDefault();
+            var futureColor = (from x in _db.dtColorCodes where x.id == futureColorId select x).FirstOrDefault();
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.AddDays(2).ToShortDateString(), "13:30", null, "14:00", null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var item = items.Where(x => x.title == key).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item, "Did not set future item");
+            Assert.AreEqual(item.statusColor, futureColor.title, "Status color not properly set");
+        }
+
+        [TestMethod]
+        public void PlanItem_ColorStatus_OutOfDate()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            string key = DTTestConstants.TestValue + " Color: Out of date";
+            var outOfDateColorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Out_of_date) select x.colorCode).FirstOrDefault();
+            var outOfDateColor = (from x in _db.dtColorCodes where x.id == outOfDateColorId select x).FirstOrDefault();
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.AddDays(-1).ToShortDateString(), "13:30", null, "14:00", null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var item = items.Where(x => x.title == key).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item, "Did not set out of date item");
+            Assert.AreEqual(item.statusColor, outOfDateColor.title, "Status color not properly set");
+        }
+
+        [TestMethod]
+        public void PlanItem_ColorStatus_Pastdue()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var pastStart = DateTime.Now.AddMinutes(-200).ToString("HH:mm");
+            var pastEnd = DateTime.Now.AddMinutes(-140).ToString("HH:mm");
+            string key = DTTestConstants.TestValue + " Color: pastdue";
+            var colorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Pastdue) select x.colorCode).FirstOrDefault();
+            var color = (from x in _db.dtColorCodes where x.id == colorId select x).FirstOrDefault();
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), pastStart, null, pastEnd, null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var item = items.Where(x => x.title == key).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item, "Did not set working item");
+            Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+        }
+
+        [TestMethod]
+        public void PlanItem_ColorStatus_Subitem()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            string key = DTTestConstants.TestValue + " Color: subitem";
+            var colorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Subitem) select x.colorCode).FirstOrDefault();
+            var color = (from x in _db.dtColorCodes where x.id == colorId select x).FirstOrDefault();
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key + " Pre", null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(200).ToString("HH:mm"), null, DateTime.Now.AddMinutes(260).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
+            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(205).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var item = items.Where(x => x.title == key).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item, "Did not set subitem item");
+            Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+        }
+
+        [TestMethod]
+        public void PlanItem_ColorStatus_Working()
+        {
+            //Arrange
+            var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var tenMinsAgo = DateTime.Now.AddMinutes(-10).ToString("HH:mm");
+            var fiftyMinsFromNow = DateTime.Now.AddMinutes(50).ToString("HH:mm");
+            string key = DTTestConstants.TestValue + " Color: working";
+            var colorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Working) select x.colorCode).FirstOrDefault();
+            var color = (from x in _db.dtColorCodes where x.id == colorId select x).FirstOrDefault();
+            SetControllerQueryString();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), tenMinsAgo, null, fiftyMinsFromNow, null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var item = items.Where(x => x.title == key).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item, "Did not set working item");
+            Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+        }
+
+        [TestMethod]
         public void PlanItem_Get()
         {
             //Arrange
@@ -660,12 +826,13 @@ namespace DanTechTests.Controllers
 
             //Act
             int startingChildren = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count;
-            var result = (List<dtPlanItemModel>)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId).Value);
+            var result = (int)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId).Value);
 
 
             //Assert
             Assert.AreEqual(startingChildren, 0, "Should have no children to start.");
-            Assert.AreEqual(result.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
+            Assert.AreEqual(result, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, expectedNumberOfChildren, "Children in database are incorrect.");
         }
 
         [TestMethod]
@@ -677,8 +844,8 @@ namespace DanTechTests.Controllers
             //Need to have a recurrence that has not populated the childrenn yet. Placing it directly into the database.
             dtProject proj = new dtProject()
             {
-                title = DTTestConstants.TestValue + ": Project for Update Recurrennce - Populate Missing",
-                shortCode = "UTST",
+                title = DTTestConstants.TestValue + ": Project for Update Recurrennce - Populate Missing MF",
+                shortCode = "UTMF",
                 user = testUser.id,
                 status = (int)DtStatus.Active,
                 colorCode = 4
@@ -703,12 +870,13 @@ namespace DanTechTests.Controllers
 
             //Act
             int startingChildren = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count;
-            var result = (List<dtPlanItemModel>)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId).Value);
+            var result = (int)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId).Value);
 
 
             //Assert
             Assert.AreEqual(startingChildren, 0, "Should have no children to start.");
-            Assert.AreEqual(result.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
+            Assert.AreEqual(result, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, expectedNumberOfChildren, "Children in database are incorrect.");
         }
 
         /*

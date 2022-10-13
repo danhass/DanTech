@@ -23,6 +23,13 @@ namespace DanTech.Data
         Inactive = 6,
         Postponed = 7,
         Delayed = 8,
-        Test = 9
+        Test = 9,
+        Out_of_date = 10,
+        Future = 11,
+        Current = 12,
+        Working = 13,
+        Subitem = 14,
+        Conflict = 15,
+        Pastdue = 16
     }
 }

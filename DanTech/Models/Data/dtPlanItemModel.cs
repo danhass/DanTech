@@ -199,6 +199,7 @@ namespace DanTech.Models.Data
         public bool? preserve { get; set; }
         public int? userId { get; set; }
         public int? projectId { get; set; }
+        public string statusColor { get; set; }
 #nullable enable
         public dtUserModel? user { get; set; }
         public dtProjectModel? project { get; set; }
