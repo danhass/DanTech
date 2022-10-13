@@ -329,7 +329,7 @@ namespace DanTech.Services
                         {
                             if (!results[j].recurrence.HasValue)
                             {
-                                if (results[j].start <= mdl.start && (results[j].start + results[j].duration) >= mdl.start)
+                                if (results[j].start <= mdl.start && (results[j].start + results[j].duration) > mdl.start)
                                 {
                                     mdl.statusColor = "DarkKhaki";
                                     if (mdl.duration.TotalMinutes < 1) mdl.statusColor = "PaleGoldenrod";
