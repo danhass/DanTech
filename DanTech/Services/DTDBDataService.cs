@@ -311,7 +311,7 @@ namespace DanTech.Services
             if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
             if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
             if (onlyRecurrences) items = items.Where(x => (x.recurrence.HasValue && x.recurrence.Value > 0)).ToList();
-            DateTime startOfToday = DateTime.Parse(DateTime.Now.ToShortDateString());
+            DateTime startOfToday = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
             foreach (var i in items)
             {
                 var mdl = new dtPlanItemModel(i);
@@ -319,12 +319,12 @@ namespace DanTech.Services
                 {
                     mdl.statusColor = "LightGray";
                     if (mdl.day < startOfToday) mdl.statusColor = "DeepPink";
-                    if (mdl.day == startOfToday && mdl.start < DateTime.Now && (mdl.start + mdl.duration) < DateTime.Now) mdl.statusColor = "LightPink";
+                    if (mdl.day == startOfToday && mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) < DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = "LightPink";
                     if (mdl.completed.HasValue && mdl.completed.Value) mdl.statusColor = "DarkSeaGreen";
                     if (mdl.day == startOfToday && !(mdl.completed.HasValue && mdl.completed.Value) && mdl.statusColor != "LightPink")
                     {
                         mdl.statusColor = "LightGoldenrodYellow";
-                        if (mdl.start < DateTime.Now && (mdl.start + mdl.duration) > DateTime.Now) mdl.statusColor = "Khaki";
+                        if (mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) > DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = "Khaki";
                         for (int j = results.Count - 1; j >= 0 && results[j].day == mdl.day && (mdl.statusColor == "LightGoldenrodYellow" || mdl.statusColor == "Khaki"); j--)
                         {
                             if (!results[j].recurrence.HasValue)
