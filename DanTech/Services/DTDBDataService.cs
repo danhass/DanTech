@@ -36,6 +36,7 @@ namespace DanTech.Services
         {
             _conn = conn;
             _db = InstantiateDB();
+            if (!DTConstants.Initialized()) DTConstants.Init(_db);
         }
 
         private dgdb InstantiateDB ()
@@ -317,22 +318,22 @@ namespace DanTech.Services
                 var mdl = new dtPlanItemModel(i);
                 if (!mdl.recurrence.HasValue)
                 {
-                    mdl.statusColor = "LightGray";
-                    if (mdl.day < startOfToday) mdl.statusColor = "DeepPink";
-                    if (mdl.day == startOfToday && mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) < DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = "LightPink";
-                    if (mdl.completed.HasValue && mdl.completed.Value) mdl.statusColor = "DarkSeaGreen";
-                    if (mdl.day == startOfToday && !(mdl.completed.HasValue && mdl.completed.Value) && mdl.statusColor != "LightPink")
+                    mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Future];
+                    if (mdl.day < startOfToday) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Out_of_date];
+                    if (mdl.day == startOfToday && mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) < DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Pastdue];
+                    if (mdl.completed.HasValue && mdl.completed.Value) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Complete];
+                    if (mdl.day == startOfToday && !(mdl.completed.HasValue && mdl.completed.Value) && mdl.statusColor != DTConstants.StatusColors[(int)DtStatus.Pastdue])
                     {
-                        mdl.statusColor = "LightGoldenrodYellow";
-                        if (mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) > DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = "Khaki";
-                        for (int j = results.Count - 1; j >= 0 && results[j].day == mdl.day && (mdl.statusColor == "LightGoldenrodYellow" || mdl.statusColor == "Khaki"); j--)
+                        mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Current];
+                        if (mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) > DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Working];
+                        for (int j = results.Count - 1; j >= 0 && results[j].day == mdl.day && (mdl.statusColor == DTConstants.StatusColors[(int)DtStatus.Current] || mdl.statusColor == DTConstants.StatusColors[(int)DtStatus.Working]) ; j--)
                         {
                             if (!results[j].recurrence.HasValue)
                             {
                                 if (results[j].start <= mdl.start && (results[j].start + results[j].duration) > mdl.start)
                                 {
-                                    mdl.statusColor = "DarkKhaki";
-                                    if (mdl.duration.TotalMinutes < 1) mdl.statusColor = "PaleGoldenrod";
+                                    mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Conflict];
+                                    if (mdl.duration.TotalMinutes < 1) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Subitem];
                                 }
                             }
                         }

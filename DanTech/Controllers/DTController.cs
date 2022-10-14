@@ -34,6 +34,7 @@ namespace DanTech.Controllers
             _db = dgdb;
             _logger = logger;
             _configuration = configuration;
+            if (!DTConstants.Initialized()) DTConstants.Init(_db);
         }
 
         protected void SetVM(string sessionId)
