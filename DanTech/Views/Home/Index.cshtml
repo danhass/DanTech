@@ -8,6 +8,7 @@
     <p><label>Total types:</label>@ViewBag.TypeCt</p>
     <p><label>Caller:</label>@ViewBag.ipAddress</p>
     <p><label>Host:</label>@ViewBag.host</p>
+    <p><label>Time:</label>@DateTime.Now.ToLongDateString() @DateTime.Now.ToLongTimeString()</p>
 
     @if (Model == null || Model.User == null)
     {
