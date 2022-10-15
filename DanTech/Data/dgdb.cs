@@ -128,6 +128,8 @@ namespace DanTech.Data
 
                 entity.Property(e => e.day).HasColumnType("date");
 
+                entity.Property(e => e.fixedStart).HasColumnType("bit(1)");
+
                 entity.Property(e => e.parent).HasColumnType("int(11)");
 
                 entity.Property(e => e.preserve).HasColumnType("bit(1)");

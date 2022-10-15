@@ -30,6 +30,7 @@ namespace DanTech.Services
         {
             _conn = conn;
             _db = db;
+            if (!DTConstants.Initialized()) DTConstants.Init(_db);
         }
 
         public DTDBDataService(string conn)
@@ -383,6 +384,7 @@ namespace DanTech.Services
                 parent.start = parent.start.Value.AddHours(item.start.Value.Hour);
                 parent.start = parent.start.Value.AddMinutes(item.start.Value.Minute);
                 parent.duration = item.duration;
+                parent.fixedStart = item.fixedStart;
             }
             else
             {
@@ -402,6 +404,7 @@ namespace DanTech.Services
                 c.start = c.start.Value.AddHours(parent.start.Value.Hour);
                 c.start = c.start.Value.AddMinutes(parent.start.Value.Minute);
                 c.duration = parent.duration;
+                c.fixedStart = parent.fixedStart;
             }
             _db.SaveChanges();
             return result;
@@ -482,6 +485,8 @@ namespace DanTech.Services
             item.preserve = planItem.preserve;
             item.recurrence = planItem.recurrence;
             item.recurrenceData = planItem.recurrenceData;
+            if (planItem.fixedStart.HasValue) item.fixedStart = planItem.fixedStart.Value;
+            else item.fixedStart = null;
             if (item.id < 1) _db.dtPlanItems.Add(item);
             _db.SaveChanges();
             if (item.recurrence.HasValue)

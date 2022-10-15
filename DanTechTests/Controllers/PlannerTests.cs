@@ -343,6 +343,25 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void PlanItemSet_FixedStart()
+        {
+            //Arrange
+            string key = DTTestConstants.TestValue + " - Fixed Start";
+            string projKey = DTTestConstants.TestValue + " - Fixed Start Proj";
+            SetControllerQueryString();
+            _controller.SetProject(DTTestConstants.TestSessionId, projKey, "FSP", (int)DtStatus.Active, 92, null, null, null, null);
+            var proj = (from x in _db.dtProjects where x.title == projKey select x).FirstOrDefault();
+
+            //Act
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.AddDays(1).ToShortDateString(), "13:00", null, "14:00", null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
+            var item = (from x in _db.dtPlanItems where x.title == key select x).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(item);
+            Assert.IsTrue(item.fixedStart.HasValue && item.fixedStart.Value);
+        }
+
+        [TestMethod]
         public void PlanItem_Delete()
         {
             //Arrange

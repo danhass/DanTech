@@ -27,6 +27,7 @@ namespace DanTech.Data
         public int? recurrence { get; set; }
         public int? parent { get; set; }
         public string recurrenceData { get; set; }
+        public bool? fixedStart { get; set; }
 
         public virtual dtPlanItem parentNavigation { get; set; }
         public virtual dtProject projectNavigation { get; set; }

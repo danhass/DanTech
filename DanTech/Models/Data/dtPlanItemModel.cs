@@ -44,7 +44,9 @@ namespace DanTech.Models.Data
                  pItem.id,
                  pItem.recurrence,
                  pItem.recurrenceData,
-                 pItem.parent
+                 pItem.parent,
+                 pItem.fixedStart,
+                 ""
                  );
         }
 
@@ -65,12 +67,15 @@ namespace DanTech.Models.Data
                                bool pLoadUser = false,
                                int? pId = null,
                                int? pRecurrence = null,
-                               string? pRecurrenceData = null
+                               string? pRecurrenceData = null,
+                               int? pParent = null,
+                               bool? pFixedStart = null,
+                               string? pStatusColor = ""
             )
         {
             title = "";
             note = "";
-            init(pTitle, pNote, pStart, pStartTime, pEnd, pEndTime, pPriority, pAddToCalendar, pCompleted, pPreserve, pUser, pdtUser, pProjectId, pdtProject, pLoadUser, pId, pRecurrence, pRecurrenceData);
+            init(pTitle, pNote, pStart, pStartTime, pEnd, pEndTime, pPriority, pAddToCalendar, pCompleted, pPreserve, pUser, pdtUser, pProjectId, pdtProject, pLoadUser, pId, pRecurrence, pRecurrenceData, pParent, pFixedStart, pStatusColor);
         }
 
         private void init(string pTitle,
@@ -91,7 +96,10 @@ namespace DanTech.Models.Data
                                int? pId = null,
                                int? pRecurrence = null,
                                string? pRecurrenceData = null,
-                               int? pParent = null)
+                               int? pParent = null,
+                               bool? pFixedStart = null,
+                               string? pStatusColor = ""
+                               )
         { 
             id = pId;
             title = pTitle;
@@ -175,6 +183,9 @@ namespace DanTech.Models.Data
             }
             recurrence = pRecurrence;
             recurrenceData = pRecurrenceData;
+            fixedStart = pFixedStart;
+            statusColor = "";
+            if (pStatusColor != null) statusColor = pStatusColor;
         }
 
         public dtPlanItemModel()
@@ -183,6 +194,7 @@ namespace DanTech.Models.Data
             title = string.Empty;
             user = new dtUserModel();
             priority = 1000;
+            statusColor = "";
         }
 
 
@@ -209,6 +221,7 @@ namespace DanTech.Models.Data
         public int? recurrence { get; set; }
         public int? parent { get; set; }
         public string recurrenceData { get; set; }
+        public bool? fixedStart { get; set; }
 
         public static MapperConfiguration mapperConfiguration
         {

@@ -127,7 +127,8 @@ namespace DanTech.Controllers
                                      int? onlyProject = 0,
                                      int? id = null,
                                      int? recurrence = null,
-                                     string? recurrenceData = null
+                                     string? recurrenceData = null,
+                                     bool? fixedStart = null
                                      )
         {
             if (VM == null) return Json(null);
@@ -152,7 +153,9 @@ namespace DanTech.Controllers
                                          false,
                                          id,
                                          recurrence,
-                                         recurrenceData
+                                         recurrenceData,
+                                         null,
+                                         fixedStart
                                          );
             svc.Set(pi);
             int uid = 0;
