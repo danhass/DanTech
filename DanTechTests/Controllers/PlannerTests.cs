@@ -845,7 +845,7 @@ namespace DanTechTests.Controllers
 
             //Act
             int startingChildren = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count;
-            var result = (int)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId).Value);
+            var result = (int)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId, null, true).Value);
 
 
             //Assert
@@ -889,7 +889,7 @@ namespace DanTechTests.Controllers
 
             //Act
             int startingChildren = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count;
-            var result = (int)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId).Value);
+            var result = (int)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId, null, true).Value);
 
 
             //Assert
