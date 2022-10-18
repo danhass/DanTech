@@ -107,7 +107,7 @@ namespace DanTech.Models.Data
             title = pTitle;
             note = pNote ?? "";
             parent = pParent;
-            day = DateTime.Parse(DateTime.Now.ToShortDateString());
+            day = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
             if (pStart != null && !string.IsNullOrEmpty(pStart))
             {
                 DateTime dt;
