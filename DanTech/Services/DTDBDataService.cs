@@ -183,6 +183,70 @@ namespace DanTech.Services
             return true;
         }
 
+        public bool Adjust(int userId)
+        {
+            var today = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
+            if (_db == null) throw new Exception("DB not set");
+            var variedItems = (from x in _db.dtPlanItems where x.user == userId
+                         && x.day == today
+                         && (!x.recurrence.HasValue || !(x.recurrence.Value > 0))
+                         && (!x.completed.HasValue || !(x.completed.Value))
+                         && x.duration.HasValue
+                         && (!x.fixedStart.HasValue || !(x.fixedStart.Value))
+                         select x)
+                .OrderBy(x => x.day)
+                .ThenBy(x => x.start)
+                .ThenBy(x => x.priority.Value)
+                .ThenByDescending(x => (x.projectNavigation == null ? 0 : (x.projectNavigation.priority.HasValue ? x.projectNavigation.priority.Value : 0)))
+                .ToList();
+            variedItems = variedItems.Where(x => x.duration.Value.TotalSeconds > 0).ToList();
+            var fixedItems = (from x in _db.dtPlanItems
+                              where x.user == userId
+                              && x.day == today
+                              && (!x.recurrence.HasValue || !(x.recurrence.Value > 0))
+                              && (!x.completed.HasValue || !(x.completed.Value))
+                              && x.fixedStart.HasValue 
+                              && x.fixedStart.Value
+                              && x.duration.HasValue
+                              select x)
+                .OrderBy(x => x.day)
+                .ThenBy(x => x.start)
+                .ThenBy(x => x.priority.Value)
+                .ThenByDescending(x => (x.projectNavigation == null ? 0 : (x.projectNavigation.priority.HasValue ? x.projectNavigation.priority.Value : 0)))
+                .ToList();
+            fixedItems = fixedItems.Where(x => x.duration.Value.TotalSeconds > 0).ToList();
+            foreach (var item in variedItems)
+            {
+                var nextOpenTime = DateTime.Now.AddHours(DTConstants.TZOffset);
+                var targetEnd = nextOpenTime + item.duration.Value;
+                bool foundSpot = false;
+                for (int i=0; i < fixedItems.Count; i++)
+                {
+                    if (targetEnd <= fixedItems[i].start.Value)
+                    {
+                        foundSpot = true;
+                        fixedItems.Insert(i, item);
+                    }
+                    else
+                    {
+                        nextOpenTime = fixedItems[i].start.Value + fixedItems[i].duration.Value;
+                        targetEnd = nextOpenTime + item.duration.Value;
+                    }
+                }
+                if (!foundSpot)
+                {
+                    item.start = nextOpenTime;
+                    fixedItems.Add(item);
+                }
+            }
+            var itemsToUpdate = fixedItems.Where(x => (!(x.fixedStart.HasValue) || !(x.fixedStart.Value))).ToList();
+            foreach (var item in itemsToUpdate)
+            {
+                Set(item);
+            }
+            return true;
+        }
+
         public List<dtColorCodeModel> ColorCodes()
         {
             if (_db == null) throw new Exception("DB not set");
@@ -282,7 +346,7 @@ namespace DanTech.Services
             if (user == null) return new List<dtPlanItemModel>();
             _currentUser = user;
             var mapper = new Mapper(PlanItemMapConfig);
-            var dateToday = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var dateToday = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
 
             //Use the data retrieval as the chance to clean up items that need to be removed
             var itemsToRemove = (from x in _db.dtPlanItems

@@ -18,6 +18,7 @@ namespace DanTech.Models.Data
             string startTime = pItem.start.HasValue ? pItem.start.Value.ToString("HH:mm") : "";
             string end = "";
             string endTime = "";
+            statusColor = "";
             if (pItem.duration.HasValue && pItem.start.HasValue)
             {
                 var startDT = pItem.start!.Value;
@@ -75,6 +76,7 @@ namespace DanTech.Models.Data
         {
             title = "";
             note = "";
+            statusColor = "";
             init(pTitle, pNote, pStart, pStartTime, pEnd, pEndTime, pPriority, pAddToCalendar, pCompleted, pPreserve, pUser, pdtUser, pProjectId, pdtProject, pLoadUser, pId, pRecurrence, pRecurrenceData, pParent, pFixedStart, pStatusColor);
         }
 

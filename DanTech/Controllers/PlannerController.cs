@@ -21,6 +21,14 @@ namespace DanTech.Controllers
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
+        public JsonResult Adjust(string sessionId)
+        {
+            if (VM == null || VM.User == null) return Json(null);
+            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
+            return Json(svc.Adjust(VM.User.id));
+        }
+
+        [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult ColorCodes(string sessionId)
         {
             DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));

@@ -74,7 +74,6 @@ namespace DanTechTests.Controllers
 
             //Act
             var res = _controller.ColorCodes(DTTestConstants.TestSessionId);
-            //        var corsFlag = _controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
             Assert.AreEqual(((List<dtColorCodeModel>)res.Value).Count, numberColorCodes, "Color codes numbers don't match.");
@@ -85,7 +84,98 @@ namespace DanTechTests.Controllers
         {
             Assert.IsNotNull(_controller, "Planner controller not correctly initialized.");
         }
-        
+
+        [TestMethod]
+        public void PlanItem_Adjust()
+        {
+            //Arrange
+            SetControllerQueryString();
+            var projKey = DTTestConstants.TestValue + " Adjust Project";
+            _controller.SetProject(DTTestConstants.TestSessionId, projKey, "TADJ", (int)DtStatus.Active);
+            var proj = (from x in _db.dtProjects where x.title == projKey && x.user == _testUser.id select x).FirstOrDefault();
+            //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
+            //These should adjust so that the third is after the first, and the 2nd doesn't change.
+            var key1 = DTTestConstants.TestValue + " Adjust #1";
+            var start1 = DateTime.Now.AddMinutes(10).ToString("HH:mm");
+            var end1 = DateTime.Now.AddMinutes(70).ToString("HH:mm");
+            var key2 = DTTestConstants.TestValue + " Adjust #2";
+            var start2 = DateTime.Now.AddMinutes(30).ToString("HH:mm");
+            var end2 = DateTime.Now.AddMinutes(90).ToString("HH:mm");
+            var key3 = DTTestConstants.TestValue + " Adjust #3";
+            var start3 = DateTime.Now.AddMinutes(20).ToString("HH:mm");
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key2, null, DateTime.Now.ToShortDateString(), start2, null, end2, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key3, null, DateTime.Now.ToShortDateString(), start3, null, null, null, null, null, null, proj.id);
+
+            //Act
+            _controller.Adjust(DTTestConstants.TestSessionId);
+
+            //Assert
+            var item1 = (from x in _db.dtPlanItems where x.title == key1 select x).FirstOrDefault();
+            var item2 = (from x in _db.dtPlanItems where x.title == key2 select x).FirstOrDefault();
+            var item3 = (from x in _db.dtPlanItems where x.title == key3 select x).FirstOrDefault();
+            Assert.IsTrue(item1.start.Value.AddMinutes(60) <= item2.start.Value, "Item 2 conflicts with item 1.");
+
+            //Antiseptic
+            _db.dtPlanItems.Remove(item1);
+            _db.dtPlanItems.Remove(item2);
+            _db.dtPlanItems.Remove(item3);
+            _db.SaveChanges();
+        }
+
+        [TestMethod]
+        public void PlanItem_Adjust_With_Fixed()
+        {
+            // Going to have four items.
+            // #1: Starting in 5 minutes and lasting an hour.
+            // #2: fixed that starts in 20 minutes and lasts 30 minute.
+            // #3: starts in 25 minutes with no duration -- so it is contained.
+            // #4: starts in 30 minutes and lasts 30 minutes.
+            // After adjustment, they should be lined up: #2->#3->#1->#4
+            //Arrange
+            SetControllerQueryString();
+            var projKey = DTTestConstants.TestValue + " Adjust Project";
+            _controller.SetProject(DTTestConstants.TestSessionId, projKey, "TADJ", (int)DtStatus.Active);
+            var proj = (from x in _db.dtProjects where x.title == projKey && x.user == _testUser.id select x).FirstOrDefault();
+            //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
+            //These should adjust so that the third is after the first, and the 2nd doesn't change.
+            var key1 = DTTestConstants.TestValue + " Adjust With Fixed #1";
+            var start1 = DateTime.Now.AddMinutes(5).ToString("HH:mm");
+            var end1 = DateTime.Now.AddMinutes(65).ToString("HH:mm");
+            var key2 = DTTestConstants.TestValue + " Adjust With Fixed #2";
+            var start2Adj = DateTime.Now.AddMinutes(20);
+            var start2 = start2Adj.ToString("HH:mm");
+            var end2 = DateTime.Now.AddMinutes(50).ToString("HH:mm");
+            var key3 = DTTestConstants.TestValue + " Adjust With Fixed #3";
+            var start3Adj = DateTime.Now.AddMinutes(25);
+            var start3 = start3Adj.ToString("HH:mm");
+            var key4 = DTTestConstants.TestValue + " Adjust With Fixed #4";
+            var start4 = DateTime.Now.AddMinutes(30).ToString("HH:mm");
+            var end4 = DateTime.Now.AddMinutes(60).ToString("HH:mm");
+
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key2, null, DateTime.Now.ToShortDateString(), start2, null, end2, null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key3, null, DateTime.Now.ToShortDateString(), start3, null, null, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key4, null, DateTime.Now.ToShortDateString(), start4, null, end4, null, null, null, null, proj.id);
+
+            //Act
+            _controller.Adjust(DTTestConstants.TestSessionId);
+            var item1 = (from x in _db.dtPlanItems where x.title == key1 select x).FirstOrDefault();
+            var item2 = (from x in _db.dtPlanItems where x.title == key2 select x).FirstOrDefault();
+            var item3 = (from x in _db.dtPlanItems where x.title == key3 select x).FirstOrDefault();
+            var item4 = (from x in _db.dtPlanItems where x.title == key4 select x).FirstOrDefault();
+
+            //Assert
+            Assert.IsTrue(item2.start.Value.ToString("HH:mm") == start2Adj.ToString("HH:mm"), "Fixed value not set correctly.");
+            Assert.IsTrue(item3.start.Value.ToString("HH:mm") == start3Adj.ToString("HH:mm"), "0 duration not set correctly.");
+            Assert.IsTrue(item1.start.Value.ToString("HH:mm") == start2Adj.AddMinutes(30).ToString("HH:mm"), "Adjustment did not set item 1 correctly.");
+            Assert.IsTrue(item4.start.Value.ToString("HH:mm") == start2Adj.AddMinutes(90).ToString("HH:mm"), "Adjustment did not set item 4 correctly.");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.project == proj.id select x).ToList());
+            _db.dtProjects.Remove(proj);
+            _db.SaveChanges();
+        }
         [TestMethod]
         public void PlanItem_AllRecurrences()
         {
@@ -104,6 +194,10 @@ namespace DanTechTests.Controllers
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.recurrence.HasValue && x.recurrence.Value > 0 select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " for Getting Recurrences ";
+            string key1 = planItemKey + " #1";
+            string key2 = planItemKey + " #2";
+            string key3 = planItemKey + " #3";
+            string key4 = planItemKey + " #4";
             int numberOfChildren = 30+8+2+30;
             if (today.DayOfWeek >= DayOfWeek.Sunday && today.DayOfWeek <= DayOfWeek.Thursday) numberOfChildren++;
             if (today.DayOfWeek == DayOfWeek.Tuesday) numberOfChildren++;
@@ -119,6 +213,11 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.AreEqual(numberOfPlanItems + 4, recurrenceList.Count, "Did not get the expected recurrence list.");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where (x.title == key1 || x.title == key2 || x.title == key3 || x.title == key4) && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where (x.title == key1 || x.title == key2 || x.title == key3 || x.title == key4) && x.recurrence.HasValue select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -139,6 +238,10 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(item, "Did not set complete item");
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -160,6 +263,10 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(item, "Did not set conflict item");
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -180,6 +287,10 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(item, "Did not set current item");
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -200,6 +311,10 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(item, "Did not set future item");
             Assert.AreEqual(item.statusColor, futureColor.title, "Status color not properly set");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -220,6 +335,10 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(item, "Did not set out of date item");
             Assert.AreEqual(item.statusColor, outOfDateColor.title, "Status color not properly set");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -241,7 +360,11 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.IsNotNull(item, "Did not set working item");
-            Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+            if (DateTime.Now.AddMinutes(-200).ToShortDateString() == DateTime.Now.ToShortDateString()) Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -263,6 +386,10 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(item, "Did not set subitem item");
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -285,6 +412,10 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(item, "Did not set working item");
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -321,25 +452,30 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var key = DTTestConstants.TestValue + " for Set Test";
             var totalPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList().Count;
             var totalPlanItemsCurrent = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList().Count;
             var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && ((x.completed.HasValue == false || x.completed.Value == false) || x.day >= today) select x).ToList().Count;
             SetControllerQueryString();
 
             // Act
-            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, DTTestConstants.TestValue, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
             var returnedList = (List<dtPlanItemModel>) jsonRes.Value;
-            var testItem = returnedList.Where(x => x.title == DTTestConstants.TestValue).FirstOrDefault();
+            var testItem = returnedList.Where(x => x.title == key).FirstOrDefault();
             var jsonResCompleted = _controller.SetPlanItem(DTTestConstants.TestSessionId, testItem.title, DTTestConstants.TestValue2, null, null, null, null, null, null, true, null, null, null, true, null, null, testItem.id);
             var returnedListFromCompleted = (List<dtPlanItemModel>)jsonResCompleted.Value;
-            var completedTestItem = returnedListFromCompleted.Where(x => x.title == DTTestConstants.TestValue && x.note == DTTestConstants.TestValue2).FirstOrDefault();
+            var completedTestItem = returnedListFromCompleted.Where(x => x.title == key && x.note == DTTestConstants.TestValue2).FirstOrDefault();
 
             // Assert
             Assert.AreEqual(returnedList.Count, totalPlanItemsCurrent + 1, "Did not add test plan item correctly.");
-            Assert.AreEqual(testItem.title, DTTestConstants.TestValue, "Test item title incorrect.");
-            Assert.AreEqual(completedTestItem.title, DTTestConstants.TestValue, "Completed test item wrong title.");
+            Assert.AreEqual(testItem.title, key, "Test item title incorrect.");
+            Assert.AreEqual(completedTestItem.title, key, "Completed test item wrong title.");
             Assert.AreEqual(completedTestItem.note, DTTestConstants.TestValue2, "Note not set.");
             Assert.IsTrue(completedTestItem.completed.Value);
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -359,6 +495,11 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(item);
             Assert.IsTrue(item.fixedStart.HasValue && item.fixedStart.Value);
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
+
         }
 
         [TestMethod]
@@ -399,6 +540,10 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(totalItemsBeforeDelete, 31, "Recurrence and children not set correctly.");
             Assert.IsNull((from x in _db.dtPlanItems where x.title == key && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence not deleted.");
             Assert.AreEqual((from x in _db.dtPlanItems where x.title == key select x).ToList().Count, 30, "Children not properly handled");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -443,6 +588,11 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.AreEqual(itemList.Count, numberOfPlanItems + numberOfChildrenExpected, "When getting the plan items, it should have populated up the number of items to include the expected number of children plus 1 for the recurrence.");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -463,6 +613,12 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.AreEqual(returnedList.Count, numberOfPlanItems + numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children..");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey select x).ToList());
+            _db.SaveChanges();
+
         }
 
         [TestMethod]
@@ -473,14 +629,18 @@ namespace DanTechTests.Controllers
 
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var start = DateTime.Now.ToString("HH:mm");
+            var end = DateTime.Now.AddMinutes(20).ToString("HH:mm");
+
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " past recurrence with 3rd Monday & Wednesday of month Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
             int expectedChildren = 2;
+            if (today.DayOfWeek == DayOfWeek.Sunday || today.DayOfWeek == DayOfWeek.Monday || today.DayOfWeek == DayOfWeek.Tuesday) expectedChildren++;
             SetControllerQueryString();
 
             //Act
-            var setRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(-14).ToShortDateString(), "13:00", null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly_nth_day, "3:-*-*---");
+            var setRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(-14).ToShortDateString(), start, null, end, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly_nth_day, "3:-*-*---");
             var recurrence = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Monthly_nth_day select x).FirstOrDefault();
             var children = (from x in _db.dtPlanItems where x.user == _testUser.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
 
@@ -488,6 +648,12 @@ namespace DanTechTests.Controllers
             Assert.IsNotNull(recurrence, "Recurrence not set.");
             Assert.AreEqual(expectedChildren, children.Count, "Did not propogate correctly.");
             Assert.IsTrue(children[0].day.DayOfWeek == DayOfWeek.Monday || children[0].day.DayOfWeek == DayOfWeek.Wednesday, "Day of week incorrect.");
+
+
+            //Antiseptic
+            _db.RemoveRange(children);
+            _db.Remove((from x in _db.dtPlanItems where x.title == planItemKey && !x.parent.HasValue select x).FirstOrDefault());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -498,16 +664,15 @@ namespace DanTechTests.Controllers
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " set item through API with 1st & 15th Recurrence";
             string dayOfMonthTargets = "1,15";
-            //We expect to generate 2 children.
+            //Generally, we expect to generate 2 children.
             int numberOfChildrenExpected = 2;
             var dateAfter30days = DateTime.Now.AddDays(30);
-            // 30 day month will have an additional child if today is the 1st or 15th
-            if (dateAfter30days.Day == DateTime.Now.Day && (DateTime.Now.Day == 1 || DateTime.Now.Day == 15)) numberOfChildrenExpected++;
-            // Feb has just 28 days. So Jan 30 & Jan 31 & Feb 1 all have an extra, as do Feb 13-15
-            if ((DateTime.Now.Month == 1 && (DateTime.Now.Day == 30 || DateTime.Now.Day == 31)) ||
-                (DateTime.Now.Month == 2 && (DateTime.Now.Day == 1 || DateTime.Now.Day == 13 || DateTime.Now.Day == 14 || DateTime.Now.Day == 15)))
+            bool no15th = false;
+            //May need to adjust number of children.
+            if (DateTime.Now.Day == 16 && dateAfter30days.Day < 16)
             {
-                numberOfChildrenExpected++;
+                numberOfChildrenExpected--;
+                no15th = true;
             }
             SetControllerQueryString();
 
@@ -522,7 +687,12 @@ namespace DanTechTests.Controllers
             Assert.IsNotNull(setItem, "Did not set the recurrance.");
             Assert.AreEqual((from x in _db.dtPlanItems where x.title == planItemKey select x).ToList().Count, numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children.."); ;
             Assert.IsNotNull(childItemFor1st, "No item set for 1st.");
-            Assert.IsNotNull(childItemFor15th, "No item set for 15th.");
+            if (!no15th) Assert.IsNotNull(childItemFor15th, "No item set for 15th.");
+
+            //Antiseptic
+            _db.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey && x.parent.HasValue select x).ToList());
+            _db.Remove((from x in _db.dtPlanItems where x.title == planItemKey && !x.parent.HasValue select x).FirstOrDefault());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -533,6 +703,9 @@ namespace DanTechTests.Controllers
 
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
+            var start = DateTime.Now.ToString("HH:mm");
+            var end = DateTime.Now.AddMinutes(20).ToString("HH:mm");
+
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " recurrence with 3 weeks MF Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
@@ -540,13 +713,19 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(-14).ToShortDateString(), "13:00", null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(-14).ToShortDateString(), start, null, end, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
             var recurrence = (from x in _db.dtPlanItems where x.user == _testUser.id && x.recurrence.HasValue && x.title == planItemKey select x).FirstOrDefault();
             var children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange(children);
+            _db.dtPlanItems.Remove(recurrence);
+            _db.SaveChanges();
 
             //Assert
             Assert.IsNotNull(res, "Recurrence not saved.");
             Assert.AreEqual(children.Count, expectedChildren, "Unexpected number of children.");
+           
         }
 
         [TestMethod]
@@ -645,6 +824,11 @@ namespace DanTechTests.Controllers
             Assert.AreEqual((from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, 30, "Propagated items deleted.");
             Assert.IsNotNull((from x in _db.dtPlanItems where x.id == recurrence.id && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence deleted.");
             Assert.IsNull((from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault(), "Project not deleted.");
+            
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == recurrenceKey && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == recurrenceKey select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -678,6 +862,11 @@ namespace DanTechTests.Controllers
             Assert.IsNull((from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence not transferred.");
             Assert.IsNotNull((from x in _db.dtPlanItems where x.project == xferProject.id && x.recurrence.HasValue select x).FirstOrDefault(), "Recurrence deleted.");
             Assert.IsNull((from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault(), "Project not deleted.");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == recurrenceKey && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == recurrenceKey select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -712,6 +901,11 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(children[0].note, "Note set", "Child item note not updated correctly.");
             Assert.AreEqual(children[29].title, planItemKey + " changed.", "Last child item not updated correctly.");
             Assert.AreEqual(children[29].note, "Note set", "Last child item note not updated correctly.");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -745,6 +939,11 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(children[0].note, "Note set", "Child item note not updated correctly.");
             Assert.AreEqual(children[29].title, planItemKey + " changed.", "Last child item not updated correctly.");
             Assert.AreEqual(children[29].note, "Note set", "Last child item note not updated correctly.");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == planItemKey select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -788,12 +987,14 @@ namespace DanTechTests.Controllers
             //Act
             var projectsWithNewItem = _controller.SetProject(DTTestConstants.TestSessionId, newProj.title, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes);
             var projectsWithUpdatedItem = _controller.SetProject(DTTestConstants.TestSessionId, copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode ?? 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
-//            var corsFlag = _controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
             Assert.AreEqual(((List<dtProjectModel>)projectsWithNewItem.Value).Where(x => x.title.Contains("New_Test_Through_Controller")).ToList().Count, 1, "Should be one new project with the title showing it was created here.");
             Assert.AreEqual(((List<dtProjectModel>)projectsWithUpdatedItem.Value).Where(x => x.notes == "Updated by PlannerTests:SetProject").ToList().Count, 1, "Should be exactly one projected updated through this.");
- //           Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+
+            //Antiseptic
+            _db.dtProjects.RemoveRange((from x in _db.dtProjects where x.title == newProj.title select x).ToList());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -852,6 +1053,12 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(startingChildren, 0, "Should have no children to start.");
             Assert.AreEqual(result, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
             Assert.AreEqual((from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, expectedNumberOfChildren, "Children in database are incorrect.");
+  
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == recurrence.title && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == recurrence.title select x).ToList());
+            _db.dtProjects.Remove((from x in _db.dtProjects where x.id == proj.id select x).FirstOrDefault());
+            _db.SaveChanges();
         }
 
         [TestMethod]
@@ -896,6 +1103,12 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(startingChildren, 0, "Should have no children to start.");
             Assert.AreEqual(result, expectedNumberOfChildren, "Did not set the expected number of cchildren.");
             Assert.AreEqual((from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count, expectedNumberOfChildren, "Children in database are incorrect.");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == recurrence.title && x.parent.HasValue select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == recurrence.title select x).ToList());
+            _db.dtProjects.Remove((from x in _db.dtProjects where x.id == proj.id select x).FirstOrDefault());
+            _db.SaveChanges();
         }
 
         /*
