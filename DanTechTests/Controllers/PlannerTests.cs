@@ -124,6 +124,66 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
+        public void PlanItem_Adjust_PriorityFocused()
+        {
+            // Going to have five items.
+            // #1 Starts at a fixed time 10 minutes with a 60 minute duration from now.
+            // #2 Sub item startig in 15 munutes.
+            // #3 Starts in 15 minutes with a 30 minute duration with a 1000 priority (default).
+            // #4 Started 15 minutes ago with a 30 minute duration and a priority of 3000
+            // #5 Starts in 20 minutes with an hour duration and  a 4000 priority.
+            // The adjusted values should be: 
+            // #1 -> start in 10
+            // #2 -> start in 15 minutes
+            // #5 -> start in 70 minutes
+            // #4 -> start in 130 minutes
+            // #3 -> start in 160 minutes
+
+            //Arrange
+            SetControllerQueryString();
+            var projKey = DTTestConstants.TestValue + " Adjust With Priority Project";
+            _controller.SetProject(DTTestConstants.TestSessionId, projKey, "TAP", (int)DtStatus.Active);
+            var proj = (from x in _db.dtProjects where x.title == projKey && x.user == _testUser.id select x).FirstOrDefault();
+            //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
+            //These should adjust so that the third is after the first, and the 2nd doesn't change.
+            var now = DateTime.Now;
+            var key1 = DTTestConstants.TestValue + " Adjust W/Priority #1";
+            var start1 = now.AddMinutes(10).ToString("HH:mm");
+            var end1 = now.AddMinutes(70).ToString("HH:mm");
+            var key2 = DTTestConstants.TestValue + " Adjust W/Priority #2";
+            var start2 = now.AddMinutes(15).ToString("HH:mm");
+            var key3 = DTTestConstants.TestValue + " Adjust w/Priority #3";
+            var start3 = now.AddMinutes(15).ToString("HH:mm");
+            var end3 = now.AddMinutes(45).ToString("HH:mm");
+            var key4 = DTTestConstants.TestValue + " Adjust w/Priority #4";
+            var start4 = now.AddMinutes(-15).ToString("HH:mm");
+            var end4 = now.AddMinutes(15).ToString("HH:mm");
+            var key5 = DTTestConstants.TestValue + " Adjust w/Priority #5";
+            var start5 = now.AddMinutes(20).ToString("HH:mm");
+            var end5 = now.AddMinutes(80).ToString("HH:mm");
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key2, null, DateTime.Now.ToShortDateString(), start2, null, null, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key3, null, DateTime.Now.ToShortDateString(), start3, null, end3, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key4, null, DateTime.Now.ToShortDateString(), start4, null, end4, 3000, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestConstants.TestSessionId, key5, null, DateTime.Now.ToShortDateString(), start5, null, end5, 5000, null, null, null, proj.id);
+
+            //Act
+            _controller.Adjust(DTTestConstants.TestSessionId);
+
+            //Assert
+            Assert.AreEqual((from x in _db.dtPlanItems where x.title == key1 && x.project == proj.id select x).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(10).ToString("HH:mm"), "Item #1 start time is wrong.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.title == key2 && x.project == proj.id select x).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(15).ToString("HH:mm"), "Item #2 start time is wrong.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.title == key3 && x.project == proj.id select x).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(160).ToString("HH:mm"), "Item #3 start time is wrong.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.title == key4 && x.project == proj.id select x).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(130).ToString("HH:mm"), "Item #4 start time is wrong.");
+            Assert.AreEqual((from x in _db.dtPlanItems where x.title == key5 && x.project == proj.id select x).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(70).ToString("HH:mm"), "Item #5 start time is wrong.");
+
+            //Antiseptic
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.project == proj.id select x).ToList());
+            _db.dtProjects.Remove(proj);
+            _db.SaveChanges();
+        }
+
+        [TestMethod]
         public void PlanItem_Adjust_With_Fixed()
         {
             // Going to have four items.
