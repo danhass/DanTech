@@ -636,7 +636,7 @@ namespace DanTechTests.Controllers
             string planItemKey = DTTestConstants.TestValue + " past recurrence with 3rd Monday & Wednesday of month Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
             int expectedChildren = 2;
-            if (today.DayOfWeek == DayOfWeek.Sunday || today.DayOfWeek == DayOfWeek.Monday || today.DayOfWeek == DayOfWeek.Tuesday) expectedChildren++;
+            if (today.DayOfWeek == DayOfWeek.Sunday || today.DayOfWeek == DayOfWeek.Monday || today.DayOfWeek == DayOfWeek.Tuesday || today.DayOfWeek == DayOfWeek.Wednesday) expectedChildren++;
             SetControllerQueryString();
 
             //Act

@@ -220,11 +220,12 @@ namespace DanTech.Services
                 var nextOpenTime = DateTime.Now.AddHours(DTConstants.TZOffset);
                 var targetEnd = nextOpenTime + item.duration.Value;
                 bool foundSpot = false;
-                for (int i=0; i < fixedItems.Count; i++)
+                for (int i=0; i < fixedItems.Count && !foundSpot; i++)
                 {
                     if (targetEnd <= fixedItems[i].start.Value)
                     {
                         foundSpot = true;
+                        item.start = nextOpenTime;
                         fixedItems.Insert(i, item);
                     }
                     else
