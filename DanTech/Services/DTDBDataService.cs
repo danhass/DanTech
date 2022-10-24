@@ -68,7 +68,6 @@ namespace DanTech.Services
             {
                 if (db == null) return items;
                 if (_recurringItem == null) return items;
-
                 var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
                 var mapper = new Mapper(config);
                 var seed = mapper.Map<dtPlanItem>(_recurringItem);
@@ -106,9 +105,11 @@ namespace DanTech.Services
                 }
                 if (!string.IsNullOrEmpty(_recurringItem.recurrenceData) && _recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
 
+                DateTime rStart = DateTime.Parse(_recurringItem.start.Value.ToShortDateString());
+                DateTime start = DateTime.Parse(DateTime.Now.ToShortDateString());
                 for (int i = 0; i < 30 && !string.IsNullOrEmpty(_recurringItem.recurrenceData); i++)
                 {
-                    DateTime test = DateTime.Now.AddDays(i);
+                    DateTime test = start.AddDays(i);
                     if ((_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
                          _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
                          (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-') ||
@@ -121,7 +122,7 @@ namespace DanTech.Services
                            (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'))) ||
                         (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day &&
                             numWksInCycle > 0 &&
-                            ((int)(test.Day / 7) + 1) == numWksInCycle &&
+                            ((int)(test - rStart).TotalDays / 7) % numWksInCycle == 0 &&
                             (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'))
                        )
                         AddOnThisDay[i] = true;

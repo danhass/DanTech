@@ -769,7 +769,7 @@ namespace DanTechTests.Controllers
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " recurrence with 3 weeks MF Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
-            int expectedChildren = (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Monday || DateTime.Now.DayOfWeek==DayOfWeek.Friday) ? 3 : 2;
+            int expectedChildren = (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Monday || DateTime.Now.DayOfWeek==DayOfWeek.Thursday || DateTime.Now.DayOfWeek==DayOfWeek.Friday) ? 3 : 2;
             SetControllerQueryString();
 
             //Act
