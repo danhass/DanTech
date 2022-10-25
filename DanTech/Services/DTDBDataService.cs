@@ -66,8 +66,12 @@ namespace DanTech.Services
             List<dtPlanItem> items = new List<dtPlanItem>();
             try
             {
+                //Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
+                // or Trace.Listeners.Add(new ConsoleTraceListener());
+                //Trace.WriteLine("Hello World");              
                 if (db == null) return items;
                 if (_recurringItem == null) return items;
+
                 var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
                 var mapper = new Mapper(config);
                 var seed = mapper.Map<dtPlanItem>(_recurringItem);
@@ -105,27 +109,45 @@ namespace DanTech.Services
                 }
                 if (!string.IsNullOrEmpty(_recurringItem.recurrenceData) && _recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
 
-                DateTime rStart = DateTime.Parse(_recurringItem.start.Value.ToShortDateString());
-                DateTime start = DateTime.Parse(DateTime.Now.ToShortDateString());
+                DateTime rStart =_recurringItem.start.Value;               
+                //Trace.WriteLine(rStart);
+                //Trace.WriteLine(numWksInCycle);
+                DateTime today = DateTime.Parse(DateTime.Now.ToShortDateString());
+                today = today.AddHours(rStart.Hour).AddMinutes(rStart.Minute);
+                //Trace.WriteLine(today);
                 for (int i = 0; i < 30 && !string.IsNullOrEmpty(_recurringItem.recurrenceData); i++)
                 {
-                    DateTime test = start.AddDays(i);
-                    if ((_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
-                         _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
-                         (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-') ||
-                        (_recurringItem.recurrence == (int)DtRecurrence.Monthly &&
-                         dateMap.ContainsKey(test.Day) &&
-                         dateMap[test.Day]) ||
-                        (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly &&
-                            test >= _recurringItem.start.Value &&
-                          (((int)(test - _recurringItem.start.Value).TotalDays / 7)) % numWksInCycle == 0 &&
-                           (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'))) ||
-                        (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day &&
-                            numWksInCycle > 0 &&
-                            ((int)(test - rStart).TotalDays / 7) % numWksInCycle == 0 &&
-                            (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'))
-                       )
+                    DateTime test = today.AddDays(i);
+                    //Trace.WriteLine(i + ": " + test.Day + " / " + numWksInCycle);
+                    //Trace.WriteLine(_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day ? "T" : "F");
+                    //Trace.WriteLine((int)(test.Day / 7) == numWksInCycle ? "T" : "F");
+                    //Trace.WriteLine(mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-');
+                    if (test >= _recurringItem.start.Value && 
+                        (
+                            (_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
+                                _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
+                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'
+                            ) ||
+                            (_recurringItem.recurrence == (int)DtRecurrence.Monthly &&
+                                dateMap.ContainsKey(test.Day) &&
+                                dateMap[test.Day]
+                            ) ||
+                            (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly &&
+                                numWksInCycle > 0 &&
+                                (int)((test - rStart).TotalDays / 7) % numWksInCycle == 0 &&
+                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-')                                
+                            ) ||
+                            (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day &&
+                                numWksInCycle > 0 &&
+                                (int)(test.Day / 7) == numWksInCycle &&
+                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-')
+                            )
+                       ))
+                      )
+                    {
+                        //Trace.WriteLine("ADD ON THIS DAY");
                         AddOnThisDay[i] = true;
+                    }
                 }
 
                 for (int i = 0; i < 30; i++)
