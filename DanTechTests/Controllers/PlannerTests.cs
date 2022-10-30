@@ -697,8 +697,14 @@ namespace DanTechTests.Controllers
             string planItemKey = DTTestConstants.TestValue + " past recurrence with 3rd Monday & Wednesday of month Recurrence";
             //We expect 30 days ahead to generate 2 M-F items.            
             int expectedChildren = 2;
-            //If either of the last two days are Monday or Wednesday, then we need an extra child.
-            if (nextToEndDay.DayOfWeek == DayOfWeek.Monday || nextToEndDay.DayOfWeek == DayOfWeek.Wednesday || endDay.DayOfWeek == DayOfWeek.Monday || endDay.DayOfWeek == DayOfWeek.Wednesday)
+            //If the current week contains a 3rd Monday/Wednesday && either of the last two days are Monday or Wednesday, then we need an extra child.
+            if ((today.Day >= 21 && today.Day < 28) &&
+                (nextToEndDay.DayOfWeek == DayOfWeek.Monday || 
+                 nextToEndDay.DayOfWeek == DayOfWeek.Wednesday || 
+                 endDay.DayOfWeek == DayOfWeek.Monday || 
+                 endDay.DayOfWeek == DayOfWeek.Wednesday
+                )
+               )
             {
                 expectedChildren++;
             }
