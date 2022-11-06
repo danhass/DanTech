@@ -14,7 +14,13 @@ namespace DanTech.Data
         private static bool _initialized = false;
         public static bool Initialized() { return _initialized; }
         // Time calclulations are normalized to CST, which is UTC - 5.
-        public static int TZOffset { get { if (_timezoneOffset == -10000) _timezoneOffset = -(5 + TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).Hours); return _timezoneOffset; } }
+        public static int TZOffset { get { if (_timezoneOffset == -10000) 
+                                            { _timezoneOffset = -(5 + TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).Hours) + 
+                                                (TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now) ? 0 : -1);  
+                                            } 
+                                            return _timezoneOffset; 
+                                        } 
+                                    }
 
         public static void Init(dgdb _db)
         {
