@@ -1191,13 +1191,14 @@ namespace DanTechTests.Controllers
         [TestMethod]
         public void BadProp()
         {
-            SetControllerQueryString("fb02a99a-a84a-49a7-9836-9c837956364c");
+            SetControllerQueryString("8a5815c2-7497-42f6-b691-06578c9467f5");
             var user = (from x in _db.dtUsers where x.id == 2 select x).FirstOrDefault();
             _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(user);
 
-            var result = _controller.PopulateRecurrences("fb02a99a-a84a-49a7-9836-9c837956364c", 34888);
+            var result = _controller.PopulateRecurrences("8a5815c2-7497-42f6-b691-06578c9467f5", 0, true);
 
         }
         */
+        
     }
 }

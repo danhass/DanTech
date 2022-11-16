@@ -101,8 +101,8 @@ namespace DanTech.Services
                 }
                 int numWksInCycle = -1;
                 string mask = _recurringItem.recurrenceData;
-                if ((_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly && _recurringItem.recurrenceData.Split(":").Length > 0) ||
-                    (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day && _recurringItem.recurrenceData.Split(":").Length > 0))
+                if ((_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly && _recurringItem.recurrenceData != null && _recurringItem.recurrenceData.Split(":").Length > 0) ||
+                    (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day && _recurringItem.recurrenceData != null && _recurringItem.recurrenceData.Split(":").Length > 0))
                 {
                     int.TryParse(_recurringItem.recurrenceData.Split(":")[0], out numWksInCycle);
                     if (_recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
