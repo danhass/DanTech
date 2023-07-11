@@ -139,7 +139,7 @@ namespace DanTech.Services
                             ) ||
                             (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day &&
                                 numWksInCycle > 0 &&
-                                (int)(test.Day / 7) == numWksInCycle &&
+                                (int)((test.Day + 6) / 7) == numWksInCycle &&
                                 (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-')
                             )
                        ))

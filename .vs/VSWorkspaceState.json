@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\DanTech"
+    "\\DanTechTests",
+    "\\DanTechTests\\Data"
   ],
-  "SelectedNode": "\\DanTech.sln",
+  "SelectedNode": "\\DanTechTests\\Data\\DTDB.cs",
   "PreviewInSolutionExplorer": false
 }

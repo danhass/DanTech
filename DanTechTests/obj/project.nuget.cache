@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "lKPakHXNqgsns/yglnqoNkLyli7PvGxZFWCwC4JFycBCWSQgSUvqn3hoaHa4x/YUfm8Gk4tAs51CuMddHbXhvw==",
+  "dgSpecHash": "UsoyRfrsFNnK4j+m9LQC7qB1VoYAIbz2yKIpmWwB77I8zFkLHC0t3AXwUqRWEyWemsBK044LHQcKNP9abmpyNg==",
   "success": true,
-  "projectFilePath": "C:\\Dev\\Projects\\DanTech\\DanTech\\DanTechTests\\DanTechTests.csproj",
+  "projectFilePath": "G:\\My Drive\\Projects\\DP\\api\\DanTechTests\\DanTechTests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\hassd\\.nuget\\packages\\automapper\\11.0.1\\automapper.11.0.1.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\bouncycastle.netcore\\1.8.5\\bouncycastle.netcore.1.8.5.nupkg.sha512",

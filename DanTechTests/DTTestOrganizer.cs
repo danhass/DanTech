@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace DanTechTests
 {
@@ -23,8 +24,13 @@ namespace DanTechTests
     public class DTTestOrganizer
     {
         private static dgdb _db = null;
+        private static IDGDPDAL _dal = null;
+        private static IDTGoogleAuthService _google = null;
+
         public static int _numberOfProjects = 0;
         public static dgdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }
+        public static IDGDPDAL DAL() { if (_dal == null) _dal = new Mock<IDGDPDAL>().Object; return _dal; }
+        public static IDTGoogleAuthService Google() { if (_google == null) _google = new Mock<IDTGoogleAuthService>().Object; return _google; }
         public static string Conn = string.Empty;
         public static dtUser TestUser { get; set; }
 
@@ -42,6 +48,8 @@ namespace DanTechTests
                 _db.SaveChanges();
             }
             TestUser = testUser;
+            _dal = new Mock<IDGDPDAL>().Object;
+            _google = new Mock<IDTGoogleAuthService>().Object;
         }
 
         [AssemblyCleanup]

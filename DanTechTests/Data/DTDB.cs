@@ -15,7 +15,7 @@ namespace DanTechTests.Data
         public static string Conn() {
             if (_conn == string.Empty)
             {
-                var lines = File.ReadAllLines(@"C:\Dev\Projects\DanTech\DanTech\DanTech\appsettings.json");
+                var lines = File.ReadAllLines(@"G:\My Drive\Projects\DP\api\DanTech\appsettings.json");
                 var conn = string.Empty;
                 for (int i = 0; i < lines.Length && conn == string.Empty; i++)
                 {

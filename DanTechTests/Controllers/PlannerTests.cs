@@ -30,7 +30,7 @@ namespace DanTechTests.Controllers
         private dtUser _testUser = null;
         // Valid values for tests
         private int _numberOfPlanItems = 4;
-        
+
         public PlannerTests()
         {
             _db = DTTestOrganizer.DB();
@@ -258,18 +258,18 @@ namespace DanTechTests.Controllers
             string key2 = planItemKey + " #2";
             string key3 = planItemKey + " #3";
             string key4 = planItemKey + " #4";
-            int numberOfChildren = 30+8+2+30;
+            int numberOfChildren = 30 + 8 + 2 + 30;
             if (today.DayOfWeek >= DayOfWeek.Sunday && today.DayOfWeek <= DayOfWeek.Thursday) numberOfChildren++;
             if (today.DayOfWeek == DayOfWeek.Tuesday) numberOfChildren++;
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #1", null, DateTime.Now.AddDays(-20).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Daily_Weekly, null);
-            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #2", null, DateTime.Now.AddDays(-10).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Daily_Weekly, "--*-*--");
-            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #3", null, DateTime.Now.AddDays(-3).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Monthly, "1,15");
+            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #1", null, DateTime.Now.AddDays(-20).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #2", null, DateTime.Now.AddDays(-10).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, "--*-*--");
+            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #3", null, DateTime.Now.AddDays(-3).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly, "1,15");
             res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #4", null, DateTime.Now.ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             res = _controller.PlanItems(DTTestConstants.TestSessionId);
-            var recurrenceList = (List<dtPlanItemModel>) _controller.PlanItems(DTTestConstants.TestSessionId, 1, false, true, null, true).Value;
+            var recurrenceList = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId, 1, false, true, null, true).Value;
 
             //Assert
             Assert.AreEqual(numberOfPlanItems + 4, recurrenceList.Count, "Did not get the expected recurrence list.");
@@ -485,12 +485,12 @@ namespace DanTechTests.Controllers
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var totalPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id select x).ToList();
             var totalPlanItemsCurrent = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList();
-            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.completed == null && (x.recurrence == null  || x.day >= today) select x).ToList();
+            var numberOfNotCompletedPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.completed == null && (x.recurrence == null || x.day >= today) select x).ToList();
             SetControllerQueryString();
 
             // Act
-            var getResults = (List<dtPlanItemModel>) _controller.PlanItems(DTTestConstants.TestSessionId).Value;
-            var getWithCompleted = (List<dtPlanItemModel>) _controller.PlanItems(DTTestConstants.TestSessionId, null, true).Value;
+            var getResults = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var getWithCompleted = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId, null, true).Value;
 
             List<int> missing = new List<int>();
             dtMisc log = new dtMisc() { title = "Test Results" };
@@ -520,7 +520,7 @@ namespace DanTechTests.Controllers
 
             // Act
             var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-            var returnedList = (List<dtPlanItemModel>) jsonRes.Value;
+            var returnedList = (List<dtPlanItemModel>)jsonRes.Value;
             var testItem = returnedList.Where(x => x.title == key).FirstOrDefault();
             var jsonResCompleted = _controller.SetPlanItem(DTTestConstants.TestSessionId, testItem.title, DTTestConstants.TestValue2, null, null, null, null, null, null, true, null, null, null, true, null, null, testItem.id);
             var returnedListFromCompleted = (List<dtPlanItemModel>)jsonResCompleted.Value;
@@ -633,7 +633,7 @@ namespace DanTechTests.Controllers
 
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed==null)) select x).ToList().Count;
+            var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null)) select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " for  Out of Date Recurrence Test";
             var testProj = (from x in _db.dtProjects where x.user == _testUser.id select x).FirstOrDefault();  //Just use the first project
             var targDate = DateTime.Now.AddDays(-50);
@@ -696,18 +696,25 @@ namespace DanTechTests.Controllers
             var numberOfPlanItems = (from x in _db.dtPlanItems where x.user == _testUser.id && x.day >= today select x).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " past recurrence with 3rd Monday & Wednesday of month Recurrence";
             //We expect 30 days ahead to generate 2 M-F items.            
-            int expectedChildren = 2;
-            //If the current week contains a 3rd Monday/Wednesday && either of the last two days are Monday or Wednesday, then we need an extra child.
-            if ((today.Day >= 21 && today.Day < 28) &&
-                (nextToEndDay.DayOfWeek == DayOfWeek.Monday || 
-                 nextToEndDay.DayOfWeek == DayOfWeek.Wednesday || 
-                 endDay.DayOfWeek == DayOfWeek.Monday || 
-                 endDay.DayOfWeek == DayOfWeek.Wednesday
-                )
-               )
+            int expectedChildren = 0;
+            for (int i = 0; i < 30; i++)
             {
-                expectedChildren++;
+                var test = today.AddDays(i);
+                if ((int)((test.Day + 6) / 7) == 3 && (test.DayOfWeek == DayOfWeek.Monday || test.DayOfWeek == DayOfWeek.Wednesday)) expectedChildren++;
             }
+            
+            //If the current week contains a 3rd Monday/Wednesday && either of the last two days are Monday or Wednesday, then we need an extra child.
+            /*          if ((today.Day >= 21 && today.Day < 28) &&
+                          (nextToEndDay.DayOfWeek == DayOfWeek.Monday || 
+                           nextToEndDay.DayOfWeek == DayOfWeek.Wednesday || 
+                           endDay.DayOfWeek == DayOfWeek.Monday || 
+                           endDay.DayOfWeek == DayOfWeek.Wednesday
+                          )
+                         )
+                      {
+                          expectedChildren++;
+                      }
+            */
             SetControllerQueryString();
 
             //Act
@@ -718,7 +725,7 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(recurrence, "Recurrence not set.");
             Assert.AreEqual(expectedChildren, children.Count, "Did not propogate correctly.");
-            Assert.IsTrue(children[0].day.DayOfWeek == DayOfWeek.Monday || children[0].day.DayOfWeek == DayOfWeek.Wednesday, "Day of week incorrect.");
+            Assert.IsTrue(expectedChildren == 0 || children[0].day.DayOfWeek == DayOfWeek.Monday || children[0].day.DayOfWeek == DayOfWeek.Wednesday, "Day of week incorrect.");
 
 
             //Antiseptic
@@ -737,14 +744,23 @@ namespace DanTechTests.Controllers
             string dayOfMonthTargets = "1,15";
             //Generally, we expect to generate 2 children.
             int numberOfChildrenExpected = 2;
-            var dateAfter30days = DateTime.Now.AddDays(30);
+            var dateAfter30days = DateTime.Now.AddDays(29);
             bool no15th = false;
+            bool no1st = false;
             //May need to adjust number of children.
-            if (DateTime.Now.Day == 16 && dateAfter30days.Day < 16)
+            if (DateTime.Now.Day == 2 && dateAfter30days.Day == 31)
+            {
+                numberOfChildrenExpected--;
+                no1st = true;
+            }
+            if (DateTime.Now.Day == 16 && dateAfter30days.Day < 16) 
             {
                 numberOfChildrenExpected--;
                 no15th = true;
             }
+            if ((DateTime.Now.Day == 31 && dateAfter30days.Day == 1) ||
+                (DateTime.Now.Day == 14 && dateAfter30days.Day == 15) ||
+                (DateTime.Now.Day == 15 && dateAfter30days.Day == 16)) numberOfChildrenExpected++;
             SetControllerQueryString();
 
             //Act
@@ -757,7 +773,7 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(setItem, "Did not set the recurrance.");
             Assert.AreEqual((from x in _db.dtPlanItems where x.title == planItemKey select x).ToList().Count, numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children.."); ;
-            Assert.IsNotNull(childItemFor1st, "No item set for 1st.");
+            if (!no1st) Assert.IsNotNull(childItemFor1st, "No item set for 1st.");
             if (!no15th) Assert.IsNotNull(childItemFor15th, "No item set for 15th.");
 
             //Antiseptic

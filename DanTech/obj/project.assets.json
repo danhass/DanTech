@@ -8865,11 +8865,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Dev\\Projects\\DanTech\\DanTech\\DanTech\\DanTech.csproj",
+      "projectUniqueName": "G:\\My Drive\\Projects\\DP\\api\\DanTech\\DanTech.csproj",
       "projectName": "DanTech",
-      "projectPath": "C:\\Dev\\Projects\\DanTech\\DanTech\\DanTech\\DanTech.csproj",
+      "projectPath": "G:\\My Drive\\Projects\\DP\\api\\DanTech\\DanTech.csproj",
       "packagesPath": "C:\\Users\\hassd\\.nuget\\packages\\",
-      "outputPath": "C:\\Dev\\Projects\\DanTech\\DanTech\\DanTech\\obj\\",
+      "outputPath": "G:\\My Drive\\Projects\\DP\\api\\DanTech\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
@@ -8886,6 +8886,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -8987,7 +8988,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.405\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.414\\RuntimeIdentifierGraph.json"
       }
     }
   },

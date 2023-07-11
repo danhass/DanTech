@@ -62,14 +62,15 @@ namespace DanTech.Controllers
         public IActionResult GoogleSignin(string code)
         { 
             string domain = Request.Scheme + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
-            var tokens = DTGoogleAuthService.AuthToken(code, domain);
+            var googleAuthService = new DTGoogleAuthService();
+            var tokens = googleAuthService.AuthToken(code, domain);
             var cred = GoogleCredential.FromAccessToken(tokens["AccessToken"], null);
             var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = cred
             });
             var userInfo = oauthSerivce.Userinfo.Get().Execute();
-            var login = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
+            var login = googleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
             SetVM(login.Session);
             Response.Cookies.Delete("dtSessionId");
             Response.Cookies.Append("dtSessionId", login.Session);  
@@ -86,7 +87,8 @@ namespace DanTech.Controllers
                 domain = Request.Headers["protocol"] + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
             }
             string sessionId = "None";
-            var tokens = DTGoogleAuthService.AuthToken(code, domain, "/google");
+            var googleAuthService = new DTGoogleAuthService();
+            var tokens = googleAuthService.AuthToken(code, domain, "/google");
             if (!string.IsNullOrEmpty(tokens["AccessToken"]))
             {
                 var cred = GoogleCredential.FromAccessToken(tokens["AccessToken"], null);
@@ -95,7 +97,7 @@ namespace DanTech.Controllers
                     HttpClientInitializer = cred
                 });
                 var userInfo = oauthSerivce.Userinfo.Get().Execute();
-                login = DTGoogleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
+                login = googleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
                 SetVM(login.Session);
                 Response.Cookies.Delete("dtSessionId");
                 Response.Cookies.Append("dtSessionId", sessionId);
@@ -112,7 +114,7 @@ namespace DanTech.Controllers
             string sessionId = Request.Cookies["dtSessionId"];
             string log = "";
             string addr = HttpContext.Request.Host.Value;
-            var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db, ref log));
+            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _db, ref log));
             return json;
         }
 
@@ -124,7 +126,7 @@ namespace DanTech.Controllers
             string log = "";
 
             string addr = HttpContext.Request.Host.Value;
-            var json = Json(DTGoogleAuthService.SetLogin(sessionId, addr, _db, ref log));
+            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _db, ref log));
             return json;
         } 
         
@@ -139,7 +141,8 @@ namespace DanTech.Controllers
         [DisableCors]
         public dtLogin EstablishSession(string authToken, string refreshToken)
         {
-            dtLogin login = DTGoogleAuthService.SetLogin(DTGoogleAuthService.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
+            var google = new DTGoogleAuthService();
+            dtLogin login = google.SetLogin(google.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
             SetVM(login.Session);
             return login;
         }
@@ -147,8 +150,9 @@ namespace DanTech.Controllers
         [DisableCors]
         public IActionResult Signin()
         {
-            string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);            
-            return Redirect(DTGoogleAuthService.AuthService(domain, "Home/GoogleSignin", _configuration));
+            string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
+            var google = new DTGoogleAuthService();
+            return Redirect(google.AuthService(domain, "Home/GoogleSignin", _configuration));
         }
                 
         public IActionResult Privacy()
@@ -171,7 +175,8 @@ namespace DanTech.Controllers
                 DTDBDataService dataService = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
                 dataService.ToggleTestFlag();
                 string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
-                return Redirect(DTGoogleAuthService.AuthService(domain, "Home/GoogleSignin", _configuration));
+                var google = new DTGoogleAuthService();
+                return Redirect(google.AuthService(domain, "Home/GoogleSignin", _configuration));
             }
             
             return RedirectToAction("Index");

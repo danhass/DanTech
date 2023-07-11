@@ -14,14 +14,14 @@ using DanTech.Models.Data;
 
 namespace DanTech.Services
 {
-    public class DTGoogleAuthService
+    public class DTGoogleAuthService : IDTGoogleAuthService
     {
         private static readonly string GoogleAuthEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
         private static readonly string GoogleCalendarScope = "https://www.googleapis.com/auth/calendar";
         private static readonly string GoogleUserInfoEmailScope = "https://www.googleapis.com/auth/userinfo.email";
         private static readonly string GoogleUserInfoProfileScope = "https://www.googleapis.com/auth/userinfo.profile";
 
-        public static string AuthService(string returnDomain, string returnHandler, IConfiguration config)
+        public string AuthService(string returnDomain, string returnHandler, IConfiguration config)
         {
             string r = GoogleAuthEndpoint + "?" +
                 "scope=" + GoogleUserInfoEmailScope + " " + GoogleUserInfoProfileScope + " " + GoogleCalendarScope +
@@ -34,7 +34,7 @@ namespace DanTech.Services
             return r;
         }
 
-        public static string RefreshAuthToken(string refreshToken)
+        public string RefreshAuthToken(string refreshToken)
         {
             string tokenString = "";
             var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build();
@@ -62,7 +62,7 @@ namespace DanTech.Services
             return tokenString;
         }
 
-        public static Dictionary<string, string> AuthToken(string code, string domain, string endPoint = "")
+        public Dictionary<string, string> AuthToken(string code, string domain, string endPoint = "")
         {
             if (string.IsNullOrEmpty(endPoint) || domain.StartsWith("https://localhost:44324")) endPoint = "/Home/GoogleSignin";
             Dictionary<string, string> res = new Dictionary<string, string>();
@@ -102,7 +102,7 @@ namespace DanTech.Services
             return res;
         }
 
-        public static Userinfo GetUserInfo (string token, string refreshToken = "")
+        public Userinfo GetUserInfo (string token, string refreshToken = "")
         {
             var cred = GoogleCredential.FromAccessToken(token, null);
             var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
@@ -120,6 +120,7 @@ namespace DanTech.Services
             }
             if ((userInfo == null || string.IsNullOrEmpty(userInfo.Email)) && !string.IsNullOrEmpty(refreshToken))
             {
+
                 cred = GoogleCredential.FromAccessToken(RefreshAuthToken(refreshToken));
                 oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer() { HttpClientInitializer = cred });
                 try
@@ -134,7 +135,7 @@ namespace DanTech.Services
             return userInfo;
         }
 
-        public static dtLogin SetLogin(string sessionId, string hostAddress, dgdb db, ref string log)
+        public dtLogin SetLogin(string sessionId, string hostAddress, dgdb db, ref string log)
         {
             dtLogin login = new dtLogin();
             var outOfDates = (from x in db.dtSessions where x.expires < DateTime.Now select x).ToList();
@@ -159,7 +160,7 @@ namespace DanTech.Services
             return login;
         }
 
-        public static dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, dgdb db, string accessToken, string refreshToken)
+        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, dgdb db, string accessToken, string refreshToken)
         {
             dtLogin login = new dtLogin();
             Guid sessionGuid = Guid.NewGuid();

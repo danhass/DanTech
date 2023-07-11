@@ -1,172 +1,172 @@
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\appsettings.Development.json
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\appsettings.json
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\DanTech.exe
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\DanTech.deps.json
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\DanTech.runtimeconfig.json
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\DanTech.runtimeconfig.dev.json
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\DanTech.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\DanTech.pdb
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\DanTech.Views.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\DanTech.Views.pdb
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\AutoMapper.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\BouncyCastle.Crypto.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Auth.PlatformServices.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Auth.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Auth.AspNetCore3.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Core.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Gmail.v1.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Oauth2.v2.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.PeopleService.v1.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Google.Protobuf.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Humanizer.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\K4os.Compression.LZ4.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\K4os.Compression.LZ4.Streams.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\K4os.Hash.xxHash.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\WebMatrix.Data.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\WebMatrix.WebData.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Authentication.OpenIdConnect.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Razor.Language.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.Workspaces.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.Razor.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Abstractions.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Design.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Relational.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Caching.Abstractions.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Caching.Memory.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Configuration.Abstractions.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.DependencyInjection.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.DependencyInjection.Abstractions.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Logging.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Logging.Abstractions.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Options.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Primitives.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.JsonWebTokens.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Logging.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Protocols.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Tokens.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.Contracts.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.Core.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\dotnet-aspnet-codegenerator-design.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.EntityFrameworkCore.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.Templating.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.Utils.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGenerators.Mvc.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\MySql.Data.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Ubiety.Dns.Core.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ZstdNet.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\MySql.EntityFrameworkCore.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\NuGet.Frameworks.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Collections.Immutable.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.ComponentModel.Annotations.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Composition.AttributedModel.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Composition.Convention.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Composition.Hosting.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Composition.Runtime.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Composition.TypedParts.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Configuration.ConfigurationManager.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Diagnostics.DiagnosticSource.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.IdentityModel.Tokens.Jwt.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Runtime.CompilerServices.Unsafe.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Security.Cryptography.ProtectedData.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.Common.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\cs\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\de\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\es\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\fr\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\it\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ja\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ko\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\pl\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\pt-BR\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ru\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\tr\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\zh-Hans\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\zh-Hant\Microsoft.CodeAnalysis.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\cs\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\de\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\es\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\fr\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\it\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ja\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ko\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\pl\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ru\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\tr\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\zh-Hans\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\zh-Hant\Microsoft.CodeAnalysis.CSharp.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\cs\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\de\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\es\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\fr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\it\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ja\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ko\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\pl\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\pt-BR\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ru\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\tr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\zh-Hans\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\zh-Hant\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\cs\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\de\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\es\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\fr\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\it\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ja\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ko\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\pl\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\pt-BR\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\ru\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.GeneratedMSBuildEditorConfig.editorconfig
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.AssemblyInfoInputs.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.AssemblyInfo.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.CoreCompileInputs.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.MvcApplicationPartsAssemblyInfo.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.MvcApplicationPartsAssemblyInfo.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorAssemblyInfo.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorAssemblyInfo.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.Manifest.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.xml
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\scopedcss\bundle\DanTech.styles.css
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.TagHelpers.input.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.TagHelpers.output.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorCoreGenerate.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\GoogleSignin.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\GoogleTokens.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\Index.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\Privacy.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\SetupTests.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\Signin.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Planner\Index.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Planner\PlanItems.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Shared\Error.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Shared\_Layout.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Shared\_ValidationScriptsPartial.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\_ViewImports.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\_ViewStart.cshtml.g.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorTargetAssemblyInfo.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorTargetAssemblyInfo.cs
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.Views.pdb
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.CopyComplete
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.pdb
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.genruntimeconfig.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.AssemblyReference.cache
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Web.Cors.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Net.Http.Formatting.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.Cors.dll
-C:\Dev\Projects\DanTech\DanTech\DanTech\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\appsettings.Development.json
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\appsettings.json
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.exe
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.deps.json
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.runtimeconfig.json
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.runtimeconfig.dev.json
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.pdb
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.Views.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.Views.pdb
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\AutoMapper.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\BouncyCastle.Crypto.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Auth.PlatformServices.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Auth.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Auth.AspNetCore3.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Core.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Gmail.v1.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.Oauth2.v2.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Apis.PeopleService.v1.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Google.Protobuf.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Humanizer.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\K4os.Compression.LZ4.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\K4os.Compression.LZ4.Streams.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\K4os.Hash.xxHash.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Web.Cors.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Net.Http.Formatting.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.Cors.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\WebMatrix.Data.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\WebMatrix.WebData.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Authentication.OpenIdConnect.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Razor.Language.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.Razor.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Abstractions.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Design.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.EntityFrameworkCore.Relational.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Caching.Abstractions.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Caching.Memory.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Configuration.Abstractions.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.DependencyInjection.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Logging.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Logging.Abstractions.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Options.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Primitives.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.JsonWebTokens.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Logging.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Protocols.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Tokens.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.Contracts.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.Core.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\dotnet-aspnet-codegenerator-design.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.EntityFrameworkCore.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.Templating.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGeneration.Utils.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.Web.CodeGenerators.Mvc.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\MySql.Data.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Ubiety.Dns.Core.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ZstdNet.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\MySql.EntityFrameworkCore.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\NuGet.Frameworks.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Collections.Immutable.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.ComponentModel.Annotations.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Composition.AttributedModel.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Composition.Convention.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Composition.Hosting.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Composition.Runtime.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Composition.TypedParts.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Configuration.ConfigurationManager.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Diagnostics.DiagnosticSource.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.IdentityModel.Tokens.Jwt.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Runtime.CompilerServices.Unsafe.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Security.Cryptography.ProtectedData.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\System.Web.Http.Common.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\cs\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\de\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\es\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\fr\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\it\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ja\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ko\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\pl\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\pt-BR\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ru\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\tr\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\zh-Hans\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\zh-Hant\Microsoft.CodeAnalysis.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\cs\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\de\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\es\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\fr\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\it\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ja\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ko\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\pl\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ru\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\tr\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\zh-Hans\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\zh-Hant\Microsoft.CodeAnalysis.CSharp.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\cs\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\de\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\es\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\fr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\it\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ja\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ko\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\pl\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\pt-BR\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ru\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\tr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\zh-Hans\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\zh-Hant\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\cs\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\de\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\es\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\fr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\it\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ja\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ko\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\pl\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\pt-BR\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\ru\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.AssemblyReference.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.GeneratedMSBuildEditorConfig.editorconfig
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.AssemblyInfoInputs.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.AssemblyInfo.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.CoreCompileInputs.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.MvcApplicationPartsAssemblyInfo.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.MvcApplicationPartsAssemblyInfo.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorAssemblyInfo.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorAssemblyInfo.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.Manifest.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.xml
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\scopedcss\bundle\DanTech.styles.css
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.TagHelpers.input.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.TagHelpers.output.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorCoreGenerate.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\GoogleSignin.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\GoogleTokens.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\Index.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\Privacy.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\SetupTests.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\Signin.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Planner\Index.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Planner\PlanItems.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Shared\Error.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Shared\_Layout.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Shared\_ValidationScriptsPartial.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\_ViewImports.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\_ViewStart.cshtml.g.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorTargetAssemblyInfo.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorTargetAssemblyInfo.cs
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.Views.pdb
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.CopyComplete
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.dll
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.pdb
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.genruntimeconfig.cache
