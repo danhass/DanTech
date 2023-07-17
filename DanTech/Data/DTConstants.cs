@@ -22,8 +22,10 @@ namespace DanTech.Data
                                         } 
                                     }
 
-        public static void Init(dgdb _db)
+        public static void Init(IDTDPDAL dal)
         {
+            if (dal == null) return;
+            var _db = dal.GetDB();
             var list = (from x in _db.dtStatuses select x).ToList();
             var colors = (from x in _db.dtColorCodes select x).ToList();
             foreach(var l in list)

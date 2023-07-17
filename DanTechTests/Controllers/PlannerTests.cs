@@ -25,6 +25,7 @@ namespace DanTechTests.Controllers
     public class PlannerTests
     {
         private static dgdb _db = null;
+        private static IDTDPDAL _dal = null;
         private IConfiguration _config = DTTestOrganizer.InitConfiguration();
         private PlannerController _controller = null;
         private dtUser _testUser = null;
@@ -33,7 +34,9 @@ namespace DanTechTests.Controllers
 
         public PlannerTests()
         {
-            _db = DTTestOrganizer.DB();
+            _dal = DTTestOrganizer.DAL_LIVE();
+            _db = _dal.GetDB();
+
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
                 .BuildServiceProvider();
@@ -41,7 +44,7 @@ namespace DanTechTests.Controllers
             var factory = serviceProvider.GetService<ILoggerFactory>();
 
             var logger = factory.CreateLogger<PlannerController>();
-            _controller = new PlannerController(_config, logger, _db);
+            _controller = new PlannerController(_config, logger, _db, _dal);
             _testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testSession = (from x in _db.dtSessions where x.user == _testUser.id select x).FirstOrDefault();
             if (testSession == null)

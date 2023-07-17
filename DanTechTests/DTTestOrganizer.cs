@@ -6,6 +6,7 @@ using DanTech.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using DanTech.Data;
 using System.Net;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Google.Apis.Oauth2.v2.Data;
 using Moq;
 
 namespace DanTechTests
@@ -24,22 +26,28 @@ namespace DanTechTests
     public class DTTestOrganizer
     {
         private static dgdb _db = null;
-        private static IDGDPDAL _dal = null;
-        private static IDTGoogleAuthService _google = null;
+        private static Mock<IDTDPDAL> _dal = null;
+        private static IDTDPDAL _dal_live = null;
+        private static Mock<IDTGoogleAuthService> _google = null;
 
         public static int _numberOfProjects = 0;
-        public static dgdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }
-        public static IDGDPDAL DAL() { if (_dal == null) _dal = new Mock<IDGDPDAL>().Object; return _dal; }
-        public static IDTGoogleAuthService Google() { if (_google == null) _google = new Mock<IDTGoogleAuthService>().Object; return _google; }
+        //public static dgdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }
+        public static IDTDPDAL DAL() { if (_dal == null) _dal = new Mock<IDTDPDAL>(); return _dal.Object; }
+        public static IDTDPDAL DAL_LIVE() { if (_dal_live == null) _dal_live = new DTDPDAL(_db); return _dal_live; }
+        public static IDTGoogleAuthService Google() { if (_google == null) _google = new Mock<IDTGoogleAuthService>(); return _google.Object; }
         public static string Conn = string.Empty;
         public static dtUser TestUser { get; set; }
 
+        public static Dictionary<string, string> BadGoogleTokens = new Dictionary<string, string>() { { "AccessToken", "" }, { "RefreshToken", "" } };
+        public static Dictionary<string, string> GoodGoogleTokens = new Dictionary<string, string>() { { "AccessToken", DTTestConstants.TestValue }, { "RefreshToken", DTTestConstants.TestValue2 } };
+
+       public static dtTestDatum googleCodeDatum = new dtTestDatum() { id = 1, title = DTTestConstants.TestGoogleCodeTitle, value = DTTestConstants.TestGoogleCodeTitle };
 
         [AssemblyInitialize()]
         public static void Init(TestContext context)
         {
             Conn = DTDB.Conn();
-            _db = DB(DTTestConstants.DefaultNumberOfTestPropjects);
+            _db = DTDB.getDB(DTTestConstants.DefaultNumberOfTestPropjects);
             var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             if (testUser == null)
             {
@@ -48,8 +56,22 @@ namespace DanTechTests
                 _db.SaveChanges();
             }
             TestUser = testUser;
-            _dal = new Mock<IDGDPDAL>().Object;
-            _google = new Mock<IDTGoogleAuthService>().Object;
+
+            _dal_live = new DTDPDAL(_db);
+
+            _dal = new Mock<IDTDPDAL>();
+            _dal.Setup(x => x.testDatum(DTTestConstants.TestGoogleCodeTitle)).Returns(googleCodeDatum);
+
+            var goodUser = _dal_live.user(new DGDAL_Email() { Email = DTTestConstants.TestKnownGoodUserEmail });
+            var goodUserSession = _dal_live.session(goodUser.id);
+            GoodGoogleTokens["AccessToken"] = goodUser.token;
+
+            _google = new Mock<IDTGoogleAuthService>();
+
+            _google.Setup(x => x.AuthToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(BadGoogleTokens);
+            _google.Setup(x => x.AuthToken(DTTestConstants.TestGoogleCodeTitle, DTTestConstants.LocalHostDomain, It.IsAny<string>())).Returns(GoodGoogleTokens);
+            _google.Setup(x => x.SetLogin(It.IsAny<Userinfo>(), It.IsAny<HttpContext>(), It.IsAny<IDTDPDAL>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(new DanTech.Models.Data.dtLogin() { Email = goodUser.email, FName = goodUser.fName, LName = goodUser.lName, Session = goodUserSession.session });
         }
 
         [AssemblyCleanup]
@@ -79,7 +101,7 @@ namespace DanTechTests
             return logger;
         }
 
-        public static DTController InitializeDTController(dgdb db, bool withLoggedInUser, string userEmail = "")
+        public static DTController InitializeDTController(dgdb db, bool withLoggedInUser, string userEmail = "", IDTDPDAL dal = null)
         {
             //Set up db
             if (withLoggedInUser)
@@ -99,31 +121,39 @@ namespace DanTechTests
 
             //Set up controller
             var logger = DTTestOrganizer.InitLogger();
-            var controller = new DTController(InitConfiguration(), logger, db);
+            var controller = new DTController(InitConfiguration(), logger, db, dal);
 
             return controller;
         }
 
-        public static HomeController InitializeHomeController(dgdb db, bool withLoggedInUser, string userEmail = "", string sessionId = "")
+        public static HomeController InitializeHomeController(IDTDPDAL dal, bool withLoggedInUser, string userEmail = "", string sessionId = "")
         { 
             string testHost = DTTestConstants.TestRemoteHost;        
             if (withLoggedInUser)
             {
                 if (string.IsNullOrEmpty(userEmail)) userEmail = DTTestConstants.TestUserEmail;
-                var user = (from x in db.dtUsers where x.email == userEmail select x).FirstOrDefault();
-                var testSession = (from x in db.dtSessions where x.user == user.id  select x).FirstOrDefault();
+                var user = dal.user(new DGDAL_Email() { Email = userEmail });
+                var testSession = dal.session(user.id);
                 if (testSession == null)
                 {
-                    testSession = new dtSession() { user = user.id, hostAddress = DTTestConstants.TestRemoteHostAddress };
+                    testSession = new dtSession()
+                    {
+                        user = user.id,
+                        hostAddress = DTTestConstants.TestRemoteHostAddress,
+                        expires = DateTime.Now.AddDays(7),
+                        session = DTTestConstants.TestSessionId
+                    };
                     testHost = testSession.hostAddress;
-                    db.dtSessions.Add(testSession);
+                    dal.Add(testSession);
                 }
-                testSession.expires = DateTime.Now.AddDays(7);
-                testSession.session = DTTestConstants.TestSessionId;
-                db.SaveChanges();
+                else
+                {
+                    testSession.expires = DateTime.Now.AddDays(7);
+                    testSession.session = DTTestConstants.TestSessionId;
+                }
             }
 
-            var ctl = new HomeController(InitConfiguration(), new ServiceCollection().AddLogging().BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger<HomeController>(), db);
+            var ctl = new HomeController(InitConfiguration(), new ServiceCollection().AddLogging().BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger<HomeController>(), dal.GetDB(), dal);
             ctl.ControllerContext = new ControllerContext(new ActionContext(InitializeContext(DTTestConstants.TestRemoteHost, false, sessionId), new RouteData(), new ControllerActionDescriptor()));
             return ctl;
         }

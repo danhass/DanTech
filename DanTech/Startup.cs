@@ -34,6 +34,7 @@ namespace DanTech
             services.AddDbContext<dgdb>(options => options.UseMySQL(Configuration.GetConnectionString("DG")));
             services.AddControllersWithViews();
             services.AddScoped<DTAuthenticate>();
+            services.AddScoped<IDTDPDAL, DTDPDAL>();
             services.AddSingleton<IConfiguration>(Configuration);
             
             services.AddCors(options =>

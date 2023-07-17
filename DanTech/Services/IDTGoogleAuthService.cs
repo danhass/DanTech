@@ -1,7 +1,4 @@
-﻿using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Oauth2.v2.Data;
+﻿using Google.Apis.Oauth2.v2.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -20,7 +17,7 @@ namespace DanTech.Services
         public Dictionary<string, string> AuthToken(string code, string domain, string endPoint = "");
         public Userinfo GetUserInfo(string token, string refreshToken = "");
         public string RefreshAuthToken(string refreshToken);
-        public dtLogin SetLogin(string sessionId, string hostAddress, dgdb db, ref string log);
-        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, dgdb db, string accessToken, string refreshToken);
-}
+        public dtLogin SetLogin(string sessionId, string hostAddress, IDTDPDAL dal, ref string log);
+        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, IDTDPDAL dal, string accessToken, string refreshToken);
+    }
 }

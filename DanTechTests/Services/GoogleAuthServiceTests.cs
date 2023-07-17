@@ -55,17 +55,11 @@ namespace DanTechTests
             //Arrange
             var dal = DTTestOrganizer.DAL();
             var google = DTTestOrganizer.Google();
-            var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
-            if (!DTTestConstants.TestControl_GetAuthCode_with_code)
-            {
-                Assert.Inconclusive("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
-            }
-            var datum = (from x in db.dtTestData where x.title == "Google code" select x).FirstOrDefault();
+            var datum = dal.testDatum("Google code");
             
             //Act
             var tokens = google.AuthToken(datum.value, DTTestConstants.LocalHostDomain);
             var badCodeToken = google.AuthToken("1234", DTTestConstants.LocalHostDomain);
-            db.SaveChanges();
 
             //Assert
             Assert.IsNotNull(datum, "Could not find Google code in test data (dtTextData).");
@@ -77,36 +71,31 @@ namespace DanTechTests
         [TestMethod]
         public void UserInfo_FromAccessToken()
         {
-            if (DTTestConstants.TestControl_SkipAllGoogleAuth)
-            {
-                Assert.Inconclusive("Skipping UserInfo_FromAccessToken");
-            }
 
             //Arrange
-            var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
-            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            var dal = DTTestOrganizer.DAL_LIVE();
+            var goodUser = dal.user(new DGDAL_Email() { Email = DTTestConstants.TestKnownGoodUserEmail } );
 
             //Act
             var google = new DTGoogleAuthService();
-            goodUser.token = google.RefreshAuthToken(goodUser.refreshToken);
-            db.SaveChanges();
             var userInfo = google.GetUserInfo(goodUser.token);
 
             //Assert
             Assert.IsFalse(string.IsNullOrEmpty(goodUser.email), "Could not find known good user.");
-            Assert.AreEqual(goodUser.email, userInfo.Email, "Did not retrieve expected info.");
+            Assert.IsNotNull(userInfo, "Could not get userInfo; May need to relog with " + DTTestConstants.TestKnownGoodUserEmail);
+            Assert.AreEqual(goodUser.email, userInfo.Email, "Did not retrieve expected info. May need to relog with " + DTTestConstants.TestKnownGoodUserEmail);
         }
 
         [TestMethod] 
         public void UserInfo_FromRefreshToken()
         {
             //Arrange
-            var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
-            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
-            if (string.IsNullOrEmpty(goodUser.refreshToken)) Assert.Inconclusive();
+            var dal = DTTestOrganizer.DAL_LIVE();
+            var goodUser = dal.user(new DGDAL_Email() { Email = DTTestConstants.TestKnownGoodUserEmail } );
+            if (string.IsNullOrEmpty(goodUser.refreshToken)) Assert.Inconclusive("Need to relog with " + DTTestConstants.TestKnownGoodUserEmail);
 
             //Act
-            var userInfo = new DTGoogleAuthService().GetUserInfo(TEST_AUTH_CODE, goodUser.refreshToken);           
+            var userInfo = new DTGoogleAuthService().GetUserInfo("", goodUser.refreshToken);           
 
             //Assert
             Assert.IsFalse(string.IsNullOrEmpty(goodUser.email), "Could not find known good user.");
@@ -117,8 +106,8 @@ namespace DanTechTests
         public void AuthTokenTest_RefreshAuthToken()
         {
             //Arrange
-            var db = DTTestOrganizer.DB(DTTestConstants.DefaultNumberOfTestPropjects);
-            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            var dal = DTTestOrganizer.DAL_LIVE();
+            var goodUser = dal.user(new DGDAL_Email() { Email = DTTestConstants.TestKnownGoodUserEmail });
             if (string.IsNullOrEmpty(goodUser.refreshToken)) Assert.Inconclusive();
             var config = InitConfiguration();
 
@@ -138,9 +127,10 @@ namespace DanTechTests
             ctx.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
             ctx.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             dgdb db = DTDB.getDB();
+            DTDPDAL dal = new DTDPDAL(db);
 
             //Act
-            var login = new DTGoogleAuthService().SetLogin(userinfo, ctx, db, TEST_AUTH_CODE, TEST_REFRESH_CODE);
+            var login = new DTGoogleAuthService().SetLogin(userinfo, ctx, dal, TEST_AUTH_CODE, TEST_REFRESH_CODE);
             Guid sessionAsGuid = Guid.Empty;
             Guid.TryParse(login.Session, out sessionAsGuid);
             var setCookie = ctx.Response.GetTypedHeaders().SetCookie.ToList()[0];
@@ -167,6 +157,7 @@ namespace DanTechTests
         {
             //Arrange
             dgdb db = DTDB.getDB();
+            DTDPDAL dal = new DTDPDAL(db);
             var ctrl = DTTestOrganizer.InitializeDTController(db, true);
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
@@ -174,8 +165,8 @@ namespace DanTechTests
 
             //Act
             var google = new DTGoogleAuthService();
-            var badLogin = google.SetLogin(new Guid().ToString(), DTTestConstants.TestRemoteHost, db, ref log);
-            var goodLogin = google.SetLogin(testSession.session, DTTestConstants.TestRemoteHost, db, ref log);
+            var badLogin = google.SetLogin(new Guid().ToString(), DTTestConstants.TestRemoteHost, dal, ref log);
+            var goodLogin = google.SetLogin(testSession.session, DTTestConstants.TestRemoteHost, dal, ref log);
 
             //Assert
             Assert.IsNotNull(testUser, "Could not establish test user.");

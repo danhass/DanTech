@@ -17,33 +17,49 @@ namespace DanTech.Controllers
     {
         protected readonly IConfiguration _configuration;
         protected readonly ILogger<DTController> _logger;
-        protected static dgdb _db = null;
+        protected static IDTDPDAL _dal = null;
         protected dtUser _user = null;
 
         public DTViewModel VM { get; set; }
 
         protected void log(string entry, string key="Debug logging")
         {
-            dtMisc log = new dtMisc() { title = key, value = entry };
-            _db.dtMiscs.Add(log);
-            _db.SaveChanges();
+            _dal.Add(new dtMisc() { title = key, value = entry });
         }
 
-        public DTController(IConfiguration configuration, ILogger<DTController> logger, dgdb dgdb)
+        public DTController(IConfiguration configuration, ILogger<DTController> logger, dgdb dgdb, IDTDPDAL dal)
         {
-            _db = dgdb;
             _logger = logger;
             _configuration = configuration;
-            if (!DTConstants.Initialized()) DTConstants.Init(_db);
+            if (dal == null)
+            {
+                dal = new DTDPDAL(dgdb);
+            }
+
+            if (dal != null)
+            {
+                _dal = dal;
+                _dal.SetDB(dgdb);
+                _dal = dal;
+                if (!DTConstants.Initialized()) DTConstants.Init(_dal);
+            }
+        }
+
+        public DTController(IConfiguration configuration, ILogger<DTController> logger, IDTDPDAL dal)
+        {
+            _dal = dal;
+            _logger = logger;
+            _configuration = configuration;
+            if (!DTConstants.Initialized()) DTConstants.Init(_dal);
         }
 
         protected void SetVM(string sessionId)
         {
             VM = new DTViewModel();
-            var session = (from x in _db.dtSessions where x.session == sessionId select x).FirstOrDefault();
-            if (session != null)
+            var session = _dal.session(sessionId);
+            if (session != null && session.userNavigation != null)
             {
-                var user = (from x in _db.dtUsers where x.id == session.user select x).FirstOrDefault();
+                var user = session.userNavigation;
                 if (user != null)
                 {
                     var config = dtUserModel.mapperConfiguration;

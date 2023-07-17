@@ -16,23 +16,23 @@ namespace DanTech.Controllers
 #nullable enable
     public class PlannerController : DTController
     {
-        public PlannerController(IConfiguration configuration, ILogger<PlannerController> logger, dgdb dgdb) : base(configuration, logger, dgdb)
+        private DTDBDataService _svc;
+        public PlannerController(IConfiguration configuration, ILogger<PlannerController> logger, dgdb dgdb, IDTDPDAL dal) : base(configuration, logger, dgdb, dal)
         {
+            _svc = new DTDBDataService(dal, _configuration.GetConnectionString("dg"));
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Adjust(string sessionId)
         {
             if (VM == null || VM.User == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            return Json(svc.Adjust(VM.User.id));
+            return Json(_svc.Adjust(VM.User.id));
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult ColorCodes(string sessionId)
         {
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            var result = Json(svc.ColorCodes());
+            var result = Json(_svc.ColorCodes());
             return result;
         }
 
@@ -40,8 +40,7 @@ namespace DanTech.Controllers
         public JsonResult DeletePlanItem(string sessionId, int planItemId, bool? deleteChildren = false)
         {
             if (VM == null || VM.User == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            var result = svc.DeletePlanItem(planItemId, VM.User.id, deleteChildren.HasValue ? deleteChildren.Value : false);
+            var result = _svc.DeletePlanItem(planItemId, VM.User.id, deleteChildren.HasValue ? deleteChildren.Value : false);
             var json = Json(result);
 
             return json;
@@ -51,8 +50,7 @@ namespace DanTech.Controllers
         public JsonResult DeleteProject(string sessionId, int projectId, bool? deleteProjectItems = true, int? transferProject = null)
         {
             if (VM == null || VM.User == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            return Json(svc.DeleteProject(projectId,
+            return Json(_svc.DeleteProject(projectId,
                                           VM.User.id,
                                           deleteProjectItems.HasValue ? deleteProjectItems.Value : true,
                                           transferProject.HasValue ? transferProject.Value : 0));
@@ -61,8 +59,7 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public IActionResult Index()
         {
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            VM.PlanItems = svc.PlanItems(VM.User.id);
+            VM.PlanItems = _svc.PlanItems(VM.User.id);
             return View(VM);
         }
 
@@ -70,8 +67,7 @@ namespace DanTech.Controllers
         public JsonResult PlanItems(string sessionId, int? daysBack = 1, bool? includeCompleted = false, bool? getAll = false, int? onlyProject = 0, bool? onlyRecurrences = false)
         {
             if (VM == null || VM.User == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            VM.PlanItems = svc.PlanItems(VM.User.id
+            VM.PlanItems = _svc.PlanItems(VM.User.id
                 , daysBack ?? 1
                 , includeCompleted ?? false
                 , getAll ?? false
@@ -84,8 +80,7 @@ namespace DanTech.Controllers
         public JsonResult PopulateRecurrences(string sessionId, int? sourceItem = 0, bool? force = false)
         {
             if (VM == null || VM.User == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            int numberOfNewItems = svc.UpdateRecurrences(VM.User.id, sourceItem.HasValue ? sourceItem.Value : 0, force.HasValue ? force.Value : false);
+            int numberOfNewItems = _svc.UpdateRecurrences(VM.User.id, sourceItem.HasValue ? sourceItem.Value : 0, force.HasValue ? force.Value : false);
             return Json(numberOfNewItems);
         }
 
@@ -93,8 +88,7 @@ namespace DanTech.Controllers
         public JsonResult Projects(string sessionId)
         {
             if (VM == null || VM.User == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            var projs = svc.DTProjects(VM.User.id);
+            var projs = _svc.DTProjects(VM.User.id);
             return Json(projs);
         }
 
@@ -102,16 +96,14 @@ namespace DanTech.Controllers
         public JsonResult Propagate(string sessionId, int seedId)
         {
             if (VM == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            var result = Json(svc.Propagate(seedId, VM.User.id));
+            var result = Json(_svc.Propagate(seedId, VM.User.id));
             return result;
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Recurrences(string sessionId)
         {
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            var result = Json(svc.Recurrences());
+            var result = Json(_svc.Recurrences());
             return result;
          }
 
@@ -140,10 +132,9 @@ namespace DanTech.Controllers
                                      )
         {
             if (VM == null) return Json(null);
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             // Trap and correct common caller errors
             if (!string.IsNullOrEmpty(recurrenceData) && recurrenceData == "null") recurrenceData = null;
-            svc.SetConnString(_configuration.GetConnectionString("dg"));
+            _svc.SetConnString(_configuration.GetConnectionString("dg"));
             var pi = new dtPlanItemModel(title,
                                          note,
                                          start,
@@ -165,10 +156,10 @@ namespace DanTech.Controllers
                                          null,
                                          fixedStart
                                          );
-            svc.Set(pi);
+            _svc.Set(pi);
             int uid = 0;
             if (VM != null) if (VM.User != null) uid = VM.User.id;
-            var items = svc.PlanItems(VM.User.id,
+            var items = _svc.PlanItems(VM.User.id,
                                         daysBack ?? 1,
                                         includeCompleted ?? false,
                                         getAll ?? false,
@@ -195,17 +186,15 @@ namespace DanTech.Controllers
                 user = VM.User.id,
                 id = id.HasValue ? id.Value : 0
             };
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            svc.Set(newProj);
-            var projs = svc.DTProjects(VM.User.id);
+            _svc.Set(newProj);
+            var projs = _svc.DTProjects(VM.User.id);
             return Json(projs);
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Stati(string sessionId)
         {
-            DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            var result = Json(svc.Stati());
+            var result = Json(_svc.Stati());
             return result;
         }
     }
