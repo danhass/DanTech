@@ -28,12 +28,23 @@ namespace DanTechTests.Controllers
     [TestClass]
     public class DTControllerTests
     {
+        private dtdb _db = null;
+        private dtUser _goodUser = null;
+        private dtSession _goodSession = null;
+        private dtUser _knownGoodUser = null;
+        public DTControllerTests()
+        {
+            _db = DTDB.getDB();
+            _goodUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            _goodSession = (from x in _db.dtSessions where x.user == _goodUser.id select x).FirstOrDefault();
+            _knownGoodUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+        }
+
         [TestMethod]
         public void DTControllerTest_loggedIn()
         {
             //Arrange
-            var db = DTDB.getDB();            
-            var controller = DTTestOrganizer.InitializeDTController(db, true);           
+            var controller = DTTestOrganizer.InitializeDTController(_db, true);           
 
             //Assert
             Assert.IsNotNull(controller, "Did not successfully instantiate controller.");
@@ -43,12 +54,8 @@ namespace DanTechTests.Controllers
         public void HomeController_GoodLogin()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var dal = DTTestOrganizer.DAL_LIVE();
-            var goodUser = dal.user(new DGDAL_Email() { Email = DTTestConstants.TestUserEmail });
-            var goodSession = dal.session(goodUser.id);
-            var controller = DTTestOrganizer.InitializeHomeController(dal , goodSession != null, DTTestConstants.TestUserEmail, goodSession == null ? "" : goodSession.session);
-            goodSession = dal.session(goodUser.id);
+            var controller = DTTestOrganizer.InitializeHomeController(_db , _goodSession != null, DTTestConstants.TestUserEmail, _goodSession == null ? "" : _goodSession.session);
+            _goodSession = (from x in _db.dtSessions where x.user == _goodUser.id select x).FirstOrDefault();
 
             //Act
             var login = controller.EstablishSession();
@@ -57,27 +64,25 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.IsNotNull(login, "Login is null.");
-            Assert.AreEqual(goodUser.email, res.Email, "Login email is incorrect.");
-            Assert.AreEqual(goodSession.session, res.Session, "Session guid is incorrect.");
+            Assert.AreEqual(_goodUser.email, res.Email, "Login email is incorrect.");
+            Assert.AreEqual(_goodSession.session, res.Session, "Session guid is incorrect.");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
-
         }
                 
         [TestMethod]
         public void HomeController_LoginFromMultipleLocations()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var goodUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            dtSession firstSession = new dtSession() { user = goodUser.id, session = Guid.NewGuid().ToString(), hostAddress = DTTestConstants.TestRemoteHost, expires = DateTime.Now.AddDays(30) };
-            dtSession secondSession = new dtSession() { user = goodUser.id, session = Guid.NewGuid().ToString(), hostAddress = "AnoterTest.com", expires = DateTime.Now.AddDays(30) };
-            db.dtSessions.Add(firstSession);
-            db.dtSessions.Add(secondSession);
-            db.SaveChanges();
+            dtSession firstSession = new dtSession() { user = _goodUser.id, session = Guid.NewGuid().ToString(), hostAddress = DTTestConstants.TestRemoteHost, expires = DateTime.Now.AddDays(30) };
+            dtSession secondSession = new dtSession() { user = _goodUser.id, session = Guid.NewGuid().ToString(), hostAddress = "AnoterTest.com", expires = DateTime.Now.AddDays(30) };
+            
+            _db.dtSessions.Add(firstSession);
+            _db.dtSessions.Add(secondSession);
+            _db.SaveChanges();
 
-            db.dtSessions.Remove(firstSession);
-            db.dtSessions.Remove(secondSession);
-            db.SaveChanges();
+            _db.dtSessions.Remove(firstSession);
+            _db.dtSessions.Remove(secondSession);
+            _db.SaveChanges();
 
             //Assert
             Assert.IsNotNull(firstSession);
@@ -89,31 +94,27 @@ namespace DanTechTests.Controllers
         public void HomeController_LoginWithSessionId_NoCookie()
         {
             //Arrange
-            var dal = DTTestOrganizer.DAL_LIVE();
-            var goodUser = dal.user(new DGDAL_Email() { Email = DTTestConstants.TestUserEmail });
-            var goodSession = dal.session(goodUser.id);
-            var controller = DTTestOrganizer.InitializeHomeController(dal, goodSession == null, "", goodSession == null ? "" : goodSession.session);
-            goodSession = dal.session(goodUser.id);
-            Console.WriteLine("Good session: " + goodSession.id);
+            var controller = DTTestOrganizer.InitializeHomeController(_db, _goodSession == null, "", _goodSession == null ? "" : _goodSession.session);
+            _goodSession = (from x in _db.dtSessions where x.user == _goodUser.id select x).FirstOrDefault();
+            Console.WriteLine("Good session: " + _goodSession.id);
 
             //Act
-            var login = controller.Login(goodSession.session);
+            var login = controller.Login(_goodSession.session);
             dtLogin res = (dtLogin)login.Value;
 
             //Assert
             Assert.IsNotNull(login, "Login is null.");
-            Assert.AreEqual(goodUser.email, res.Email, "Login email is incorrect.");
-            Assert.AreEqual(goodSession.session, res.Session, "Session guid is incorrect.");
+            Assert.AreEqual(_goodUser.email, res.Email, "Login email is incorrect.");
+            Assert.AreEqual(_goodSession.session, res.Session, "Session guid is incorrect.");
         }
 
         [TestMethod]
         public void HomeController_LoginWithSessionId_DifferentHostAddress()
         {
             //Arrange
-            var dal = DTTestOrganizer.DAL_LIVE();
-            var controller = DTTestOrganizer.InitializeHomeController(dal, true);
-            var testUser = dal.user(new DGDAL_Email() { Email = DTTestConstants.TestKnownGoodUserEmail });
-            var testSession = dal.session(testUser.id);
+            var controller = DTTestOrganizer.InitializeHomeController(_db, true);
+            var testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            var testSession = (from x in _db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
             string hostAddressNeedsToBeRestored = testSession.hostAddress;
             testSession.hostAddress = "0:0:0:0";
 
@@ -133,15 +134,13 @@ namespace DanTechTests.Controllers
         public void HomeController_EstablishSession()
         {
             //Arrange
-            var dal = DTTestOrganizer.DAL_LIVE();
-            var controller = DTTestOrganizer.InitializeHomeController(dal, false);
-            var goodUser = dal.user(new DGDAL_Email() { Email = DTTestConstants.TestKnownGoodUserEmail });
-            if (string.IsNullOrEmpty(goodUser.refreshToken)) Assert.Inconclusive();
+            var controller = DTTestOrganizer.InitializeHomeController(_db, false);
+            if (string.IsNullOrEmpty(_knownGoodUser.refreshToken)) Assert.Inconclusive();
             var cookieCount = 0;
 
             //Act
-            var login = controller.EstablishSession(goodUser.token, goodUser.refreshToken);
-            var session = dal.session(login);            
+            var login = controller.EstablishSession(_knownGoodUser.token, _knownGoodUser.refreshToken);
+            var session = (from x in _db.dtSessions where x.session == login.Session select x).FirstOrDefault();
             var cookie = "";
             foreach (var header in controller.Response.Headers.Values)
             {
@@ -169,18 +168,17 @@ namespace DanTechTests.Controllers
         public void HomeController_EstablishSession_GoogleCode()
         {
             //Arrange
-            var dal = DTTestOrganizer.DAL_LIVE();
             //if (!DTTestConstants.TestControl_EstablishSession_with_code) Assert.Inconclusive("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
             //var datum = (from x in db.dtTestData where x.title == "Google code" select x).FirstOrDefault();
-            var controller = DTTestOrganizer.InitializeHomeController(dal, false);
+            var controller = DTTestOrganizer.InitializeHomeController(_db, false);
             controller.SetGoogle(DTTestOrganizer.Google());
 
             //Act
-            var sessionJson = controller.EstablishSession(DTTestConstants.TestGoogleCodeTitle, true, DTTestConstants.LocalHostDomain);
+            var sessionJson = controller.EstablishSession(DTTestConstants.TestGoogleCode, true, DTTestConstants.LocalHostDomain);
             var login = (dtLogin)(sessionJson.Value);
             string expectSession = login.Session;
-            var storedSession = controller.VM == null || controller.VM.User == null ? "None" : dal.session(controller.VM.User.id).session;
-
+            var storedSession = controller.VM == null || controller.VM.User == null ? "None" : (from x in _db.dtSessions where x.user == controller.VM.User.id select x.session).FirstOrDefault();
+            
             //Assert
             Assert.IsNotNull(sessionJson, "Did not receive json result.");
             Assert.IsNotNull(storedSession, "Did not store json or return user information.");

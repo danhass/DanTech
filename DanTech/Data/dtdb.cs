@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace DanTech.Data
 {
-    public partial class dgdb : DbContext
+    public partial class dtdb : DbContext, Idtdb
     {
-        public dgdb()
+        public dtdb()
         {
         }
 
-        public dgdb(DbContextOptions<dgdb> options)
+        public dtdb(DbContextOptions<dtdb> options)
             : base(options)
         {
         }
@@ -313,6 +313,8 @@ namespace DanTech.Data
                 entity.Property(e => e.lName).HasMaxLength(100);
 
                 entity.Property(e => e.otherName).HasMaxLength(100);
+
+                entity.Property(e => e.pw).HasMaxLength(100);
 
                 entity.Property(e => e.suspended).HasColumnType("tinyint(4)");
 

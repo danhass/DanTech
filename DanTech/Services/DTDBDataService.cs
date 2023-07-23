@@ -17,42 +17,43 @@ using Microsoft.Extensions.Configuration;
 
 namespace DanTech.Services
 {
-    public class DTDBDataService
+    public class DTDBDataService : IDTDBDataService
     {
-        private static IDTDPDAL _dal = null;
+        private static Idtdb _dbi = null;
+        private static dtdb _db = null;
         private static dtUser _currentUser = null;
         private static int _userId = -1;
         private static dtPlanItem _recurringItem = null;
         private static string _conn = string.Empty;
         private const string _testFlagKey = "Testing in progress";
 
-        public DTDBDataService(IDTDPDAL dal, string conn)
+        public DTDBDataService(Idtdb db, string conn)
         {
             _conn = conn;
-            _dal = dal;
-            if (!DTConstants.Initialized()) DTConstants.Init(_dal);
+            _dbi = db;
+            _db = db as dtdb;
+            if (!DTConstants.Initialized()) DTConstants.Init(_db);
         }
 
         public DTDBDataService(string conn)
         {
             _conn = conn;
-            _dal = new DTDPDAL(InstantiateDB());
-            if (!DTConstants.Initialized()) DTConstants.Init(_dal);
+            _db = InstantiateDB() as dtdb;
+            if (!DTConstants.Initialized()) DTConstants.Init(_db);
         }
 
-        private dgdb InstantiateDB ()
+        private Idtdb InstantiateDB ()
         {
-            var optionsBuilder = new DbContextOptionsBuilder<dgdb>();
+            var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
             optionsBuilder.UseMySQL(_conn);
-            return new dgdb(optionsBuilder.Options);
+            return new dtdb(optionsBuilder.Options);
         }
 
         //Mappings
         private MapperConfiguration PlanItemMapConfig = dtPlanItemModel.mapperConfiguration;
 
-        public static void ClearResetFlags()
+        public void ClearResetFlags()
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var element = (from x in _db.dtMiscs where x.title == DTConstants.AuthTokensNeedToBeResetKey select x).FirstOrDefault();
             if (element != null)
@@ -62,7 +63,7 @@ namespace DanTech.Services
             }
         }
 
-        private static List<dtPlanItem> PopulateRecurrences(dgdb db)
+        private static List<dtPlanItem> PopulateRecurrences(dtdb db)
         {
             List<dtPlanItem> items = new List<dtPlanItem>();
             try
@@ -185,7 +186,6 @@ namespace DanTech.Services
 
         public static bool SetIfTesting(string key, string value)
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var TestingFlag = (from x in _db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
             if (TestingFlag == null || TestingFlag.value != "1") return false;
@@ -211,7 +211,6 @@ namespace DanTech.Services
         public bool Adjust(int userId)
         {
             var today = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var variedItems = (from x in _db.dtPlanItems where x.user == userId
                          && x.day == today
@@ -276,7 +275,6 @@ namespace DanTech.Services
 
         public List<dtColorCodeModel> ColorCodes()
         {
-            var _db = _dal.GetDB();
             if ( _db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtColorCode, dtColorCodeModel>(); }));
             return mappr.Map<List<dtColorCodeModel>>((from x in _db.dtColorCodes select x).OrderBy(x => x.title).ToList());
@@ -284,7 +282,6 @@ namespace DanTech.Services
 
         public bool DeletePlanItem(int planItemId, int userId, bool deleteChildren = false)
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var item = (from x in _db.dtPlanItems where x.id == planItemId && x.user == userId select x).FirstOrDefault();
             if (item == null) return false;
@@ -311,7 +308,6 @@ namespace DanTech.Services
 
         public bool DeleteProject(int projectId, int userId, bool deleteProjItems=true, int transferProject = 0)
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var project = (from x in _db.dtProjects where x.id == projectId select x).FirstOrDefault();
             if (project == null) throw new Exception("Project does not exist.");
@@ -343,15 +339,13 @@ namespace DanTech.Services
 
         public List<dtProjectModel> DTProjects(int userId)
         {
-            var _db = _dal.GetDB();
-            if (_db == null) _db = InstantiateDB();
+            if (_db == null) _db = InstantiateDB() as dtdb;
             List<dtProjectModel> projects = new List<dtProjectModel>();
             return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
 
         public List<dtProjectModel> DTProjects(dtUser u)
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             List<dtProjectModel> projects = new List<dtProjectModel>();
             if (u == null) return projects;
@@ -374,8 +368,7 @@ namespace DanTech.Services
                                                     bool onlyRecurrences = false)
         {
             var results = new List<dtPlanItemModel>();
-            var _db = _dal.GetDB();
-            if (_db == null) _db = InstantiateDB();
+            if (_db == null) _db = InstantiateDB() as dtdb;
             if (user == null) return new List<dtPlanItemModel>();
             _currentUser = user;
             var mapper = new Mapper(PlanItemMapConfig);
@@ -452,10 +445,9 @@ namespace DanTech.Services
                                                   bool onlyRecurrences = false
                                                   )
         {
-            var _db = _dal.GetDB();
             if (_db == null)
             {
-                _db = InstantiateDB();
+                _db = InstantiateDB() as dtdb;
             }
             return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll, onlyProject, onlyRecurrences);
         }
@@ -463,8 +455,7 @@ namespace DanTech.Services
         // Returns false if no propagations are made. True if at least one propagation is made.
         public bool Propagate(int itemId, int userId)
         {
-            var _db = _dal.GetDB();
-            if (_db == null) _db = InstantiateDB();
+            if (_db == null) _db = InstantiateDB() as dtdb;
             bool result = false;
             var item = (from x in _db.dtPlanItems where x.id == itemId && x.user == userId select x).FirstOrDefault();
             if (item == null || (!item.recurrence.HasValue && !item.parent.HasValue)) return false;
@@ -511,7 +502,6 @@ namespace DanTech.Services
         
         public List<dtRecurrenceModel> Recurrences()
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtRecurrence, dtRecurrenceModel>(); }));
             return mappr.Map<List<dtRecurrenceModel>>(from x in _db.dtRecurrences select x).ToList();
@@ -519,8 +509,7 @@ namespace DanTech.Services
 
         public dtProject Set(dtProject project)
         {
-            var _db = _dal.GetDB();
-            if (_db == null) _db = InstantiateDB();
+            if (_db == null) _db = InstantiateDB() as dtdb;
             dtProject existing = null;
             if (project.id > 0)
             {
@@ -551,7 +540,6 @@ namespace DanTech.Services
 
         public dtPlanItem Set(dtPlanItem planItem)
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var mapper = new Mapper(PlanItemMapConfig);
             var item = new dtPlanItemModel(planItem);
@@ -560,8 +548,7 @@ namespace DanTech.Services
 
         public dtPlanItem Set(dtPlanItemModel planItem)
         {
-            var _db = _dal.GetDB();
-            if (_db == null) _db = InstantiateDB();
+            if (_db == null) _db = InstantiateDB() as dtdb;
             if (planItem == null) return null;
 
             if (!planItem.userId.HasValue) throw new Exception("Setting plan item requires a user id.");
@@ -601,6 +588,21 @@ namespace DanTech.Services
             return item;
         }
 
+        public dtUser Set (dtUser aUser)
+        {
+            return (from x in _db.dtUsers where x.id == aUser.id select x).FirstOrDefault();
+        }
+
+        public bool SetPW(string pw)
+        {
+            if (_userId <= 0) return false;
+            var u = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
+            if (u == null) return false;
+            u.pw = pw;
+            _db.SaveChanges();
+            return true;
+        }
+
         public void SetConnString(string conn) 
         { 
             _conn = conn; 
@@ -611,9 +613,18 @@ namespace DanTech.Services
             _userId = userId;
         }
 
+        public bool SetUserPW(string pw)
+        {
+            if (_db == null) throw new Exception("DB not set");
+            var usr = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
+            if (usr == null) return false;
+            usr.pw = pw;
+            _db.SaveChanges();
+            return true;
+        }
+
         public List<dtStatusModel> Stati()
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
             return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
@@ -621,7 +632,6 @@ namespace DanTech.Services
 
         public void ToggleTestFlag()
         {
-            var _db = _dal.GetDB();
             if (_db == null) throw new Exception("DB not set");
             var testFlag = (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
             if (testFlag == null)
@@ -636,11 +646,9 @@ namespace DanTech.Services
 
             _db.SaveChanges();
         }
-
         public dtUserModel UserModelForSession(string session, string hostAddress)
         {
-            var _db = _dal.GetDB();
-            if (_db == null) _db = InstantiateDB();
+            if (_db == null) _db = InstantiateDB()  as dtdb;
             dtUserModel mappedUser = null;
             if (!string.IsNullOrEmpty(session))
             {
@@ -677,8 +685,7 @@ namespace DanTech.Services
         { 
             int itemCt = 0;
             _userId = userId;
-            var _db = _dal.GetDB();
-            if (_db == null) _db = InstantiateDB();
+            if (_db == null) _db = InstantiateDB() as dtdb;
             var user = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
             if (user == null) return 0;
             if (!force && user.updated.HasValue && (DateTime.Parse(DateTime.Now.ToShortDateString()) - DateTime.Parse(user.updated.Value.ToShortDateString())).TotalDays < 1) return 0;
@@ -709,7 +716,7 @@ namespace DanTech.Services
         }
 
         // This is left at the bottom because it is a special method that is not part of normal use.
-        public static void GeneralUtil(dgdb db)
+        public static void GeneralUtil(dtdb db)
         {
             /*
             _currentUser = (from x in db.dtUsers where x.id == 2 select x).FirstOrDefault();

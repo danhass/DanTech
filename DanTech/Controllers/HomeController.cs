@@ -32,8 +32,8 @@ namespace DanTech.Controllers
     public class HomeController : DTController
     {
         protected IDTGoogleAuthService _google = null;
-        public HomeController(IConfiguration configuration, ILogger<HomeController> logger, dgdb dgdb, IDTDPDAL dal) : 
-            base(configuration, logger, dgdb, dal)
+        public HomeController(IConfiguration configuration, ILogger<HomeController> logger, dtdb dtdb) : 
+            base(configuration, logger, dtdb)
         {
         }
 
@@ -54,7 +54,7 @@ namespace DanTech.Controllers
             // We are leaving this here because it is used so often.
             //DTDBDataService svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
             //DTDBDataService.GeneralUtil(_db);
-            var typeCt = _dal.typesAll().Count;
+            var typeCt = (from x in _db.dtTypes where 1==1 select x).ToList().Count;
             ViewBag.ipAddress = HttpContext.Connection.RemoteIpAddress;
             ViewBag.host = Request.Host.Value;
 
@@ -75,7 +75,7 @@ namespace DanTech.Controllers
                 HttpClientInitializer = cred
             });
             var userInfo = oauthSerivce.Userinfo.Get().Execute();
-            var login = googleAuthService.SetLogin(userInfo, HttpContext, _dal, tokens["AccessToken"], tokens["RefreshToken"]);
+            var login = googleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
             SetVM(login.Session);
             Response.Cookies.Delete("dtSessionId");
             Response.Cookies.Append("dtSessionId", login.Session);  
@@ -103,7 +103,7 @@ namespace DanTech.Controllers
                     HttpClientInitializer = cred
                 });
                 var userInfo = oauthSerivce.Userinfo.Get().Execute();
-                login = googleAuthService.SetLogin(userInfo, HttpContext, _dal, tokens["AccessToken"], tokens["RefreshToken"]);
+                login = googleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
                 SetVM(login.Session);
                 Response.Cookies.Delete("dtSessionId");
                 Response.Cookies.Append("dtSessionId", sessionId);
@@ -120,7 +120,7 @@ namespace DanTech.Controllers
             string sessionId = Request.Cookies["dtSessionId"];
             string log = "";
             string addr = HttpContext.Request.Host.Value;
-            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _dal, ref log));
+            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _db, ref log));
             return json;
         }
 
@@ -132,7 +132,7 @@ namespace DanTech.Controllers
             string log = "";
 
             string addr = HttpContext.Request.Host.Value;
-            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _dal, ref log));
+            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _db, ref log));
             return json;
         } 
         
@@ -148,7 +148,7 @@ namespace DanTech.Controllers
         public dtLogin EstablishSession(string authToken, string refreshToken)
         {
             var google = new DTGoogleAuthService();
-            dtLogin login = google.SetLogin(google.GetUserInfo(authToken, refreshToken), HttpContext, _dal, authToken, refreshToken);
+            dtLogin login = google.SetLogin(google.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
             SetVM(login.Session);
             return login;
         }
@@ -178,7 +178,7 @@ namespace DanTech.Controllers
             
             if (VM.TestEnvironment)
             {
-                DTDBDataService dataService = new DTDBDataService(_dal, _configuration.GetConnectionString("dg"));
+                DTDBDataService dataService = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
                 dataService.ToggleTestFlag();
                 string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
                 var google = new DTGoogleAuthService();
@@ -191,7 +191,8 @@ namespace DanTech.Controllers
         [ServiceFilter(typeof(DTAuthenticate))]
         public ViewResult SetupTests()
         {
-            DTDBDataService.ClearResetFlags();
+            var ds = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
+            ds.ClearResetFlags();
             return View(new DTViewModel() { StatusMessage = "Test set up complete." } );
         }
     }

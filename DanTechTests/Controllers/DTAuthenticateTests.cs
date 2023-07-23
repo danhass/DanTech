@@ -27,16 +27,16 @@ namespace DanTechTests
     [TestClass]
     public class DTAuthenticateTests
     {        
-        private DTController ExecuteWithLoggedInUser(IDTDPDAL dal, string host)
+        private DTController ExecuteWithLoggedInUser(dtdb db, string host)
         {
             var config = DTTestOrganizer.InitConfiguration();
-            var controller = DTTestOrganizer.InitializeDTController(dal.GetDB(), true);
+            var controller = DTTestOrganizer.InitializeDTController(db, true);
             var httpContext = DTTestOrganizer.InitializeContext(host, true);
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, dal);
+            var actionFilter = new DTAuthenticate(config, db);
 
             //Act
             actionFilter.OnActionExecuting(ctx);
@@ -44,7 +44,7 @@ namespace DanTechTests
             return controller;
         }
 
-        private void RemoveTestSession(dgdb db)
+        private void RemoveTestSession(dtdb db)
         {
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
@@ -62,7 +62,7 @@ namespace DanTechTests
             var db = DTDB.getDB();
 
             //Act
-            var controller = ExecuteWithLoggedInUser(DTTestOrganizer.DAL_LIVE(), DTTestConstants.LocalHostDomain);
+            var controller = ExecuteWithLoggedInUser(db, DTTestConstants.LocalHostDomain);
 
             //Clean up
             RemoveTestSession(db);
@@ -75,14 +75,14 @@ namespace DanTechTests
         public void ActionExecutingTest_SetNotTestEnv()
         {
             //Arrange
-            var dal = DTTestOrganizer.DAL_LIVE();
+            var db = DTDB.getDB();
 
             //Act
-            var controller = ExecuteWithLoggedInUser(dal, IPAddress.Loopback.ToString());
+            var controller = ExecuteWithLoggedInUser(db, IPAddress.Loopback.ToString());
             var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Clean up
-            RemoveTestSession(dal.GetDB());
+            RemoveTestSession(db);
 
             //Assert
             Assert.IsFalse(controller.VM.TestEnvironment, "path that does not begin with localhost should result in test env flag of false.");
@@ -94,13 +94,13 @@ namespace DanTechTests
         public void ActionExecutingTest_UserLoggedIn()
         {
             //Arrange
-            var dal = DTTestOrganizer.DAL_LIVE();
+            var db = DTDB.getDB();
 
             //Act
-            var controller = ExecuteWithLoggedInUser(dal, DTTestConstants.TestRemoteHost);
+            var controller = ExecuteWithLoggedInUser(db, DTTestConstants.TestRemoteHost);
 
             //Clean up db - test user is left in place
-            RemoveTestSession(dal.GetDB());
+            RemoveTestSession(db);
             var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
@@ -114,21 +114,21 @@ namespace DanTechTests
         public void ActionExecutingTest_SessionInPostData()
         {
             //Arrange
-            var dal = DTTestOrganizer.DAL_LIVE();
+            var db = DTDB.getDB(); ;
             var config = DTTestOrganizer.InitConfiguration();
-            var controller = DTTestOrganizer.InitializeDTController(dal.GetDB(), true);
+            var controller = DTTestOrganizer.InitializeDTController(db, true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);    
             httpContext.Request.Headers.Add(HeaderNames.ContentType, new StringValues("application/x-www-form-urlencoded"));
             var form = new Dictionary<string, StringValues>();
-            StringValues val = new StringValues(DTTestConstants.TestSessionId);
+            StringValues val = new StringValues(DTTestOrganizer.TestSession.session);
             form["sessionId"] = val;
             httpContext.Request.Form = new FormCollection(form);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
-            ctx.ActionArguments["sessionId"] = DTTestConstants.TestSessionId;
+            ctx.ActionArguments["sessionId"] = DTTestOrganizer.TestSession.session;
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, dal);
+            var actionFilter = new DTAuthenticate(config, db);
 
             actionFilter.OnActionExecuting(ctx);
             var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
@@ -142,16 +142,16 @@ namespace DanTechTests
         public void ActionExecutingTest_SessionOnQueryString()
         {
             //Arrange 
-            var dal = DTTestOrganizer.DAL_LIVE();
+            var db = DTDB.getDB();
             var config = DTTestOrganizer.InitConfiguration();
-            var controller = DTTestOrganizer.InitializeDTController(dal.GetDB(), true);
+            var controller = DTTestOrganizer.InitializeDTController(db, true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
-            httpContext.Request.QueryString = new QueryString("?sessionId=" + DTTestConstants.TestSessionId);
+            httpContext.Request.QueryString = new QueryString("?sessionId=" + DTTestOrganizer.TestSession.session);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, dal);
+            var actionFilter = new DTAuthenticate(config, db);
 
             //Action
             actionFilter.OnActionExecuting(ctx);
@@ -166,16 +166,16 @@ namespace DanTechTests
         public void ActionExectutingTest_SessionQueryStringWithInvalid()
         {
             //Arrange
-            var dal = DTTestOrganizer.DAL_LIVE();
+            var db = DTDB.getDB();
             var config = DTTestOrganizer.InitConfiguration();
-            var controller = DTTestOrganizer.InitializeDTController(dal.GetDB(), true, "", dal);
+            var controller = DTTestOrganizer.InitializeDTController(db, true, "");
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + Guid.Empty.ToString());
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, dal);
+            var actionFilter = new DTAuthenticate(config, db);
 
             //Action
             actionFilter.OnActionExecuting(ctx);
@@ -192,18 +192,18 @@ namespace DanTechTests
             //Arrange
 
             //Set up db
-            var dal = DTTestOrganizer.DAL_LIVE();
-            var testUser = dal.user(new DGDAL_Email() { Email = DTTestConstants.TestUserEmail });
+            var db = DTDB.getDB();
+            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault(); ;
 
             //Remove any session for this user
-            var testSession = dal.session(testUser.id);
-
+            var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+            
             //Set up context
             var httpContext = new DefaultHttpContext();
             var requestFeature = new HttpRequestFeature();
             var featureCollection = new FeatureCollection();
             requestFeature.Headers = new HeaderDictionary();
-            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestConstants.TestSessionId + "=" + DTTestConstants.TestSessionId));
+            requestFeature.Headers.Add(HeaderNames.Cookie, new StringValues(DTTestOrganizer.TestSession.session + "=" + DTTestOrganizer.TestSession.session));
             requestFeature.Headers.Add(HeaderNames.ContentType, new StringValues("application/x-www-form-urlencoded"));
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
@@ -213,11 +213,11 @@ namespace DanTechTests
             //Set up controller
             var config = DTTestOrganizer.InitConfiguration();
             var logger = DTTestOrganizer.InitLogger();
-            var controller = new DTController(config, logger, dal);
+            var controller = new DTController(config, logger, db);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, dal);
+            var actionFilter = new DTAuthenticate(config, db);
 
             //Act
             actionFilter.OnActionExecuting(ctx);

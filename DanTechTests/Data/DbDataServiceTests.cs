@@ -15,18 +15,22 @@ namespace DanTechTests
     {
         private static string classTestName = "";
         private const string _testFlagKey = "Testing in progress";
+        private DTDBDataService _service = null;
 
+        public DbDataServiceTests()
+        {
+            _service = new DTDBDataService(DTDB.getDB(), DTTestOrganizer.Conn);
+        }
 
         [TestMethod]
         public void ColorCode_List()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
+            var db = DTDB.getDB();
             var numColorCodes = (from x in db.dtColorCodes select x).ToList().Count;
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
 
             //Act
-            var colorCodes = dataService.ColorCodes();
+            var colorCodes = _service.ColorCodes();
 
             //Assert
             Assert.AreEqual(colorCodes.Count, numColorCodes, "Color codes not correctly received.");
@@ -35,7 +39,7 @@ namespace DanTechTests
         [TestMethod]
         public void DBAccessible()
         {
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
+            var db = DTDB.getDB();
             var typeCt = (from x in db.dtTypes where 1 == 1 select x).ToList().Count;
             Assert.IsTrue(typeCt > 0);
         }
@@ -44,7 +48,7 @@ namespace DanTechTests
         public void DBUserCRUD()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
+            var db = DTDB.getDB();
             var userCt = (from x in db.dtUsers where 1 == 1 select x).ToList().Count;
             classTestName = "test_" + DateTime.Now.Ticks;
 
@@ -79,7 +83,7 @@ namespace DanTechTests
         [TestMethod]
         public void InstantiateDB()
         {
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
+            var db = DTDB.getDB();
             Assert.IsNotNull(db);
         }
 
@@ -87,8 +91,7 @@ namespace DanTechTests
         public void PlanItemAddRecurrence()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
+            var db = DTDB.getDB();
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             string recurrenceTitle = DTTestConstants.TestValue + " for AddRecurrence Test";
             var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
@@ -96,9 +99,9 @@ namespace DanTechTests
             dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(13), recurrence = DTTestConstants.RecurrenceId_Daily, user = testUser.id };
 
             //Act
-            var results = dataService.Set(recurrence);
+            var results = _service.Set(recurrence);
             var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var recurrenceAdded = (from x in db.dtPlanItems where x.user == testUser.id && x.title == recurrenceTitle select x).FirstOrDefault();
+            var recurrenceAdded = (from x in db.dtPlanItems where x.id == results.id select x).FirstOrDefault();
             var endRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
             var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id select x).ToList().Count;
 
@@ -113,8 +116,7 @@ namespace DanTechTests
         public void PlanItem_ClearPastDue()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
+            var db = DTDB.getDB();
             var testUser = DTTestOrganizer.TestUser;
             var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
             dtPlanItemModel model = new dtPlanItemModel()
@@ -152,13 +154,13 @@ namespace DanTechTests
             };
 
             //Act
-            var itemsBeforeSet = dataService.PlanItems(testUser.id);
-            var baseline = dataService.Set(model);
-            var pastDue = dataService.Set(modelForPastDue);
-            var preserve = dataService.Set(modelForPastDuePreserve);
-            var incomplete = dataService.Set(modelForPastDueNotComplete);
-            var future = dataService.Set(model);
-            var items = dataService.PlanItems(testUser.id);
+            var itemsBeforeSet = _service.PlanItems(testUser.id);
+            var baseline = _service.Set(model);
+            var pastDue = _service.Set(modelForPastDue);
+            var preserve = _service.Set(modelForPastDuePreserve);
+            var incomplete = _service.Set(modelForPastDueNotComplete);
+            var future = _service.Set(model);
+            var items = _service.PlanItems(testUser.id);
             var itemsAfterSets = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
 
             //Assert
@@ -170,8 +172,7 @@ namespace DanTechTests
         public void PlanItemSet_MinimumItem()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
+            var db = DTDB.getDB();
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
@@ -194,14 +195,14 @@ namespace DanTechTests
             };
 
             //Act
-            var item = dataService.Set(model);
+            var item = _service.Set(model);
             numItems++;
             int newItemId = item.id;
             item.note = DTTestConstants.TestValue;
-            item = dataService.Set(item);
-            var item2 = dataService.Set(model2);
+            item = _service.Set(item);
+            var item2 = _service.Set(model2);
             numItems++;
-            var itemList = dataService.PlanItems(testUser);
+            var itemList = _service.PlanItems(testUser);
 
             //Assert
             Assert.IsTrue(newItemId > 0, "Plan item creation failed.");
@@ -217,8 +218,7 @@ namespace DanTechTests
         public void PlanItemAdd_NoEndDate()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
+            var db = DTDB.getDB();
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
@@ -240,7 +240,7 @@ namespace DanTechTests
                 );
 
             //Act
-            var item = dataService.Set(model);
+            var item = _service.Set(model);
             var ts = item.duration;
             var tsExpected = TimeSpan.Parse("2:05");
 
@@ -256,8 +256,7 @@ namespace DanTechTests
         public void PlanItemDelete()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
+            var db = DTDB.getDB();
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
@@ -270,10 +269,10 @@ namespace DanTechTests
             };
 
             //Act
-            var item = dataService.Set(model);
+            var item = _service.Set(model);
             int newItemId = item.id;
             int newItemUser = item.user;
-            var deleted = dataService.DeletePlanItem(newItemId, newItemUser);
+            var deleted = _service.DeletePlanItem(newItemId, newItemUser);
             var result = (from x in db.dtPlanItems where x.id == newItemId select x).FirstOrDefault();
 
             //Assert
@@ -284,8 +283,7 @@ namespace DanTechTests
         public void PlanItemAddRecurrenceWith_TTh_Filter()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
+            var db = DTDB.getDB();
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             string recurrenceTitle = DTTestConstants.TestValue + " for T-Th Recurrence Test";
             var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
@@ -297,9 +295,9 @@ namespace DanTechTests
             int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
 
             //Act
-            var results = dataService.Set(recurrence);
+            var results = _service.Set(recurrence);
             var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var recurrenceAdded = (from x in db.dtPlanItems where x.user == testUser.id && x.title == recurrenceTitle select x).FirstOrDefault();
+            var recurrenceAdded = (from x in db.dtPlanItems where x.id == results.id select x).FirstOrDefault();
             var endRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
             var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id select x).ToList().Count;
 
@@ -315,14 +313,13 @@ namespace DanTechTests
         public void ProjectsListByUser()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
+            var db = DTDB.getDB();
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var numProjects = (from x in db.dtProjects where x.user == testUser.id select x).ToList().Count;
 
             //Act
-            var numProjsFromAPI = dataService.DTProjects(testUser.id);
-            var numProjsByUser = dataService.DTProjects(testUser);
+            var numProjsFromAPI = _service.DTProjects(testUser.id);
+            var numProjsByUser = _service.DTProjects(testUser);
 
             //Assert
             Assert.AreEqual(numProjsFromAPI.Count, numProjects, "Data service returns wrong number by user id.");
@@ -333,8 +330,7 @@ namespace DanTechTests
         public void Project_Set()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
+            var db = DTDB.getDB();
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testStatus = (from x in db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
             var allProjects = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
@@ -354,10 +350,10 @@ namespace DanTechTests
             };
 
             //Act
-            var setNew_Result = dataService.Set(newProj);
-            var setNew2 = dataService.Set(newProj2);
+            var setNew_Result = _service.Set(newProj);
+            var setNew2 = _service.Set(newProj2);
             setNew2.notes = DTTestConstants.TestValue;
-            var setExist_Result = dataService.Set(setNew2);
+            var setExist_Result = _service.Set(setNew2);
             var allProjectsAfter = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
             var notesUpdated = (from x in db.dtProjects where x.id == setNew_Result.id select x).FirstOrDefault();
             DTTestOrganizer._numberOfProjects++;
@@ -371,24 +367,36 @@ namespace DanTechTests
         public void Recurrences_List()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
+            var db = DTDB.getDB();
             var numRecurrences = (from x in db.dtRecurrences select x).ToList().Count;
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
 
             //Act
-            var recurrences = dataService.Recurrences();
+            var recurrences = _service.Recurrences();
 
             //Assert
             Assert.AreEqual(recurrences.Count, numRecurrences, "Recurrences not correctly received.");
         }
 
         [TestMethod]
+        public void SetPW_Success()
+        {
+            //Arrange
+            string testPW = DTTestConstants.TestValue;
+            _service.SetUser(DTTestOrganizer.TestUser.id);
+
+            //Act
+            var res = _service.SetPW(testPW);
+
+            //Assert
+            Assert.IsTrue(res, "Did not successfully set password.");
+        }
+
+        [TestMethod]
         public void SetTestingFlag()
         {
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
+            var db = DTDB.getDB();
 
             //Arrange
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
 
             //Act
 
@@ -396,12 +404,12 @@ namespace DanTechTests
             bool testFlagBeforeToggle = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
             if (testFlagBeforeToggle)
             {
-                dataService.ToggleTestFlag();
+                _service.ToggleTestFlag();
                 testFlagBeforeToggle = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
             }
 
             //Now turn it on.
-            dataService.ToggleTestFlag();
+            _service.ToggleTestFlag();
             bool testFlagShouldBeSet = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
             var testInProgressFlag = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
             bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
@@ -422,12 +430,11 @@ namespace DanTechTests
         public void Statuses_List()
         {
             //Arrange
-            var db = DTTestOrganizer.DAL_LIVE().GetDB();
+            var db = DTDB.getDB();
             var numStati = (from x in db.dtStatuses select x).ToList().Count;
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
 
             //Act
-            var statuses = dataService.Stati();
+            var statuses = _service.Stati();
 
             //Assert
             Assert.AreEqual(statuses.Count, numStati, "Status not correctly retrieved.");
@@ -437,7 +444,6 @@ namespace DanTechTests
         public void UserModelForSession_NotLoggedIn()
         {
             //Arrange 
-            var dataService = new DTDBDataService(DTTestOrganizer.DAL_LIVE(), DTTestOrganizer.Conn);
         }
 
     }

@@ -26,6 +26,7 @@ namespace DanTech.Data
         public DateTime? lastLogin { get; set; }
         public byte? suspended { get; set; }
         public DateTime? updated { get; set; }
+        public string pw { get; set; }
 
         public virtual dtType typeNavigation { get; set; }
         public virtual ICollection<dtConfig> dtConfigs { get; set; }

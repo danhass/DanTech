@@ -28,7 +28,7 @@ namespace DanTech
 
                 try
                 {
-                    var context = services.GetRequiredService<dgdb>();
+                    var context = services.GetRequiredService<dtdb>();
                 }
                 catch (Exception ex)
                 {

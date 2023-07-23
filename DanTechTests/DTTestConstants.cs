@@ -47,7 +47,7 @@ namespace DanTechTests
         public const string TestTimeSpanStart = "14:10";
         public const string TestTimeSpanEnd = "16:15";
         public const string TestProjectTitlePrefix = "Test project #";        
-        public const string TestSessionId = "01ddb399-850b-4111-a3e6-6afd1c30b605";
+        //public const string TestSessionId = "01ddb399-850b-4111-a3e6-6afd1c30b605";
         public const string TestStatus = "test";
         public const string TestStringTrueValue = "1";
         public const string TestUserEmail = "t@t.com"; //Permanent user in the user table that is reserved for testing.

@@ -135,10 +135,9 @@ namespace DanTech.Services
             return userInfo;
         }
 
-        public dtLogin SetLogin(string sessionId, string hostAddress, IDTDPDAL dal, ref string log)
+        public dtLogin SetLogin(string sessionId, string hostAddress, dtdb db, ref string log)
         {
             dtLogin login = new dtLogin();
-            var db = dal.GetDB();
             var outOfDates = (from x in db.dtSessions where x.expires < DateTime.Now select x).ToList();
             db.RemoveRange(outOfDates);
             var session = (from x in db.dtSessions where x.session == sessionId && x.hostAddress == hostAddress select x).FirstOrDefault();
@@ -161,9 +160,8 @@ namespace DanTech.Services
             return login;
         }
 
-        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, IDTDPDAL dal, string accessToken, string refreshToken)
+        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, dtdb db, string accessToken, string refreshToken)
         {
-            var db = dal.GetDB();
             dtLogin login = new dtLogin();
             Guid sessionGuid = Guid.NewGuid();
             if (userInfo != null && !string.IsNullOrEmpty(userInfo.Email) && !(string.IsNullOrEmpty(userInfo.GivenName) && string.IsNullOrEmpty(userInfo.FamilyName)))

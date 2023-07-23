@@ -17,46 +17,34 @@ namespace DanTech.Controllers
     {
         protected readonly IConfiguration _configuration;
         protected readonly ILogger<DTController> _logger;
-        protected static IDTDPDAL _dal = null;
+        protected static dtdb _db = null;
         protected dtUser _user = null;
 
         public DTViewModel VM { get; set; }
 
         protected void log(string entry, string key="Debug logging")
         {
-            _dal.Add(new dtMisc() { title = key, value = entry });
+            _db.dtMiscs.Add(new dtMisc() { title = key, value = entry });
+            _db.SaveChanges();
         }
 
-        public DTController(IConfiguration configuration, ILogger<DTController> logger, dgdb dgdb, IDTDPDAL dal)
+        public DTController(IConfiguration configuration, ILogger<DTController> logger, dtdb dtdb)
         {
+            _db = dtdb;
             _logger = logger;
             _configuration = configuration;
-            if (dal == null)
+            if (_db == null)
             {
-                dal = new DTDPDAL(dgdb);
+                _db = new dtdb();
             }
 
-            if (dal != null)
-            {
-                _dal = dal;
-                _dal.SetDB(dgdb);
-                _dal = dal;
-                if (!DTConstants.Initialized()) DTConstants.Init(_dal);
-            }
-        }
-
-        public DTController(IConfiguration configuration, ILogger<DTController> logger, IDTDPDAL dal)
-        {
-            _dal = dal;
-            _logger = logger;
-            _configuration = configuration;
-            if (!DTConstants.Initialized()) DTConstants.Init(_dal);
+            if (!DTConstants.Initialized()) DTConstants.Init(_db);
         }
 
         protected void SetVM(string sessionId)
         {
             VM = new DTViewModel();
-            var session = _dal.session(sessionId);
+            var session = (from x in _db.dtSessions where x.session == sessionId select x).FirstOrDefault();
             if (session != null && session.userNavigation != null)
             {
                 var user = session.userNavigation;

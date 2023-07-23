@@ -24,8 +24,7 @@ namespace DanTechTests.Controllers
     [TestClass]
     public class PlannerTests
     {
-        private static dgdb _db = null;
-        private static IDTDPDAL _dal = null;
+        private static dtdb _db = null;
         private IConfiguration _config = DTTestOrganizer.InitConfiguration();
         private PlannerController _controller = null;
         private dtUser _testUser = null;
@@ -34,8 +33,7 @@ namespace DanTechTests.Controllers
 
         public PlannerTests()
         {
-            _dal = DTTestOrganizer.DAL_LIVE();
-            _db = _dal.GetDB();
+            _db = DTDB.getDB();
 
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
@@ -44,14 +42,14 @@ namespace DanTechTests.Controllers
             var factory = serviceProvider.GetService<ILoggerFactory>();
 
             var logger = factory.CreateLogger<PlannerController>();
-            _controller = new PlannerController(_config, logger, _db, _dal);
+            _controller = new PlannerController(_config, logger, _db);
             _testUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
             var testSession = (from x in _db.dtSessions where x.user == _testUser.id select x).FirstOrDefault();
             if (testSession == null)
             {
                 testSession = new dtSession() { user = _testUser.id, hostAddress = DTTestConstants.TestRemoteHostAddress };
                 testSession.expires = DateTime.Now.AddDays(1);
-                testSession.session = DTTestConstants.TestSessionId;
+                testSession.session = DTTestOrganizer.TestSession.session;
                 _db.dtSessions.Add(testSession);
                 _db.SaveChanges();
             }
@@ -60,7 +58,7 @@ namespace DanTechTests.Controllers
         }
         private void SetControllerQueryString(string sessionId = "")
         {
-            if (string.IsNullOrEmpty(sessionId)) sessionId = DTTestConstants.TestSessionId;
+            if (string.IsNullOrEmpty(sessionId)) sessionId = DTTestOrganizer.TestSession.session;
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + sessionId);
@@ -76,7 +74,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.ColorCodes(DTTestConstants.TestSessionId);
+            var res = _controller.ColorCodes(DTTestOrganizer.TestSession.session);
 
             //Assert
             Assert.AreEqual(((List<dtColorCodeModel>)res.Value).Count, numberColorCodes, "Color codes numbers don't match.");
@@ -94,7 +92,7 @@ namespace DanTechTests.Controllers
             //Arrange
             SetControllerQueryString();
             var projKey = DTTestConstants.TestValue + " Adjust Project";
-            _controller.SetProject(DTTestConstants.TestSessionId, projKey, "TADJ", (int)DtStatus.Active);
+            _controller.SetProject(DTTestOrganizer.TestSession.session, projKey, "TADJ", (int)DtStatus.Active);
             var proj = (from x in _db.dtProjects where x.title == projKey && x.user == _testUser.id select x).FirstOrDefault();
             //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
             //These should adjust so that the third is after the first, and the 2nd doesn't change.
@@ -106,12 +104,12 @@ namespace DanTechTests.Controllers
             var end2 = DateTime.Now.AddMinutes(90).ToString("HH:mm");
             var key3 = DTTestConstants.TestValue + " Adjust #3";
             var start3 = DateTime.Now.AddMinutes(20).ToString("HH:mm");
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key2, null, DateTime.Now.ToShortDateString(), start2, null, end2, null, null, null, null, proj.id);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key3, null, DateTime.Now.ToShortDateString(), start3, null, null, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key2, null, DateTime.Now.ToShortDateString(), start2, null, end2, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key3, null, DateTime.Now.ToShortDateString(), start3, null, null, null, null, null, null, proj.id);
 
             //Act
-            _controller.Adjust(DTTestConstants.TestSessionId);
+            _controller.Adjust(DTTestOrganizer.TestSession.session);
 
             //Assert
             var item1 = (from x in _db.dtPlanItems where x.title == key1 select x).FirstOrDefault();
@@ -145,7 +143,7 @@ namespace DanTechTests.Controllers
             //Arrange
             SetControllerQueryString();
             var projKey = DTTestConstants.TestValue + " Adjust With Priority Project";
-            _controller.SetProject(DTTestConstants.TestSessionId, projKey, "TAP", (int)DtStatus.Active);
+            _controller.SetProject(DTTestOrganizer.TestSession.session, projKey, "TAP", (int)DtStatus.Active);
             var proj = (from x in _db.dtProjects where x.title == projKey && x.user == _testUser.id select x).FirstOrDefault();
             //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
             //These should adjust so that the third is after the first, and the 2nd doesn't change.
@@ -164,14 +162,14 @@ namespace DanTechTests.Controllers
             var key5 = DTTestConstants.TestValue + " Adjust w/Priority #5";
             var start5 = now.AddMinutes(20).ToString("HH:mm");
             var end5 = now.AddMinutes(80).ToString("HH:mm");
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key2, null, DateTime.Now.ToShortDateString(), start2, null, null, null, null, null, null, proj.id);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key3, null, DateTime.Now.ToShortDateString(), start3, null, end3, null, null, null, null, proj.id);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key4, null, DateTime.Now.ToShortDateString(), start4, null, end4, 3000, null, null, null, proj.id);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key5, null, DateTime.Now.ToShortDateString(), start5, null, end5, 5000, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key2, null, DateTime.Now.ToShortDateString(), start2, null, null, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key3, null, DateTime.Now.ToShortDateString(), start3, null, end3, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key4, null, DateTime.Now.ToShortDateString(), start4, null, end4, 3000, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key5, null, DateTime.Now.ToShortDateString(), start5, null, end5, 5000, null, null, null, proj.id);
 
             //Act
-            _controller.Adjust(DTTestConstants.TestSessionId);
+            _controller.Adjust(DTTestOrganizer.TestSession.session);
 
             //Assert
             Assert.AreEqual((from x in _db.dtPlanItems where x.title == key1 && x.project == proj.id select x).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(10).ToString("HH:mm"), "Item #1 start time is wrong.");
@@ -198,7 +196,7 @@ namespace DanTechTests.Controllers
             //Arrange
             SetControllerQueryString();
             var projKey = DTTestConstants.TestValue + " Adjust Project";
-            _controller.SetProject(DTTestConstants.TestSessionId, projKey, "TADJ", (int)DtStatus.Active);
+            _controller.SetProject(DTTestOrganizer.TestSession.session, projKey, "TADJ", (int)DtStatus.Active);
             var proj = (from x in _db.dtProjects where x.title == projKey && x.user == _testUser.id select x).FirstOrDefault();
             //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
             //These should adjust so that the third is after the first, and the 2nd doesn't change.
@@ -216,13 +214,13 @@ namespace DanTechTests.Controllers
             var start4 = DateTime.Now.AddMinutes(30).ToString("HH:mm");
             var end4 = DateTime.Now.AddMinutes(60).ToString("HH:mm");
 
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key2, null, DateTime.Now.ToShortDateString(), start2, null, end2, null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key3, null, DateTime.Now.ToShortDateString(), start3, null, null, null, null, null, null, proj.id);
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, key4, null, DateTime.Now.ToShortDateString(), start4, null, end4, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key1, null, DateTime.Now.ToShortDateString(), start1, null, end1, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key2, null, DateTime.Now.ToShortDateString(), start2, null, end2, null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key3, null, DateTime.Now.ToShortDateString(), start3, null, null, null, null, null, null, proj.id);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key4, null, DateTime.Now.ToShortDateString(), start4, null, end4, null, null, null, null, proj.id);
 
             //Act
-            _controller.Adjust(DTTestConstants.TestSessionId);
+            _controller.Adjust(DTTestOrganizer.TestSession.session);
             var item1 = (from x in _db.dtPlanItems where x.title == key1 select x).FirstOrDefault();
             var item2 = (from x in _db.dtPlanItems where x.title == key2 select x).FirstOrDefault();
             var item3 = (from x in _db.dtPlanItems where x.title == key3 select x).FirstOrDefault();
@@ -267,12 +265,12 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #1", null, DateTime.Now.AddDays(-20).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
-            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #2", null, DateTime.Now.AddDays(-10).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, "--*-*--");
-            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #3", null, DateTime.Now.AddDays(-3).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly, "1,15");
-            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " #4", null, DateTime.Now.ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
-            res = _controller.PlanItems(DTTestConstants.TestSessionId);
-            var recurrenceList = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId, 1, false, true, null, true).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey + " #1", null, DateTime.Now.AddDays(-20).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey + " #2", null, DateTime.Now.AddDays(-10).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, "--*-*--");
+            res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey + " #3", null, DateTime.Now.AddDays(-3).ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly, "1,15");
+            res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey + " #4", null, DateTime.Now.ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            res = _controller.PlanItems(DTTestOrganizer.TestSession.session);
+            var recurrenceList = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session, 1, false, true, null, true).Value;
 
             //Assert
             Assert.AreEqual(numberOfPlanItems + 4, recurrenceList.Count, "Did not get the expected recurrence list.");
@@ -294,8 +292,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(-40).ToString("HH:mm"), null, null, null, null, true, null, null, null, null, null, null, null, null, null);
-            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId, null, true).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(-40).ToString("HH:mm"), null, null, null, null, true, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session, null, true).Value;
             var item = items.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
@@ -318,9 +316,9 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key + " Pre", null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(100).ToString("HH:mm"), null, DateTime.Now.AddMinutes(160).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
-            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(105).ToString("HH:mm"), null, DateTime.Now.AddMinutes(110).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
-            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key + " Pre", null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(100).ToString("HH:mm"), null, DateTime.Now.AddMinutes(160).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
+            res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(105).ToString("HH:mm"), null, DateTime.Now.AddMinutes(110).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session).Value;
             var item = items.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
@@ -334,17 +332,18 @@ namespace DanTechTests.Controllers
 
         [TestMethod]
         public void PlanItem_ColorStatus_Current()
-        {
+        {            
             //Arrange
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string key = DTTestConstants.TestValue + " Color: current";
-            var colorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Current) select x.colorCode).FirstOrDefault();
+            int expectedStatus = (int)(DtStatus.Current);
+            var colorId = (from x in _db.dtStatuses where x.id == expectedStatus select x.colorCode).FirstOrDefault();
             var color = (from x in _db.dtColorCodes where x.id == colorId select x).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(200).ToString("HH:mm"), null, DateTime.Now.AddMinutes(210).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
-            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(60).ToString("HH:mm"), null, DateTime.Now.AddMinutes(210).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session).Value;
             var item = items.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
@@ -367,8 +366,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.AddDays(2).ToShortDateString(), "13:30", null, "14:00", null, null, null, null, null, null, null, null, null, null, null, null);
-            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.AddDays(2).ToShortDateString(), "13:30", null, "14:00", null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session).Value;
             var item = items.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
@@ -391,8 +390,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.AddDays(-1).ToShortDateString(), "13:30", null, "14:00", null, null, null, null, null, null, null, null, null, null, null, null);
-            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.AddDays(-1).ToShortDateString(), "13:30", null, "14:00", null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session).Value;
             var item = items.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
@@ -417,8 +416,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), pastStart, null, pastEnd, null, null, null, null, null, null, null, null, null, null, null, null);
-            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.ToShortDateString(), pastStart, null, pastEnd, null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session).Value;
             var item = items.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
@@ -441,9 +440,9 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key + " Pre", null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(200).ToString("HH:mm"), null, DateTime.Now.AddMinutes(260).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
-            res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(205).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key + " Pre", null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(200).ToString("HH:mm"), null, DateTime.Now.AddMinutes(260).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null);
+            res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.ToShortDateString(), DateTime.Now.AddMinutes(205).ToString("HH:mm"), null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session).Value;
             var item = items.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
@@ -468,8 +467,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.ToShortDateString(), tenMinsAgo, null, fiftyMinsFromNow, null, null, null, null, null, null, null, null, null, null, null, null);
-            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.ToShortDateString(), tenMinsAgo, null, fiftyMinsFromNow, null, null, null, null, null, null, null, null, null, null, null, null);
+            var items = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session).Value;
             var item = items.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
@@ -492,8 +491,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             // Act
-            var getResults = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId).Value;
-            var getWithCompleted = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId, null, true).Value;
+            var getResults = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session).Value;
+            var getWithCompleted = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session, null, true).Value;
 
             List<int> missing = new List<int>();
             dtMisc log = new dtMisc() { title = "Test Results" };
@@ -522,10 +521,10 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             // Act
-            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var jsonRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
             var returnedList = (List<dtPlanItemModel>)jsonRes.Value;
             var testItem = returnedList.Where(x => x.title == key).FirstOrDefault();
-            var jsonResCompleted = _controller.SetPlanItem(DTTestConstants.TestSessionId, testItem.title, DTTestConstants.TestValue2, null, null, null, null, null, null, true, null, null, null, true, null, null, testItem.id);
+            var jsonResCompleted = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, testItem.title, DTTestConstants.TestValue2, null, null, null, null, null, null, true, null, null, null, true, null, null, testItem.id);
             var returnedListFromCompleted = (List<dtPlanItemModel>)jsonResCompleted.Value;
             var completedTestItem = returnedListFromCompleted.Where(x => x.title == key && x.note == DTTestConstants.TestValue2).FirstOrDefault();
 
@@ -548,11 +547,11 @@ namespace DanTechTests.Controllers
             string key = DTTestConstants.TestValue + " - Fixed Start";
             string projKey = DTTestConstants.TestValue + " - Fixed Start Proj";
             SetControllerQueryString();
-            _controller.SetProject(DTTestConstants.TestSessionId, projKey, "FSP", (int)DtStatus.Active, 92, null, null, null, null);
+            _controller.SetProject(DTTestOrganizer.TestSession.session, projKey, "FSP", (int)DtStatus.Active, 92, null, null, null, null);
             var proj = (from x in _db.dtProjects where x.title == projKey select x).FirstOrDefault();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, DateTime.Now.AddDays(1).ToShortDateString(), "13:00", null, "14:00", null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.AddDays(1).ToShortDateString(), "13:00", null, "14:00", null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
             var item = (from x in _db.dtPlanItems where x.title == key select x).FirstOrDefault();
 
             //Assert
@@ -574,10 +573,10 @@ namespace DanTechTests.Controllers
             string key = DTTestConstants.TestValue + " Delete Test";
 
             // Act
-            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            var jsonRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
             var itemSetCt = (from x in _db.dtPlanItems where x.title == key select x).ToList().Count;
             var setItem = (from x in _db.dtPlanItems where x.title == key select x).FirstOrDefault();
-            var delRes = _controller.DeletePlanItem(DTTestConstants.TestSessionId, setItem.id);
+            var delRes = _controller.DeletePlanItem(DTTestOrganizer.TestSession.session, setItem.id);
             var delItemCt = (from x in _db.dtPlanItems where x.title == key select x).ToList().Count;
 
             //Assert
@@ -591,13 +590,13 @@ namespace DanTechTests.Controllers
             //Arrange
             SetControllerQueryString();
             string key = DTTestConstants.TestValue + " - Delete Rec./Keep Children";
-            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var jsonRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             // Should have 30 children + the recurrence.
             int totalItemsBeforeDelete = (from x in _db.dtPlanItems where x.title == key select x).ToList().Count;
             var recurrence = (from x in _db.dtPlanItems where x.title == key && x.recurrence.HasValue select x).FirstOrDefault();
 
             //Act
-            var delResult = _controller.DeletePlanItem(DTTestConstants.TestSessionId, recurrence.id);
+            var delResult = _controller.DeletePlanItem(DTTestOrganizer.TestSession.session, recurrence.id);
 
             //Assert
             Assert.AreEqual(totalItemsBeforeDelete, 31, "Recurrence and children not set correctly.");
@@ -615,13 +614,13 @@ namespace DanTechTests.Controllers
             //Arrange
             SetControllerQueryString();
             string key = DTTestConstants.TestValue + " - Delete Rec & Children";
-            var jsonRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var jsonRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             // Should have 30 children + the recurrence.
             int totalItemsBeforeDelete = (from x in _db.dtPlanItems where x.title == key select x).ToList().Count;
             var recurrence = (from x in _db.dtPlanItems where x.title == key && x.recurrence.HasValue select x).FirstOrDefault();
 
             //Act
-            var delResult = _controller.DeletePlanItem(DTTestConstants.TestSessionId, recurrence.id, true);
+            var delResult = _controller.DeletePlanItem(DTTestOrganizer.TestSession.session, recurrence.id, true);
 
             //Assert
             Assert.AreEqual(totalItemsBeforeDelete, 31, "Recurrence and children not set correctly.");
@@ -645,8 +644,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var jsonSetResult = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, targDate.ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, DTTestConstants.RecurrenceId_Daily, "--*-*--");
-            var itemList = (List<dtPlanItemModel>)_controller.PlanItems(DTTestConstants.TestSessionId, null, true).Value;
+            var jsonSetResult = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, targDate.ToShortDateString(), null, null, null, null, null, null, null, null, null, true, null, null, null, DTTestConstants.RecurrenceId_Daily, "--*-*--");
+            var itemList = (List<dtPlanItemModel>)_controller.PlanItems(DTTestOrganizer.TestSession.session, null, true).Value;
             Console.WriteLine(itemList.Count);
 
             //Assert
@@ -671,7 +670,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, DTTestConstants.RecurrenceId_Daily, "--*-*--");
+            var jsonSetRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, DTTestConstants.RecurrenceId_Daily, "--*-*--");
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
 
             //Assert
@@ -721,7 +720,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var setRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(-14).ToShortDateString(), start, null, end, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly_nth_day, "3:-*-*---");
+            var setRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, today.AddDays(-14).ToShortDateString(), start, null, end, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly_nth_day, "3:-*-*---");
             var recurrence = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Monthly_nth_day select x).FirstOrDefault();
             var children = (from x in _db.dtPlanItems where x.user == _testUser.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
 
@@ -767,7 +766,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Monthly, dayOfMonthTargets);
+            var jsonSetRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Monthly, dayOfMonthTargets);
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
             var setItem = (from x in _db.dtPlanItems where x.title == planItemKey && x.recurrence == (int)DtRecurrence.Monthly select x).FirstOrDefault();
             var childItemFor1st = returnedList.Where(x => x.day.Day == 1 && x.parent.HasValue && x.parent.Value == setItem.id).FirstOrDefault();
@@ -803,7 +802,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(-14).ToShortDateString(), start, null, end, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, today.AddDays(-14).ToShortDateString(), start, null, end, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
             var recurrence = (from x in _db.dtPlanItems where x.user == _testUser.id && x.recurrence.HasValue && x.title == planItemKey select x).FirstOrDefault();
             var children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
 
@@ -837,7 +836,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, today.AddDays(14).ToShortDateString(), startTime, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, today.AddDays(14).ToShortDateString(), startTime, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
             var recurrence = (from x in _db.dtPlanItems where x.user == _testUser.id && x.recurrence.HasValue && x.title == planItemKey select x).FirstOrDefault();
             var children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
 
@@ -862,7 +861,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var jsonSetRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var jsonSetRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
 
             //Assert
@@ -877,14 +876,14 @@ namespace DanTechTests.Controllers
             string projShortCode = "PDT";
             string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test";
             SetControllerQueryString();
-            _controller.SetProject(DTTestConstants.TestSessionId, projectKey, projShortCode, (int)DtStatus.Active);
+            _controller.SetProject(DTTestOrganizer.TestSession.session, projectKey, projShortCode, (int)DtStatus.Active);
             var project = (from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault();
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             var recurrence = (from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault();
             var projItems = (from x in _db.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
 
             //Act
-            _controller.DeleteProject(DTTestConstants.TestSessionId, project.id);
+            _controller.DeleteProject(DTTestOrganizer.TestSession.session, project.id);
 
             //Assert
             Assert.IsNotNull(project, "Project not initially created.");
@@ -903,14 +902,14 @@ namespace DanTechTests.Controllers
             string projShortCode = "PKT"; // Project Keep Test
             string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test (keep items)";
             SetControllerQueryString();
-            _controller.SetProject(DTTestConstants.TestSessionId, projectKey, projShortCode, (int)DtStatus.Active);
+            _controller.SetProject(DTTestOrganizer.TestSession.session, projectKey, projShortCode, (int)DtStatus.Active);
             var project = (from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault();
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             var recurrence = (from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault();
             var projItems = (from x in _db.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
 
             //Act
-            _controller.DeleteProject(DTTestConstants.TestSessionId, project.id, false);
+            _controller.DeleteProject(DTTestOrganizer.TestSession.session, project.id, false);
 
             //Assert
             Assert.IsNotNull(project, "Project not initially created.");
@@ -936,16 +935,16 @@ namespace DanTechTests.Controllers
             string projXferShortCode = "XXt"; //Transfer target project
             string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test (xfer items)";
             SetControllerQueryString();
-            _controller.SetProject(DTTestConstants.TestSessionId, projectKey, projShortCode, (int)DtStatus.Active);
+            _controller.SetProject(DTTestOrganizer.TestSession.session, projectKey, projShortCode, (int)DtStatus.Active);
             var project = (from x in _db.dtProjects where x.title == projectKey select x).FirstOrDefault();
-            _controller.SetProject(DTTestConstants.TestSessionId, projectXferKey, projXferShortCode, (int)DtStatus.Active);
+            _controller.SetProject(DTTestOrganizer.TestSession.session, projectXferKey, projXferShortCode, (int)DtStatus.Active);
             var xferProject = (from x in _db.dtProjects where x.title == projectXferKey select x).FirstOrDefault();
-            _controller.SetPlanItem(DTTestConstants.TestSessionId, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            _controller.SetPlanItem(DTTestOrganizer.TestSession.session, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             var recurrence = (from x in _db.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault();
             var projItems = (from x in _db.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
 
             //Act
-            _controller.DeleteProject(DTTestConstants.TestSessionId, project.id, false, xferProject.id);
+            _controller.DeleteProject(DTTestOrganizer.TestSession.session, project.id, false, xferProject.id);
 
             //Assert
             Assert.IsNotNull(project, "Project not initially created.");
@@ -973,7 +972,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             var recurrenceItem = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
             string recurrenceItemTitle = recurrenceItem.title;
             string recurrenceItemNote = recurrenceItem.note;
@@ -981,8 +980,8 @@ namespace DanTechTests.Controllers
             string childrenTitle = children[0].title;
             string childrenNote = children[0].note;
             // Change note, and propagate.
-            var changeRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " changed.", "Note set", null, null, null, null, null, null, null, null, null, null, true, null, null, children[0].id, null, null);
-            var propRes = _controller.Propagate(DTTestConstants.TestSessionId, children[0].id);
+            var changeRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey + " changed.", "Note set", null, null, null, null, null, null, null, null, null, null, true, null, null, children[0].id, null, null);
+            var propRes = _controller.Propagate(DTTestOrganizer.TestSession.session, children[0].id);
             recurrenceItem = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == (planItemKey + " changed.") && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
             children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
 
@@ -1011,7 +1010,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
+            var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             var recurrenceItem = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
             string recurrenceItemTitle = recurrenceItem.title;
             string recurrenceItemNote = recurrenceItem.note;
@@ -1019,8 +1018,8 @@ namespace DanTechTests.Controllers
             string childrenTitle = children[0].title;
             string childrenNote = children[0].note;
             // Change note, and propagate.
-            var changeRes = _controller.SetPlanItem(DTTestConstants.TestSessionId, planItemKey + " changed.", "Note set", null, null, null, null, null, null, null, null, null, null, true, null, null, recurrenceItem.id, (int)DtRecurrence.Daily_Weekly, null);
-            var propRes = _controller.Propagate(DTTestConstants.TestSessionId, recurrenceItem.id);
+            var changeRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey + " changed.", "Note set", null, null, null, null, null, null, null, null, null, null, true, null, null, recurrenceItem.id, (int)DtRecurrence.Daily_Weekly, null);
+            var propRes = _controller.Propagate(DTTestOrganizer.TestSession.session, recurrenceItem.id);
             recurrenceItem = (from x in _db.dtPlanItems where x.user == _testUser.id && x.title == (planItemKey + " changed.") && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
             children = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
 
@@ -1049,7 +1048,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.Recurrences(DTTestConstants.TestSessionId);
+            var res = _controller.Recurrences(DTTestOrganizer.TestSession.session);
             var firstRecurrence = ((List<dtRecurrenceModel>)res.Value)[0];
             var fisttRecurrenceInDB = (from x in _db.dtRecurrences where x.id == firstRecurrence.id select x).FirstOrDefault();
 
@@ -1080,8 +1079,8 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var projectsWithNewItem = _controller.SetProject(DTTestConstants.TestSessionId, newProj.title, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes);
-            var projectsWithUpdatedItem = _controller.SetProject(DTTestConstants.TestSessionId, copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode ?? 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
+            var projectsWithNewItem = _controller.SetProject(DTTestOrganizer.TestSession.session, newProj.title, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes);
+            var projectsWithUpdatedItem = _controller.SetProject(DTTestOrganizer.TestSession.session, copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode ?? 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
 
             //Assert
             Assert.AreEqual(((List<dtProjectModel>)projectsWithNewItem.Value).Where(x => x.title.Contains("New_Test_Through_Controller")).ToList().Count, 1, "Should be one new project with the title showing it was created here.");
@@ -1100,7 +1099,7 @@ namespace DanTechTests.Controllers
             SetControllerQueryString();
 
             //Act
-            var res = _controller.Stati(DTTestConstants.TestSessionId);
+            var res = _controller.Stati(DTTestOrganizer.TestSession.session);
 
             //Assert
             Assert.AreEqual(((List<dtStatusModel>)res.Value).Count, numberStati, "Stati numbers don't match.");
@@ -1141,7 +1140,7 @@ namespace DanTechTests.Controllers
 
             //Act
             int startingChildren = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count;
-            var result = (int)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId, null, true).Value);
+            var result = (int)(_controller.PopulateRecurrences(DTTestOrganizer.TestSession.session, null, true).Value);
 
 
             //Assert
@@ -1191,7 +1190,7 @@ namespace DanTechTests.Controllers
 
             //Act
             int startingChildren = (from x in _db.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList().Count;
-            var result = (int)(_controller.PopulateRecurrences(DTTestConstants.TestSessionId, null, true).Value);
+            var result = (int)(_controller.PopulateRecurrences(DTTestOrganizer.TestSession.session, null, true).Value);
 
 
             //Assert

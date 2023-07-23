@@ -1,4 +1,3 @@
-G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\appsettings.Development.json
 G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\appsettings.json
 G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.exe
 G:\My Drive\Projects\DP\api\DanTech\bin\Debug\netcoreapp3.1\DanTech.deps.json
@@ -170,3 +169,4 @@ G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.CopyC
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.dll
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.pdb
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.genruntimeconfig.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Admin\Index.cshtml.g.cs

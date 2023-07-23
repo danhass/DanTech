@@ -17,7 +17,7 @@ namespace DanTech.Services
         public Dictionary<string, string> AuthToken(string code, string domain, string endPoint = "");
         public Userinfo GetUserInfo(string token, string refreshToken = "");
         public string RefreshAuthToken(string refreshToken);
-        public dtLogin SetLogin(string sessionId, string hostAddress, IDTDPDAL dal, ref string log);
-        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, IDTDPDAL dal, string accessToken, string refreshToken);
+        public dtLogin SetLogin(string sessionId, string hostAddress, dtdb db, ref string log);
+        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, dtdb db, string accessToken, string refreshToken);
     }
 }

@@ -29,27 +29,27 @@ namespace DanTechTests.Data
             }
             return _conn; 
         }
-        private static dgdb _db = null;
+        private static dtdb _db = null;
 
-        public dgdb DB { get { return _db; } }
+        public dtdb DB { get { return _db; } }
 
         public DTDB()
         {
             if (_db == null)
             {
-                var optionsBuilder = new DbContextOptionsBuilder<dgdb>();
+                var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
                 optionsBuilder.UseMySQL(_conn);
-                _db = new dgdb(optionsBuilder.Options);
+                _db = new dtdb(optionsBuilder.Options);
             }
         }
 
-        public static dgdb getDB(int numberOfTestProjects = 0)
+        public static dtdb getDB(int numberOfTestProjects = 0)
         {
             if (_db == null)
             {
-                var optionsBuilder = new DbContextOptionsBuilder<dgdb>();
+                var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
                 optionsBuilder.UseMySQL(_conn);
-                var db = new dgdb(optionsBuilder.Options);
+                var db = new dtdb(optionsBuilder.Options);
                 _db = db;
             }
             return _db;

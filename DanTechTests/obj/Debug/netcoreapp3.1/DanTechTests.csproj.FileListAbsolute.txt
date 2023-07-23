@@ -238,7 +238,6 @@ G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.Views.p
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.deps.json
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.runtimeconfig.json
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.runtimeconfig.dev.json
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\appsettings.Development.json
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\appsettings.json
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.exe
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.TestPlatform.PlatformAbstractions.dll
