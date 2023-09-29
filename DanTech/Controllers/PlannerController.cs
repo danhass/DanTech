@@ -16,10 +16,8 @@ namespace DanTech.Controllers
 #nullable enable
     public class PlannerController : DTController
     {
-        private DTDBDataService _svc;
         public PlannerController(IConfiguration configuration, ILogger<PlannerController> logger, dtdb dtdb) : base(configuration, logger, dtdb)
         {
-            _svc = new DTDBDataService(dtdb, _configuration.GetConnectionString("dg"));
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]

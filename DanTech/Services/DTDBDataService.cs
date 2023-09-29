@@ -44,14 +44,23 @@ namespace DanTech.Services
 
         private Idtdb InstantiateDB ()
         {
-            var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
-            optionsBuilder.UseMySQL(_conn);
-            return new dtdb(optionsBuilder.Options);
+            if (_db == null)
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
+                optionsBuilder.UseMySQL(_conn);
+                _db = new dtdb(optionsBuilder.Options);
+            }
+            return _db;
         }
 
         //Mappings
         private MapperConfiguration PlanItemMapConfig = dtPlanItemModel.mapperConfiguration;
 
+        public Idtdb db() { return _dbi; }
+
+        public dtdb dtdb() { return _db; }
+
+        #region Utility
         public void ClearResetFlags()
         {
             if (_db == null) throw new Exception("DB not set");
@@ -62,152 +71,227 @@ namespace DanTech.Services
                 _db.SaveChanges();
             }
         }
-
-        private static List<dtPlanItem> PopulateRecurrences(dtdb db)
-        {
-            List<dtPlanItem> items = new List<dtPlanItem>();
-            try
-            {
-                //Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
-                // or Trace.Listeners.Add(new ConsoleTraceListener());
-                //Trace.WriteLine("Hello World");              
-                if (db == null) return items;
-                if (_recurringItem == null) return items;
-
-                var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
-                var mapper = new Mapper(config);
-                var seed = mapper.Map<dtPlanItem>(_recurringItem);
-                seed.id = 0;
-                seed.recurrence = null;
-                seed.recurrenceData = null;
-                seed.parent = _recurringItem.id;
-                seed.recurrenceNavigation = null;
-
-                // Set up the days in the next 30 days when the recurrence should be placed.
-                List<bool> AddOnThisDay = new List<bool>() { false, false, false, false, false, false, false, false, false, false,
-                                                         false, false, false, false, false, false, false, false, false, false,
-                                                         false, false, false, false, false, false, false, false, false, false};
-                if (string.IsNullOrEmpty(_recurringItem.recurrenceData) || _recurringItem.recurrenceData == "-------")
-                    AddOnThisDay = new List<bool>() { true, true, true, true, true, true, true, true, true, true,
-                                                         true, true, true, true, true, true, true, true, true, true,
-                                                         true, true, true, true, true, true, true, true, true, true};
-                Dictionary<int, bool> dateMap = new Dictionary<int, bool>();
-                if (_recurringItem.recurrence == (int)DtRecurrence.Monthly)
-                {
-                    int iBuf = 0;
-                    foreach (var s in _recurringItem.recurrenceData.Split(','))
-                    {
-                        iBuf = 0;
-                        if (int.TryParse(s, out iBuf)) dateMap[iBuf] = true;
-                    }
-                }
-                int numWksInCycle = -1;
-                string mask = _recurringItem.recurrenceData;
-                if ((_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly && _recurringItem.recurrenceData != null && _recurringItem.recurrenceData.Split(":").Length > 0) ||
-                    (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day && _recurringItem.recurrenceData != null && _recurringItem.recurrenceData.Split(":").Length > 0))
-                {
-                    int.TryParse(_recurringItem.recurrenceData.Split(":")[0], out numWksInCycle);
-                    if (_recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
-                }
-                if (!string.IsNullOrEmpty(_recurringItem.recurrenceData) && _recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
-
-                DateTime rStart =_recurringItem.start.Value;               
-                //Trace.WriteLine(rStart);
-                //Trace.WriteLine(numWksInCycle);
-                DateTime today = DateTime.Parse(DateTime.Now.ToShortDateString());
-                today = today.AddHours(rStart.Hour).AddMinutes(rStart.Minute);
-                //Trace.WriteLine(today);
-                for (int i = 0; i < 30 && !string.IsNullOrEmpty(_recurringItem.recurrenceData); i++)
-                {
-                    DateTime test = today.AddDays(i);
-                    //Trace.WriteLine(i + ": " + test.Day + " / " + numWksInCycle);
-                    //Trace.WriteLine(_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day ? "T" : "F");
-                    //Trace.WriteLine((int)(test.Day / 7) == numWksInCycle ? "T" : "F");
-                    //Trace.WriteLine(mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-');
-                    if (test >= _recurringItem.start.Value && 
-                        (
-                            (_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
-                                _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
-                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'
-                            ) ||
-                            (_recurringItem.recurrence == (int)DtRecurrence.Monthly &&
-                                dateMap.ContainsKey(test.Day) &&
-                                dateMap[test.Day]
-                            ) ||
-                            (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly &&
-                                numWksInCycle > 0 &&
-                                (int)((test - rStart).TotalDays / 7) % numWksInCycle == 0 &&
-                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-')                                
-                            ) ||
-                            (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day &&
-                                numWksInCycle > 0 &&
-                                (int)((test.Day + 6) / 7) == numWksInCycle &&
-                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-')
-                            )
-                       ))
-                      )
-                    {
-                        //Trace.WriteLine("ADD ON THIS DAY");
-                        AddOnThisDay[i] = true;
-                    }
-                }
-
-                for (int i = 0; i < 30; i++)
-                {
-                    DateTime test = DateTime.Parse(DateTime.Now.ToShortDateString()).AddDays(i);
-                    if (AddOnThisDay[i])
-                    {
-                        if ((from x in db.dtPlanItems where x.recurrence == null && x.day == test && x.parent == _recurringItem.id select x).FirstOrDefault() == null)
-                        {
-                            test = test.AddHours(seed.start.Value.Hour);
-                            test = test.AddMinutes(seed.start.Value.Minute);
-                            seed.day = DateTime.Parse(test.ToShortDateString());
-                            seed.start = test;
-                            var item = (mapper.Map<dtPlanItem>(seed));
-                            items.Add(item);
-                            db.dtPlanItems.Add(item);
-                            db.SaveChanges();
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return items;
-        }
-
         public static DTViewModel SetCredentials(string token)
         {
             var vm = new DTViewModel();
             return vm;
         }
-
-        public static bool SetIfTesting(string key, string value)
+        public void Save()
+        {
+            _db.SaveChanges();
+        }
+        public void ToggleTestFlag()
         {
             if (_db == null) throw new Exception("DB not set");
-            var TestingFlag = (from x in _db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
-            if (TestingFlag == null || TestingFlag.value != "1") return false;
-
-            var datum = (from x in _db.dtTestData where x.title == key select x).FirstOrDefault();
-            if (datum == null)
+            var testFlag = (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
+            if (testFlag == null)
             {
-                datum = new dtTestDatum() { title = key, value = value };
-                _db.dtTestData.Add(datum);
+                testFlag = new dtTestDatum() { title = _testFlagKey, value = "1" };
+                _db.dtTestData.Add(testFlag);
             }
             else
             {
-                datum.value = value;
+                _db.dtTestData.Remove(testFlag);
             }
 
-            var miscKey = key + " - testing";
-            var m = (from x in _db.dtMiscs where x.title == miscKey select x).FirstOrDefault();
-            if (m != null) m.value = value;
             _db.SaveChanges();
-            return true;
+        }
+        #endregion Utility
+
+        #region Data Access
+        public List<dtColorCodeModel> ColorCodes()
+        {
+            if (_db == null) throw new Exception("DB not set");
+            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtColorCode, dtColorCodeModel>(); }));
+            return mappr.Map<List<dtColorCodeModel>>((from x in _db.dtColorCodes select x).OrderBy(x => x.title).ToList());
+        }
+        public List<dtProjectModel> DTProjects(int userId)
+        {
+            if (_db == null) _db = InstantiateDB() as dtdb;
+            List<dtProjectModel> projects = new List<dtProjectModel>();
+            return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
+        }
+        public List<dtProjectModel> DTProjects(dtUser u)
+        {
+            if (_db == null) throw new Exception("DB not set");
+            List<dtProjectModel> projects = new List<dtProjectModel>();
+            if (u == null) return projects;
+            var ps = (from x in _db.dtProjects where x.user == u.id select x).ToList();
+            var config = dtProjectModel.mapperConfiguration;
+            var mapper = new Mapper(config);
+            foreach (var p in ps)
+            {
+                projects.Add(mapper.Map<dtProjectModel>(p));
+            }
+            _db.SaveChanges();
+            return projects;
+        }
+        public List<dtPlanItem> PlanItems()
+        {
+            if (_db == null) throw new Exception("DB not set");
+            return (from x in _db.dtPlanItems select x).ToList();
+        }
+        public List<dtPlanItemModel> PlanItems(dtUser user,
+                                                    int daysBack = 1,
+                                                    bool includeCompleted = false,
+                                                    bool getAll = false,
+                                                    int onlyProject = 0,
+                                                    bool onlyRecurrences = false)
+        {
+            var results = new List<dtPlanItemModel>();
+            if (_db == null) _db = InstantiateDB() as dtdb;
+            if (user == null) return new List<dtPlanItemModel>();
+            _currentUser = user;
+            var mapper = new Mapper(PlanItemMapConfig);
+            var dateToday = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
+
+            //Use the data retrieval as the chance to clean up items that need to be removed
+            var itemsToRemove = (from x in _db.dtPlanItems
+                                 where x.user == user.id
+                                    && x.preserve != true
+                                    && x.completed.HasValue
+                                    && x.completed.Value == true
+                                    && x.day < dateToday
+                                    && x.recurrence == null
+                                 select x);
+            _db.dtPlanItems.RemoveRange(itemsToRemove);
+            _db.SaveChanges();
+            var items = (from x in _db.dtPlanItems where x.user == user.id select x)
+                .OrderBy(x => x.day)
+                .ThenBy(x => x.completed)
+                .ThenBy(x => x.start)
+                .ThenByDescending(x => x.priority.Value)
+                .ThenByDescending(x => (x.projectNavigation == null ? 0 : (x.projectNavigation.priority.HasValue ? x.projectNavigation.priority.Value : 0)))
+                .ToList();
+            string result = "Items: " + items.Count + "; User: " + user.id;
+            if (!getAll)
+            {
+                var minDate = DateTime.Parse(DateTime.Now.AddDays(1 - daysBack).ToShortDateString());
+                // If we are not getting all items, we want the items that have a day that is current or later,
+                // and items from the past days that were not completed
+                items = items.Where(x => x.day >= minDate || (x.completed == null && x.recurrence == null)).ToList();
+            }
+            if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
+            if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
+            if (onlyRecurrences) items = items.Where(x => (x.recurrence.HasValue && x.recurrence.Value > 0)).ToList();
+            DateTime startOfToday = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
+            foreach (var i in items)
+            {
+                var mdl = new dtPlanItemModel(i);
+                if (!mdl.recurrence.HasValue)
+                {
+                    mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Future];
+                    if (mdl.day < startOfToday) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Out_of_date];
+                    if (mdl.day == startOfToday && mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) < DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Pastdue];
+                    if (mdl.completed.HasValue && mdl.completed.Value) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Complete];
+                    if (mdl.day == startOfToday && !(mdl.completed.HasValue && mdl.completed.Value) && mdl.statusColor != DTConstants.StatusColors[(int)DtStatus.Pastdue])
+                    {
+                        mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Current];
+                        if (mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) > DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Working];
+                        for (int j = results.Count - 1; j >= 0 && results[j].day == mdl.day && (mdl.statusColor == DTConstants.StatusColors[(int)DtStatus.Current] || mdl.statusColor == DTConstants.StatusColors[(int)DtStatus.Working]); j--)
+                        {
+                            if (!results[j].recurrence.HasValue)
+                            {
+                                if (results[j].start <= mdl.start && (results[j].start + results[j].duration) > mdl.start)
+                                {
+                                    mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Conflict];
+                                    if (mdl.duration.TotalMinutes < 1) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Subitem];
+                                }
+                            }
+                        }
+                    }
+                }
+                results.Add(mdl);
+            }
+            return results;
         }
 
+        // We want this to run in its own thread and the app likely has already returned the controller method.
+        // We use the static to avoid problems with the db context leaving scope.
+        public List<dtPlanItemModel> PlanItems(int userId,
+                                                  int daysBack = 1,
+                                                  bool includeCompleted = false,
+                                                  bool getAll = false,
+                                                  int onlyProject = 0,
+                                                  bool onlyRecurrences = false
+                                                  )
+        {
+            if (_db == null)
+            {
+                _db = InstantiateDB() as dtdb;
+            }
+            return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll, onlyProject, onlyRecurrences);
+        }
+        
+        public List<dtProject> Projects(int userId)
+        {
+            if (_db == null) throw new Exception("DB not set");
+            return (from x in _db.dtProjects where x.user == userId select x).ToList();
+        }
+        public List<dtRecurrenceModel> Recurrences()
+        {
+            if (_db == null) throw new Exception("DB not set");
+            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtRecurrence, dtRecurrenceModel>(); }));
+            return mappr.Map<List<dtRecurrenceModel>>(from x in _db.dtRecurrences select x).ToList();
+        }
+        public List<dtSession> Sessions()
+        {
+            if (_db == null) throw new Exception("DB not set");
+            return (from x in _db.dtSessions select x).ToList();
+        }
+        public List<dtStatusModel> Stati()
+        {
+            if (_db == null) throw new Exception("DB not set");
+            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
+            return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
+        }
+        public List<dtTestDatum> TestData()
+        {
+            if (_db == null) throw new Exception("DB not set");
+            return (from x in _db.dtTestData select x).ToList();
+        }
+        public dtUserModel UserModelForSession(string session, string hostAddress)
+        {
+            if (_db == null) _db = InstantiateDB() as dtdb;
+            dtUserModel mappedUser = null;
+            if (!string.IsNullOrEmpty(session))
+            {
+                var sessionRecord = (from x in _db.dtSessions where x.session == session select x).FirstOrDefault();
+                if (sessionRecord == null || sessionRecord.expires < DateTime.Now || sessionRecord.hostAddress != hostAddress)
+                {
+                    if (sessionRecord != null)
+                    {
+                        _db.dtSessions.Remove(sessionRecord);
+                    }
+                }
+                else
+                {
+                    var user = (from x in _db.dtUsers where x.id == sessionRecord.user select x).FirstOrDefault();
+                    if (user == null)
+                    {
+                        _db.dtSessions.Remove(sessionRecord);
+                    }
+                    else
+                    {
+                        var config = dtUserModel.mapperConfiguration;
+                        var mapper = new Mapper(config);
+                        mappedUser = mapper.Map<dtUserModel>(user);
+                        sessionRecord.expires = DateTime.Now.AddDays(7);
+                    }
+                }
+                _db.SaveChanges();
+            }
+            return mappedUser;
+        }
+        public List<dtUser> Users()
+        {
+            if (_db == null) throw new Exception("DB not set");
+            return (from x in _db.dtUsers select x).ToList();
+        }
+        #endregion Data Access
+
+
+        #region Data Maniuplation
         public bool Adjust(int userId)
         {
             var today = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
@@ -272,14 +356,55 @@ namespace DanTech.Services
             }
             return true;
         }
-
-        public List<dtColorCodeModel> ColorCodes()
+        public bool Delete(dtSession session)
         {
-            if ( _db == null) throw new Exception("DB not set");
-            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtColorCode, dtColorCodeModel>(); }));
-            return mappr.Map<List<dtColorCodeModel>>((from x in _db.dtColorCodes select x).OrderBy(x => x.title).ToList());
+            if (session == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.Remove(session);
+            Save();
+            return true;
         }
+        public bool Delete(dtUser user)
+        {
+            if (user == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.Remove(user);
+            Save();
+            return true;
+        }
+        public bool Delete(List<dtPlanItem> planItems)
+        {
+            if (planItems == null || planItems.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtPlanItems.RemoveRange(planItems);
+            Save();
+            return true;
 
+        }
+        public bool Delete(List<dtProject> projects)
+        {
+            if (projects == null || projects.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtProjects.RemoveRange(projects);
+            Save();
+            return true;
+        }
+        public bool Delete(List<dtSession> sessions)
+        {
+            if (sessions == null || sessions.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtSessions.RemoveRange(sessions);
+            Save();
+            return true;
+        }
+        public bool Delete(List<dtTestDatum> testData)
+        {
+            if (testData == null || testData.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtTestData.RemoveRange(testData);
+            Save();
+            return true;
+        }
         public bool DeletePlanItem(int planItemId, int userId, bool deleteChildren = false)
         {
             if (_db == null) throw new Exception("DB not set");
@@ -305,7 +430,6 @@ namespace DanTech.Services
             _db.SaveChanges();
             return true;
         }
-
         public bool DeleteProject(int projectId, int userId, bool deleteProjItems=true, int transferProject = 0)
         {
             if (_db == null) throw new Exception("DB not set");
@@ -336,123 +460,136 @@ namespace DanTech.Services
             _db.SaveChanges();
             return true;
         }
-
-        public List<dtProjectModel> DTProjects(int userId)
+        // Returns false if no propagations are made. True if at least one propagation is made.
+        public dtMisc Log(dtMisc aLogEntry)
         {
+            if (aLogEntry == null) return null;
             if (_db == null) _db = InstantiateDB() as dtdb;
-            List<dtProjectModel> projects = new List<dtProjectModel>();
-            return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
+            if (aLogEntry.id > 0) throw new Exception("Attempted to alter log entry");
+            _db.Add(aLogEntry);
+            Save();
+            return aLogEntry;
         }
-
-        public List<dtProjectModel> DTProjects(dtUser u)
+        private static List<dtPlanItem> PopulateRecurrences(dtdb db)
         {
-            if (_db == null) throw new Exception("DB not set");
-            List<dtProjectModel> projects = new List<dtProjectModel>();
-            if (u == null) return projects;
-            var ps = (from x in _db.dtProjects where x.user == u.id select x).ToList();
-            var config = dtProjectModel.mapperConfiguration;
-            var mapper = new Mapper(config);
-            foreach (var p in ps)
+            List<dtPlanItem> items = new List<dtPlanItem>();
+            try
             {
-                projects.Add(mapper.Map<dtProjectModel>(p));
-            }
-            _db.SaveChanges();
-            return projects;
-        }   
+                //Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
+                // or Trace.Listeners.Add(new ConsoleTraceListener());
+                //Trace.WriteLine("Hello World");              
+                if (db == null) return items;
+                if (_recurringItem == null) return items;
 
-        public List<dtPlanItemModel> PlanItems(dtUser user,
-                                                    int daysBack = 1,
-                                                    bool includeCompleted = false,
-                                                    bool getAll = false,
-                                                    int onlyProject = 0,
-                                                    bool onlyRecurrences = false)
-        {
-            var results = new List<dtPlanItemModel>();
-            if (_db == null) _db = InstantiateDB() as dtdb;
-            if (user == null) return new List<dtPlanItemModel>();
-            _currentUser = user;
-            var mapper = new Mapper(PlanItemMapConfig);
-            var dateToday = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
+                var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
+                var mapper = new Mapper(config);
+                var seed = mapper.Map<dtPlanItem>(_recurringItem);
+                seed.id = 0;
+                seed.recurrence = null;
+                seed.recurrenceData = null;
+                seed.parent = _recurringItem.id;
+                seed.recurrenceNavigation = null;
 
-            //Use the data retrieval as the chance to clean up items that need to be removed
-            var itemsToRemove = (from x in _db.dtPlanItems
-                                 where x.user == user.id
-                                    && x.preserve != true
-                                    && x.completed.HasValue
-                                    && x.completed.Value == true
-                                    && x.day < dateToday
-                                    && x.recurrence == null
-                                 select x);
-            _db.dtPlanItems.RemoveRange(itemsToRemove);
-            _db.SaveChanges();
-            var items = (from x in _db.dtPlanItems where x.user == user.id select x)
-                .OrderBy(x => x.day)
-                .ThenBy(x => x.completed)
-                .ThenBy(x => x.start)
-                .ThenByDescending(x => x.priority.Value)
-                .ThenByDescending(x => (x.projectNavigation == null ? 0 : (x.projectNavigation.priority.HasValue ? x.projectNavigation.priority.Value : 0)))
-                .ToList();
-            string result = "Items: " + items.Count + "; User: " + user.id;
-            if (!getAll)
-            {
-                var minDate = DateTime.Parse(DateTime.Now.AddDays(1 - daysBack).ToShortDateString());
-                // If we are not getting all items, we want the items that have a day that is current or later,
-                // and items from the past days that were not completed
-                items = items.Where(x => x.day >= minDate || (x.completed == null && x.recurrence == null)).ToList();
-            }
-            if (!includeCompleted) items = items.Where(x => (!x.completed.HasValue || !x.completed.Value)).ToList();
-            if (onlyProject > 0) items = items.Where(x => (x.project.HasValue && x.project.Value == onlyProject)).ToList();
-            if (onlyRecurrences) items = items.Where(x => (x.recurrence.HasValue && x.recurrence.Value > 0)).ToList();
-            DateTime startOfToday = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
-            foreach (var i in items)
-            {
-                var mdl = new dtPlanItemModel(i);
-                if (!mdl.recurrence.HasValue)
+                // Set up the days in the next 30 days when the recurrence should be placed.
+                List<bool> AddOnThisDay = new List<bool>() { false, false, false, false, false, false, false, false, false, false,
+                                                         false, false, false, false, false, false, false, false, false, false,
+                                                         false, false, false, false, false, false, false, false, false, false};
+                if (string.IsNullOrEmpty(_recurringItem.recurrenceData) || _recurringItem.recurrenceData == "-------")
+                    AddOnThisDay = new List<bool>() { true, true, true, true, true, true, true, true, true, true,
+                                                         true, true, true, true, true, true, true, true, true, true,
+                                                         true, true, true, true, true, true, true, true, true, true};
+                Dictionary<int, bool> dateMap = new Dictionary<int, bool>();
+                if (_recurringItem.recurrence == (int)DtRecurrence.Monthly)
                 {
-                    mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Future];
-                    if (mdl.day < startOfToday) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Out_of_date];
-                    if (mdl.day == startOfToday && mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) < DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Pastdue];
-                    if (mdl.completed.HasValue && mdl.completed.Value) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Complete];
-                    if (mdl.day == startOfToday && !(mdl.completed.HasValue && mdl.completed.Value) && mdl.statusColor != DTConstants.StatusColors[(int)DtStatus.Pastdue])
+                    int iBuf = 0;
+                    foreach (var s in _recurringItem.recurrenceData.Split(','))
                     {
-                        mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Current];
-                        if (mdl.start < DateTime.Now.AddHours(DTConstants.TZOffset) && (mdl.start + mdl.duration) > DateTime.Now.AddHours(DTConstants.TZOffset)) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Working];
-                        for (int j = results.Count - 1; j >= 0 && results[j].day == mdl.day && (mdl.statusColor == DTConstants.StatusColors[(int)DtStatus.Current] || mdl.statusColor == DTConstants.StatusColors[(int)DtStatus.Working]) ; j--)
+                        iBuf = 0;
+                        if (int.TryParse(s, out iBuf)) dateMap[iBuf] = true;
+                    }
+                }
+                int numWksInCycle = -1;
+                string mask = _recurringItem.recurrenceData;
+                if ((_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly && _recurringItem.recurrenceData != null && _recurringItem.recurrenceData.Split(":").Length > 0) ||
+                    (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day && _recurringItem.recurrenceData != null && _recurringItem.recurrenceData.Split(":").Length > 0))
+                {
+                    int.TryParse(_recurringItem.recurrenceData.Split(":")[0], out numWksInCycle);
+                    if (_recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
+                }
+                if (!string.IsNullOrEmpty(_recurringItem.recurrenceData) && _recurringItem.recurrenceData.Split(":").Length > 1) mask = _recurringItem.recurrenceData.Split(":")[1];
+
+                DateTime rStart = _recurringItem.start.Value;
+                //Trace.WriteLine(rStart);
+                //Trace.WriteLine(numWksInCycle);
+                DateTime today = DateTime.Parse(DateTime.Now.ToShortDateString());
+                today = today.AddHours(rStart.Hour).AddMinutes(rStart.Minute);
+                //Trace.WriteLine(today);
+                for (int i = 0; i < 30 && !string.IsNullOrEmpty(_recurringItem.recurrenceData); i++)
+                {
+                    DateTime test = today.AddDays(i);
+                    //Trace.WriteLine(i + ": " + test.Day + " / " + numWksInCycle);
+                    //Trace.WriteLine(_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day ? "T" : "F");
+                    //Trace.WriteLine((int)(test.Day / 7) == numWksInCycle ? "T" : "F");
+                    //Trace.WriteLine(mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-');
+                    if (test >= _recurringItem.start.Value &&
+                        (
+                            (_recurringItem.recurrence == (int)DtRecurrence.Daily_Weekly &&
+                                _recurringItem.recurrenceData.Length > (int)test.DayOfWeek &&
+                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-'
+                            ) ||
+                            (_recurringItem.recurrence == (int)DtRecurrence.Monthly &&
+                                dateMap.ContainsKey(test.Day) &&
+                                dateMap[test.Day]
+                            ) ||
+                            (_recurringItem.recurrence == (int)DtRecurrence.Semi_monthly &&
+                                numWksInCycle > 0 &&
+                                (int)((test - rStart).TotalDays / 7) % numWksInCycle == 0 &&
+                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-')
+                            ) ||
+                            (_recurringItem.recurrence == (int)DtRecurrence.Monthly_nth_day &&
+                                numWksInCycle > 0 &&
+                                (int)((test.Day + 6) / 7) == numWksInCycle &&
+                                (mask.Length > (int)test.DayOfWeek && mask[(int)test.DayOfWeek] != '-')
+                            )
+                       ))
+                      )
+                    {
+                        //Trace.WriteLine("ADD ON THIS DAY");
+                        AddOnThisDay[i] = true;
+                    }
+                }
+
+                for (int i = 0; i < 30; i++)
+                {
+                    DateTime test = DateTime.Parse(DateTime.Now.ToShortDateString()).AddDays(i);
+                    if (AddOnThisDay[i])
+                    {
+                        if ((from x in db.dtPlanItems where x.recurrence == null && x.day == test && x.parent == _recurringItem.id select x).FirstOrDefault() == null)
                         {
-                            if (!results[j].recurrence.HasValue)
-                            {
-                                if (results[j].start <= mdl.start && (results[j].start + results[j].duration) > mdl.start)
-                                {
-                                    mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Conflict];
-                                    if (mdl.duration.TotalMinutes < 1) mdl.statusColor = DTConstants.StatusColors[(int)DtStatus.Subitem];
-                                }
-                            }
+                            test = test.AddHours(seed.start.Value.Hour);
+                            test = test.AddMinutes(seed.start.Value.Minute);
+                            seed.day = DateTime.Parse(test.ToShortDateString());
+                            seed.start = test;
+                            var item = (mapper.Map<dtPlanItem>(seed));
+                            items.Add(item);
+                            db.dtPlanItems.Add(item);
+                            db.SaveChanges();
                         }
                     }
                 }
-                results.Add(mdl);
             }
-            return results;
-        }
-
-        // We want this to run in its own thread and the app likely has already returned the controller method.
-        // We use the static to avoid problems with the db context leaving scope.
-        public List<dtPlanItemModel> PlanItems(int userId,
-                                                  int daysBack = 1,
-                                                  bool includeCompleted = false,
-                                                  bool getAll = false,
-                                                  int onlyProject = 0,
-                                                  bool onlyRecurrences = false
-                                                  )
-        {
-            if (_db == null)
+            catch (Exception ex)
             {
-                _db = InstantiateDB() as dtdb;
+                throw ex;
             }
-            return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll, onlyProject, onlyRecurrences);
+            return items;
         }
-
-        // Returns false if no propagations are made. True if at least one propagation is made.
+        public void RemoveOutOfDateSessions()
+        {
+            var outOfDates = (from x in _db.dtSessions where x.expires < DateTime.Now select x).ToList();
+            _db.RemoveRange(outOfDates);
+            Save();
+        }
         public bool Propagate(int itemId, int userId)
         {
             if (_db == null) _db = InstantiateDB() as dtdb;
@@ -499,14 +636,6 @@ namespace DanTech.Services
             _db.SaveChanges();
             return result;
         }
-        
-        public List<dtRecurrenceModel> Recurrences()
-        {
-            if (_db == null) throw new Exception("DB not set");
-            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtRecurrence, dtRecurrenceModel>(); }));
-            return mappr.Map<List<dtRecurrenceModel>>(from x in _db.dtRecurrences select x).ToList();
-        }
-
         public dtProject Set(dtProject project)
         {
             if (_db == null) _db = InstantiateDB() as dtdb;
@@ -537,7 +666,6 @@ namespace DanTech.Services
             _db.SaveChanges();
             return existing;
         }
-
         public dtPlanItem Set(dtPlanItem planItem)
         {
             if (_db == null) throw new Exception("DB not set");
@@ -545,7 +673,6 @@ namespace DanTech.Services
             var item = new dtPlanItemModel(planItem);
             return Set(item);
         }
-
         public dtPlanItem Set(dtPlanItemModel planItem)
         {
             if (_db == null) _db = InstantiateDB() as dtdb;
@@ -587,32 +714,77 @@ namespace DanTech.Services
 
             return item;
         }
+        public dtSession Set(dtSession aSession)
+        {
+            if (aSession == null) return null;
+            if (_db == null) _db = InstantiateDB() as dtdb;
 
+            dtSession sessionToSave = null;
+            if (aSession.id > 0) sessionToSave = (from x in _db.dtSessions where x.id == aSession.id select x).FirstOrDefault();
+            if (sessionToSave == null) sessionToSave = new dtSession();
+            sessionToSave.session = aSession.session;
+            sessionToSave.expires = DateTime.Now.AddDays(7);
+            sessionToSave.user = aSession.user;
+            sessionToSave.hostAddress = aSession.hostAddress;
+            if (sessionToSave.id <= 0) _db.dtSessions.Add(sessionToSave);
+            Save();
+            return sessionToSave;
+        }
         public dtUser Set (dtUser aUser)
         {
-            return (from x in _db.dtUsers where x.id == aUser.id select x).FirstOrDefault();
-        }
+            if (aUser == null) return null;
+            if (_db == null) _db = InstantiateDB() as dtdb;
 
-        public bool SetPW(string pw)
-        {
-            if (_userId <= 0) return false;
-            var u = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
-            if (u == null) return false;
-            u.pw = pw;
-            _db.SaveChanges();
-            return true;
-        }
+            dtUser userToSave = null;
+            if (aUser.id > 0) userToSave = (from x in _db.dtUsers where x.id == aUser.id select x).FirstOrDefault();
+            if (userToSave == null) userToSave = new dtUser();
+            userToSave.updated = DateTime.Now;
+            userToSave.pw = aUser.pw;
+            userToSave.suspended = aUser.suspended;
+            userToSave.email = aUser.email;
+            userToSave.token = aUser.token;
+            userToSave.type = aUser.type;
+            userToSave.fName = aUser.fName;
+            userToSave.lName = aUser.lName;
+            userToSave.otherName = aUser.otherName;
+            userToSave.refreshToken = aUser.refreshToken;
+            userToSave.lastLogin = aUser.lastLogin;
+            if (userToSave.id <= 0) _db.Add(userToSave);
+            Save();
 
+            return userToSave;
+      }
         public void SetConnString(string conn) 
         { 
             _conn = conn; 
         }
+        public static bool SetIfTesting(string key, string value)
+        {
+            if (_db == null) throw new Exception("DB not set");
+            var TestingFlag = (from x in _db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
+            if (TestingFlag == null || TestingFlag.value != "1") return false;
 
+            var datum = (from x in _db.dtTestData where x.title == key select x).FirstOrDefault();
+            if (datum == null)
+            {
+                datum = new dtTestDatum() { title = key, value = value };
+                _db.dtTestData.Add(datum);
+            }
+            else
+            {
+                datum.value = value;
+            }
+
+            var miscKey = key + " - testing";
+            var m = (from x in _db.dtMiscs where x.title == miscKey select x).FirstOrDefault();
+            if (m != null) m.value = value;
+            _db.SaveChanges();
+            return true;
+        }
         public void SetUser (int userId)
         {
             _userId = userId;
         }
-
         public bool SetUserPW(string pw)
         {
             if (_db == null) throw new Exception("DB not set");
@@ -622,64 +794,6 @@ namespace DanTech.Services
             _db.SaveChanges();
             return true;
         }
-
-        public List<dtStatusModel> Stati()
-        {
-            if (_db == null) throw new Exception("DB not set");
-            var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
-            return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
-        }
-
-        public void ToggleTestFlag()
-        {
-            if (_db == null) throw new Exception("DB not set");
-            var testFlag = (from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
-            if (testFlag == null)
-            {
-                testFlag = new dtTestDatum() { title = _testFlagKey, value = "1" };
-                _db.dtTestData.Add(testFlag);
-            }
-            else
-            {
-                _db.dtTestData.Remove(testFlag);
-            }
-
-            _db.SaveChanges();
-        }
-        public dtUserModel UserModelForSession(string session, string hostAddress)
-        {
-            if (_db == null) _db = InstantiateDB()  as dtdb;
-            dtUserModel mappedUser = null;
-            if (!string.IsNullOrEmpty(session))
-            {
-                var sessionRecord = (from x in _db.dtSessions where x.session == session select x).FirstOrDefault();
-                if (sessionRecord == null || sessionRecord.expires < DateTime.Now || sessionRecord.hostAddress != hostAddress)
-                {
-                    if (sessionRecord != null)
-                    {
-                        _db.dtSessions.Remove(sessionRecord);
-                    }
-                }
-                else
-                {
-                    var user = (from x in _db.dtUsers where x.id == sessionRecord.user select x).FirstOrDefault();
-                    if (user == null)
-                    {
-                        _db.dtSessions.Remove(sessionRecord);
-                    }
-                    else
-                    {
-                        var config = dtUserModel.mapperConfiguration;
-                        var mapper = new Mapper(config);
-                        mappedUser = mapper.Map<dtUserModel>(user);
-                        sessionRecord.expires = DateTime.Now.AddDays(7);
-                    }
-                }
-                _db.SaveChanges();
-            }
-            return mappedUser;
-        }
-
         // Returns the number of new items created by the update.
         public int UpdateRecurrences(int userId, int sourceItem = 0, bool force = false)
         { 
@@ -714,6 +828,7 @@ namespace DanTech.Services
             }
             return itemCt;
         }
+        #endregion Data Manipulation
 
         // This is left at the bottom because it is a special method that is not part of normal use.
         public static void GeneralUtil(dtdb db)

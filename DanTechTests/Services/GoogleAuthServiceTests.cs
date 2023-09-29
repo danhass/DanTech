@@ -128,7 +128,8 @@ namespace DanTechTests
             HttpContext ctx = new DefaultHttpContext();
             ctx.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
             ctx.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
-            dtdb db = DTDB.getDB();
+            var cfg = InitConfiguration();
+            DTDBDataService db = new DTDBDataService(cfg.GetConnectionString("DG"));
 
             //Act
             var login = new DTGoogleAuthService().SetLogin(userinfo, ctx, db, TEST_AUTH_CODE, TEST_REFRESH_CODE);
@@ -136,13 +137,8 @@ namespace DanTechTests
             Guid.TryParse(login.Session, out sessionAsGuid);
             var setCookie = ctx.Response.GetTypedHeaders().SetCookie.ToList()[0];
             var requestHost = ctx.Request.Host.Value;
-            var user = (from x in db.dtUsers where x.email == TEST_USER_EMAIL select x).FirstOrDefault();
-            var numUsers = (from x in db.dtUsers where x.email == TEST_USER_EMAIL select x).ToList().Count;
-            var session = (from x in db.dtSessions where x.session == login.Session select x).FirstOrDefault();
-            db.dtSessions.Remove(session);
-            db.dtUsers.Remove(user);
-            db.SaveChanges();
-
+            var user = db.Users().Where(x => x.email == TEST_USER_EMAIL).FirstOrDefault();
+            var session = db.Sessions().Where(x => x.session == login.Session).FirstOrDefault();
             //Assert
             Assert.IsFalse(string.IsNullOrEmpty(login.Session), "Session id should be a string that can be parsed into a guid.");
             Assert.AreNotEqual(sessionAsGuid, Guid.Empty, "Session should not be an empty GUID.");
@@ -151,22 +147,27 @@ namespace DanTechTests
             Assert.AreEqual(session.hostAddress, requestHost, "The remote host is not set on the session.");
             Assert.AreEqual(session.user, user.id, "Session user not properly set.");
             Assert.AreEqual(session.userNavigation.refreshToken, TEST_REFRESH_CODE, "User info not set correctly");
+
+            //Antiseptic
+            db.Delete(session);
+            db.Delete(user);
         }
 
         [TestMethod]
         public void SetLogin_SessionId()
         {
             //Arrange
-            dtdb db = DTDB.getDB();
+            var cfg = InitConfiguration();
+            DTDBDataService db = new DTDBDataService(cfg.GetConnectionString("DG"));
             var ctrl = DTTestOrganizer.InitializeDTController(db, true);
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+            var testUser = db.Users().Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
+            var testSession = db.Sessions().Where(x => x.user == testUser.id).FirstOrDefault();
             var log = "";
 
             //Act
             var google = new DTGoogleAuthService();
             var badLogin = google.SetLogin(new Guid().ToString(), DTTestConstants.TestRemoteHost, db, ref log);
-            var goodLogin = google.SetLogin(testSession.session, DTTestConstants.TestRemoteHost, db, ref log);
+            var goodLogin = google.SetLogin(testSession.session, DTTestConstants.LocalHostDomain, db, ref log);
 
             //Assert
             Assert.IsNotNull(testUser, "Could not establish test user.");

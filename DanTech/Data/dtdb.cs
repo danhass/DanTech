@@ -10,11 +10,15 @@ namespace DanTech.Data
     {
         public dtdb()
         {
+            int i = 1;
+            i++;
         }
 
         public dtdb(DbContextOptions<dtdb> options)
             : base(options)
         {
+            int k = 1;
+            k++;
         }
 
         public virtual DbSet<dtColorCode> dtColorCodes { get; set; }

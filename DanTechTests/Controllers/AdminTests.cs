@@ -1,13 +1,23 @@
-﻿using DanTech.Controllers;
-using DanTech.Data;
+﻿using DanTech.Data;
 using DanTechTests.Data;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 using System.Text;
+using System.Linq;
+using DanTech.Controllers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Net;
+using AutoMapper;
+using DanTech.Models.Data;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace DanTechTests.Controllers
 {
@@ -20,7 +30,7 @@ namespace DanTechTests.Controllers
 
         public AdminTests()
         {
-            _db = DTDB.getDB();
+            if (_db == null) _db = DTDB.getDB();
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
                 .BuildServiceProvider();
@@ -47,5 +57,17 @@ namespace DanTechTests.Controllers
             //Assert
             Assert.IsNotNull(res, "Could not instantiate admin index view");
         }
+
+        /*
+        [TestMethod]
+        public void AdminController_SetPW()
+        {
+            //Arrange
+            if (_db == null) _db = DTDB.getDB();
+            var startPW = (from x in _db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            
+            //Act
+         }
+        */
     }
 }

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using DanTech.Models;
 using DanTech.Models.Data;
 using AutoMapper;
+using DanTech.Services;
 
 namespace DanTech.Controllers
 {
@@ -18,6 +19,7 @@ namespace DanTech.Controllers
         protected readonly IConfiguration _configuration;
         protected readonly ILogger<DTController> _logger;
         protected static dtdb _db = null;
+        protected DTDBDataService _svc;
         protected dtUser _user = null;
 
         public DTViewModel VM { get; set; }
@@ -35,8 +37,10 @@ namespace DanTech.Controllers
             _configuration = configuration;
             if (_db == null)
             {
-                _db = new dtdb();
+                throw new Exception("Database is null");
             }
+
+            _svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
 
             if (!DTConstants.Initialized()) DTConstants.Init(_db);
         }

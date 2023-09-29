@@ -121,6 +121,7 @@ namespace DanTechTests.Controllers
             _db.dtPlanItems.Remove(item1);
             _db.dtPlanItems.Remove(item2);
             _db.dtPlanItems.Remove(item3);
+            _db.dtProjects.Remove(proj);
             _db.SaveChanges();
         }
 
@@ -227,10 +228,10 @@ namespace DanTechTests.Controllers
             var item4 = (from x in _db.dtPlanItems where x.title == key4 select x).FirstOrDefault();
 
             //Assert
-            Assert.IsTrue(item2.start.Value.ToString("HH:mm") == start2Adj.ToString("HH:mm"), "Fixed value not set correctly.");
-            Assert.IsTrue(item3.start.Value.ToString("HH:mm") == start3Adj.ToString("HH:mm"), "0 duration not set correctly.");
-            Assert.IsTrue(item1.start.Value.ToString("HH:mm") == start2Adj.AddMinutes(30).ToString("HH:mm"), "Adjustment did not set item 1 correctly.");
-            Assert.IsTrue(item4.start.Value.ToString("HH:mm") == start2Adj.AddMinutes(90).ToString("HH:mm"), "Adjustment did not set item 4 correctly.");
+            Assert.AreEqual(item2.start.Value.ToString("HH:mm"), start2Adj.ToString("HH:mm"), "Fixed value not set correctly.");
+            Assert.AreEqual(item3.start.Value.ToString("HH:mm"), start3Adj.ToString("HH:mm"), "0 duration not set correctly.");
+            Assert.AreEqual(item1.start.Value.ToString("HH:mm"), start2Adj.AddMinutes(30).ToString("HH:mm"), "Adjustment did not set item 1 correctly.");
+            Assert.AreEqual(item4.start.Value.ToString("HH:mm"), start2Adj.AddMinutes(90).ToString("HH:mm"), "Adjustment did not set item 4 correctly.");
 
             //Antiseptic
             _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.project == proj.id select x).ToList());
@@ -326,7 +327,7 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
 
             //Antiseptic
-            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key || x.title==(key + " Pre") select x).ToList());
             _db.SaveChanges();
         }
 
@@ -437,6 +438,8 @@ namespace DanTechTests.Controllers
             string key = DTTestConstants.TestValue + " Color: subitem";
             var colorId = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Subitem) select x.colorCode).FirstOrDefault();
             var color = (from x in _db.dtColorCodes where x.id == colorId select x).FirstOrDefault();
+            var colorId2 = (from x in _db.dtStatuses where x.id == (int)(DtStatus.Current) select x.colorCode).FirstOrDefault();
+            var color2 = (from x in _db.dtColorCodes where x.id == colorId2 select x).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -447,10 +450,10 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.IsNotNull(item, "Did not set subitem item");
-            Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
+            Assert.IsTrue((item.statusColor == color.title), "Status color not properly set. It is " + item.statusColor);
 
             //Antiseptic
-            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key select x).ToList());
+            _db.dtPlanItems.RemoveRange((from x in _db.dtPlanItems where x.title == key || x.title == (key + " Pre") select x).ToList());
             _db.SaveChanges();
         }
 
@@ -1083,8 +1086,8 @@ namespace DanTechTests.Controllers
             var projectsWithUpdatedItem = _controller.SetProject(DTTestOrganizer.TestSession.session, copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode ?? 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
 
             //Assert
-            Assert.AreEqual(((List<dtProjectModel>)projectsWithNewItem.Value).Where(x => x.title.Contains("New_Test_Through_Controller")).ToList().Count, 1, "Should be one new project with the title showing it was created here.");
-            Assert.AreEqual(((List<dtProjectModel>)projectsWithUpdatedItem.Value).Where(x => x.notes == "Updated by PlannerTests:SetProject").ToList().Count, 1, "Should be exactly one projected updated through this.");
+            Assert.AreEqual(1,((List<dtProjectModel>)projectsWithNewItem.Value).Where(x => x.title.Contains("New_Test_Through_Controller")).ToList().Count, "Should be one new project with the title showing it was created here.");
+            Assert.AreEqual(1, ((List<dtProjectModel>)projectsWithUpdatedItem.Value).Where(x => x.notes == "Updated by PlannerTests:SetProject").ToList().Count, "Should be exactly one projected updated through this.");
 
             //Antiseptic
             _db.dtProjects.RemoveRange((from x in _db.dtProjects where x.title == newProj.title select x).ToList());

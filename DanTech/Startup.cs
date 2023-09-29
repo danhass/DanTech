@@ -44,31 +44,6 @@ namespace DanTech
                         builder.WithOrigins("http://localhost:4200", "https://danhass-github-io.vercel.com").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                     });     
             });
-            
-            //builder => builder.AllowAnyMethod().AllowCredentials().SetIsOriginAllowed((host) => true).AllowAnyHeader());
-
-
-
-            /*          services.AddAuthentication(o =>
-                      {
-                          o.DefaultChallengeScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
-                          o.DefaultForbidScheme = GoogleOpenIdConnectDefaults.AuthenticationScheme;
-                          o.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                      })
-                          .AddCookie()
-                          .AddGoogleOpenIdConnect(options =>
-                         {
-                             //options.ClientId = Configuration["Authentication:Google:ClientId"].ToString();
-                             //options.ClientSecret = Configuration["Authentication:Google:ClientSecret"].ToString();
-                             options.ClientId = "849195656550-mi3286esf9mrgk8gkacu2712c1qghi3m.apps.googleusercontent.com";
-                             options.ClientSecret = "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";
-                             options.Scope.Add("email");
-                             options.Scope.Add(Google.Apis.Oauth2.v2.Oauth2Service.Scope.UserinfoProfile);
-                             options.Scope.Add(Google.Apis.Oauth2.v2.Oauth2Service.Scope.UserinfoEmail);
-                          });
-            */
-
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

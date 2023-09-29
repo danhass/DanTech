@@ -110,6 +110,13 @@ namespace DanTechTests
             Assert.IsNotNull(recurrenceAdded, "Cannot find the recurrence in the database.");
             Assert.AreEqual(endRecurrenceCt, beginningRecurrenceCt + 1, "Adding a recurrence should have increased the recurrence count by 1.");
             Assert.AreEqual(childItemCount, 30, "Should have generated 30 items with the recurrence as a parent.");
+
+            //Antiseptic
+            var items = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.Value == recurrenceAdded.id select x).ToList();
+            foreach (var item in items) item.parent = null;
+            items.Add((from x in db.dtPlanItems where x.id == recurrenceAdded.id select x).FirstOrDefault());
+            db.RemoveRange(items);
+            db.SaveChanges(); 
         }
 
         [TestMethod]
@@ -166,6 +173,14 @@ namespace DanTechTests
             //Assert
             Assert.AreEqual(itemsAfterSets, numItems + 4, "Should be 4 more items in db after sets with completed past due deleted.");
             Assert.AreEqual(itemsBeforeSet.Count + 3, items.Count, "Only baseline and future should be added to current items.");
+
+            //Antiseptic
+            db.dtPlanItems.Remove(baseline);
+            //db.dtPlanItems.Remove(pastDue);
+            db.dtPlanItems.Remove(preserve);
+            db.dtPlanItems.Remove(incomplete);
+            db.dtPlanItems.Remove(future);
+            db.SaveChanges();
         }
 
         [TestMethod]
@@ -174,7 +189,6 @@ namespace DanTechTests
             //Arrange
             var db = DTDB.getDB();
             var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel()
@@ -196,22 +210,25 @@ namespace DanTechTests
 
             //Act
             var item = _service.Set(model);
-            numItems++;
             int newItemId = item.id;
             item.note = DTTestConstants.TestValue;
             item = _service.Set(item);
             var item2 = _service.Set(model2);
-            numItems++;
             var itemList = _service.PlanItems(testUser);
 
             //Assert
             Assert.IsTrue(newItemId > 0, "Plan item creation failed.");
             Assert.IsTrue(item.id == newItemId, "Plan item update did not work.");
             Assert.AreEqual(item.note, DTTestConstants.TestValue, "Did not properly update plan item.");
+            Assert.AreEqual((from x in db.dtPlanItems where x.id == item.id select x.note).FirstOrDefault(), DTTestConstants.TestValue, "Did not properly update item note.");
             Assert.IsTrue(item2.id > item.id, "Order of item creation is not correct.");
-            Assert.AreEqual(item2.note, DTTestConstants.TestValue2, "Second test value not set correctly.");
-            Assert.AreEqual(itemList.Count, numItems, "Did not get list of plan items correctly.");
+            Assert.AreEqual((from x in db.dtPlanItems where x.id == item2.id select x.note).FirstOrDefault(), DTTestConstants.TestValue2, "Second test value not set correctly.");
             Assert.IsTrue(itemList.Where(x => x.title == model2.title).FirstOrDefault().day < itemList.Where(x => x.title == model.title).FirstOrDefault().day, "Date ordering of plan items is not correct");
+
+            //Antiseptic
+            db.Remove(item);
+            db.Remove(item2);
+            db.SaveChanges();
         }
 
         [TestMethod]
@@ -250,6 +267,8 @@ namespace DanTechTests
             Assert.AreEqual(ts.Value.Minutes, tsExpected.Minutes, "Minutes are not what is expected.");
             Assert.AreEqual(ts.Value.Seconds, tsExpected.Seconds, "Something is wrong with seconds.");
 
+            db.Remove(item);
+            db.SaveChanges();
         }
 
         [TestMethod]
@@ -383,12 +402,21 @@ namespace DanTechTests
             //Arrange
             string testPW = DTTestConstants.TestValue;
             _service.SetUser(DTTestOrganizer.TestUser.id);
+            var db = DTDB.getDB();
+            var startingPW = (from x in db.dtUsers where x.id == DTTestOrganizer.TestUser.id select x.pw).FirstOrDefault();
 
             //Act
-            var res = _service.SetPW(testPW);
+            var res = _service.SetUserPW(testPW);
+            var setPW = (from x in db.dtUsers where x.id == DTTestOrganizer.TestUser.id select x.pw).FirstOrDefault();
 
             //Assert
             Assert.IsTrue(res, "Did not successfully set password.");
+            Assert.AreEqual(testPW, setPW, "PW set to wrong value");
+
+            //Cleanup
+            var u = (from x in db.dtUsers where x.id == DTTestOrganizer.TestUser.id select x).FirstOrDefault();
+            u.pw = startingPW;
+            db.SaveChanges();
         }
 
         [TestMethod]

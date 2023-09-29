@@ -135,16 +135,15 @@ namespace DanTech.Services
             return userInfo;
         }
 
-        public dtLogin SetLogin(string sessionId, string hostAddress, dtdb db, ref string log)
+        public dtLogin SetLogin(string sessionId, string hostAddress, IDTDBDataService db, ref string log)
         {
             dtLogin login = new dtLogin();
-            var outOfDates = (from x in db.dtSessions where x.expires < DateTime.Now select x).ToList();
-            db.RemoveRange(outOfDates);
-            var session = (from x in db.dtSessions where x.session == sessionId && x.hostAddress == hostAddress select x).FirstOrDefault();
+            db.RemoveOutOfDateSessions();
+            var session = db.Sessions().Where(x => x.session == sessionId).FirstOrDefault();
             if (session != null)
             {
                 login.Session = session.session;
-                var user = (from x in db.dtUsers where x.id == session.user select x).FirstOrDefault();
+                var user = db.Users().Where(x => x.id == session.user).FirstOrDefault();
                 if (user != null)
                 {
                     login.Email = user.email;
@@ -160,17 +159,16 @@ namespace DanTech.Services
             return login;
         }
 
-        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, dtdb db, string accessToken, string refreshToken)
+        public dtLogin SetLogin(Userinfo userInfo, HttpContext ctx, IDTDBDataService db, string accessToken, string refreshToken)
         {
             dtLogin login = new dtLogin();
             Guid sessionGuid = Guid.NewGuid();
             if (userInfo != null && !string.IsNullOrEmpty(userInfo.Email) && !(string.IsNullOrEmpty(userInfo.GivenName) && string.IsNullOrEmpty(userInfo.FamilyName)))
             {
-                var user = (from x in db.dtUsers where x.email.ToLower() == userInfo.Email.ToLower() select x).FirstOrDefault();
+                var user = db.Users().Where(x => (x.email != null && x.email.ToLower() == userInfo.Email.ToLower())).FirstOrDefault();
                 if (user == null)
                 {
                     user = new dtUser() { type = 1 };
-                    db.dtUsers.Add(user);
                 }
                 user.email = userInfo.Email;
                 user.fName = userInfo.GivenName;
@@ -178,22 +176,20 @@ namespace DanTech.Services
                 user.lastLogin = DateTime.Now;
                 user.token = accessToken;
                 user.refreshToken = refreshToken;
-                db.SaveChanges();
+                user = db.Set(user);
                 login.Email = userInfo.Email;
                 login.FName = userInfo.GivenName;
                 login.LName = userInfo.FamilyName;
 
                 var hostAddress = ctx.Request.Host.Value;
 
-                var session = (from x in db.dtSessions where x.user == user.id && x.hostAddress == hostAddress select x).FirstOrDefault();
+                var session = db.Sessions().Where(x => (x.user == user.id && x.hostAddress == hostAddress)).FirstOrDefault();
                 if (session == null)
                 {
                     session = new dtSession() { user = user.id, hostAddress = hostAddress};
-                    db.dtSessions.Add(session);
                 }
-                session.expires = DateTime.Now.AddDays(7);
                 session.session = sessionGuid.ToString();
-                db.SaveChanges();
+                session = db.Set(session);
                 int cookieCt = 0;
                 foreach (var header in ctx.Response.Headers.Values)
                 {

@@ -35,6 +35,7 @@ namespace DanTechTests.Data
 
         public DTDB()
         {
+            Conn();
             if (_db == null)
             {
                 var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
@@ -45,6 +46,7 @@ namespace DanTechTests.Data
 
         public static dtdb getDB(int numberOfTestProjects = 0)
         {
+            Conn();
             if (_db == null)
             {
                 var optionsBuilder = new DbContextOptionsBuilder<dtdb>();

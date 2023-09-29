@@ -12,12 +12,9 @@ namespace DanTech.Controllers
 {
     public class AdminController : DTController
     {
-        private DTDBDataService _svc;
-
         public AdminController(IConfiguration configuration, ILogger<AdminController> logger, dtdb dtdb) :
         base(configuration, logger, dtdb)
         {
-            _svc = new DTDBDataService(dtdb, _configuration.GetConnectionString("dg"));
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
@@ -32,9 +29,8 @@ namespace DanTech.Controllers
         {
             if (VM == null || VM.User == null) return Json(null);
             _svc.SetUser(VM.User.id);
-
+            _svc.SetUserPW(pw);
             return View(VM);
         }
-
     }
 }

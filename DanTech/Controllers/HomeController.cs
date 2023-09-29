@@ -75,7 +75,7 @@ namespace DanTech.Controllers
                 HttpClientInitializer = cred
             });
             var userInfo = oauthSerivce.Userinfo.Get().Execute();
-            var login = googleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
+            var login = googleAuthService.SetLogin(userInfo, HttpContext, _svc, tokens["AccessToken"], tokens["RefreshToken"]);
             SetVM(login.Session);
             Response.Cookies.Delete("dtSessionId");
             Response.Cookies.Append("dtSessionId", login.Session);  
@@ -103,7 +103,7 @@ namespace DanTech.Controllers
                     HttpClientInitializer = cred
                 });
                 var userInfo = oauthSerivce.Userinfo.Get().Execute();
-                login = googleAuthService.SetLogin(userInfo, HttpContext, _db, tokens["AccessToken"], tokens["RefreshToken"]);
+                login = googleAuthService.SetLogin(userInfo, HttpContext, _svc, tokens["AccessToken"], tokens["RefreshToken"]);
                 SetVM(login.Session);
                 Response.Cookies.Delete("dtSessionId");
                 Response.Cookies.Append("dtSessionId", sessionId);
@@ -120,7 +120,7 @@ namespace DanTech.Controllers
             string sessionId = Request.Cookies["dtSessionId"];
             string log = "";
             string addr = HttpContext.Request.Host.Value;
-            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _db, ref log));
+            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _svc, ref log));
             return json;
         }
 
@@ -132,7 +132,7 @@ namespace DanTech.Controllers
             string log = "";
 
             string addr = HttpContext.Request.Host.Value;
-            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _db, ref log));
+            var json = Json(new DTGoogleAuthService().SetLogin(sessionId, addr, _svc, ref log));
             return json;
         } 
         
@@ -148,7 +148,7 @@ namespace DanTech.Controllers
         public dtLogin EstablishSession(string authToken, string refreshToken)
         {
             var google = new DTGoogleAuthService();
-            dtLogin login = google.SetLogin(google.GetUserInfo(authToken, refreshToken), HttpContext, _db, authToken, refreshToken);
+            dtLogin login = google.SetLogin(google.GetUserInfo(authToken, refreshToken), HttpContext, _svc, authToken, refreshToken);
             SetVM(login.Session);
             return login;
         }
@@ -159,6 +159,12 @@ namespace DanTech.Controllers
             string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
             var google = new DTGoogleAuthService();
             return Redirect(google.AuthService(domain, "Home/GoogleSignin", _configuration));
+        }
+
+        [DisableCors]
+        public IActionResult Register(string email)
+        {
+            return Json(new { response = "Check your email. To complete registration click the link in the email." });
         }
                 
         public IActionResult Privacy()
@@ -177,9 +183,8 @@ namespace DanTech.Controllers
         {
             
             if (VM.TestEnvironment)
-            {
-                DTDBDataService dataService = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-                dataService.ToggleTestFlag();
+            {                
+                _svc.ToggleTestFlag();
                 string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
                 var google = new DTGoogleAuthService();
                 return Redirect(google.AuthService(domain, "Home/GoogleSignin", _configuration));
@@ -190,9 +195,8 @@ namespace DanTech.Controllers
 
         [ServiceFilter(typeof(DTAuthenticate))]
         public ViewResult SetupTests()
-        {
-            var ds = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-            ds.ClearResetFlags();
+        {           
+            _svc.ClearResetFlags();
             return View(new DTViewModel() { StatusMessage = "Test set up complete." } );
         }
     }
