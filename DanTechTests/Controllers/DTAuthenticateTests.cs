@@ -30,9 +30,20 @@ namespace DanTechTests
     {
 
         private IDTDBDataService _db = null;
+        private IConfiguration _config = null;
 
+        public DTAuthenticateTests()
+        {
+            if (_config == null) _config = DTTestOrganizer.InitConfiguration();
+            if (_db == null)
+            {
+                var cfg = DTTestOrganizer.InitConfiguration();
+                _db = new DTDBDataService(cfg.GetConnectionString("DG"));
+            }
+        }
         private IDTDBDataService GetDB()
         {
+            if (_config == null) _config = DTTestOrganizer.InitConfiguration();
             if (_db == null)
             {
                 var cfg = DTTestOrganizer.InitConfiguration();
@@ -42,15 +53,13 @@ namespace DanTechTests
         }
         private DTController ExecuteWithLoggedInUser(string host)
         {
-            var config = DTTestOrganizer.InitConfiguration();
-            var db = new DTDBDataService(config.GetConnectionString("DG"));
-            var controller = DTTestOrganizer.InitializeDTController(db, true);
+            var controller = DTTestOrganizer.InitializeDTController(_db, true);
             var httpContext = DTTestOrganizer.InitializeContext(host, true);
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, db.dtdb());
+            var actionFilter = new DTAuthenticate(_config, _db);
 
             //Act
             actionFilter.OnActionExecuting(ctx);
@@ -60,10 +69,9 @@ namespace DanTechTests
 
         private void RemoveTestSession()
         {
-            var db = GetDB();
-            var testUser = db.Users().Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
-            var testSession = db.Sessions().Where(x => x.user == testUser.id).FirstOrDefault();
-            db.Delete(testSession);
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var testSession = _db.Sessions.Where(x => x.user == testUser.id).FirstOrDefault();
+            _db.Delete(testSession);
         }
 
         [TestMethod]
@@ -136,7 +144,7 @@ namespace DanTechTests
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             ctx.ActionArguments["sessionId"] = DTTestOrganizer.TestSession.session;
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, db.dtdb());
+            var actionFilter = new DTAuthenticate(config, db);
 
             actionFilter.OnActionExecuting(ctx);
             var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
@@ -159,7 +167,7 @@ namespace DanTechTests
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, db.dtdb());
+            var actionFilter = new DTAuthenticate(config, db);
 
             //Action
             actionFilter.OnActionExecuting(ctx);
@@ -183,7 +191,7 @@ namespace DanTechTests
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, db.dtdb());
+            var actionFilter = new DTAuthenticate(config, db);
 
             //Action
             actionFilter.OnActionExecuting(ctx);
@@ -200,11 +208,10 @@ namespace DanTechTests
             //Arrange
 
             //Set up db
-            var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault(); ;
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault(); ;
 
             //Remove any session for this user
-            var testSession = (from x in db.dtSessions where x.user == testUser.id select x).FirstOrDefault();
+            var testSession = _db.Sessions.Where(x => x.user == testUser.id).FirstOrDefault();
             
             //Set up context
             var httpContext = new DefaultHttpContext();
@@ -221,11 +228,11 @@ namespace DanTechTests
             //Set up controller
             var config = DTTestOrganizer.InitConfiguration();
             var logger = DTTestOrganizer.InitLogger();
-            var controller = new DTController(config, logger, db);
+            var controller = new DTController(config, logger, _db);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, db);
+            var actionFilter = new DTAuthenticate(config, _db);
 
             //Act
             actionFilter.OnActionExecuting(ctx);

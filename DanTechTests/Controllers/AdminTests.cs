@@ -18,19 +18,20 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using DanTech.Services;
 
 namespace DanTechTests.Controllers
 {
     [TestClass]
     public class AdminTests
     {
-        private static dtdb _db = null;
+        private static IDTDBDataService _db = null;
         private IConfiguration _config = DTTestOrganizer.InitConfiguration();
         private AdminController _controller = null;
 
         public AdminTests()
         {
-            if (_db == null) _db = DTDB.getDB();
+            if (_db == null) _db = new DTDBDataService(_config);
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
                 .BuildServiceProvider();

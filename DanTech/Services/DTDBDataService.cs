@@ -13,6 +13,7 @@ using System.Threading;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using MySqlX.XDevAPI;
 
 
 namespace DanTech.Services
@@ -26,6 +27,12 @@ namespace DanTech.Services
         private static dtPlanItem _recurringItem = null;
         private static string _conn = string.Empty;
         private const string _testFlagKey = "Testing in progress";
+
+        public DTDBDataService(IConfiguration cfg)
+        {
+            _conn = cfg.GetConnectionString("DG");
+            InstantiateDB();
+        }
 
         public DTDBDataService(Idtdb db, string conn)
         {
@@ -42,13 +49,23 @@ namespace DanTech.Services
             if (!DTConstants.Initialized()) DTConstants.Init(_db);
         }
 
-        private Idtdb InstantiateDB ()
+        private Idtdb InstantiateDB()
         {
             if (_db == null)
             {
                 var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
                 optionsBuilder.UseMySQL(_conn);
                 _db = new dtdb(optionsBuilder.Options);
+            }
+            return _db;
+        }
+
+        public Idtdb Instantiate(IConfiguration cfg)
+        {
+            _conn = cfg.GetConnectionString("DG");
+            if (_db == null)
+            {
+                InstantiateDB();
             }
             return _db;
         }
@@ -68,7 +85,7 @@ namespace DanTech.Services
             if (element != null)
             {
                 _db.dtMiscs.Remove(element);
-                _db.SaveChanges();
+                Save();
             }
         }
         public static DTViewModel SetCredentials(string token)
@@ -93,25 +110,91 @@ namespace DanTech.Services
             {
                 _db.dtTestData.Remove(testFlag);
             }
-
-            _db.SaveChanges();
+            Save();
         }
         #endregion Utility
 
-        #region Data Access
-        public List<dtColorCodeModel> ColorCodes()
+        #region Data Accessors
+        public List<dtColorCode> ColorCodes
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtColorCodes select x).ToList();
+            }
+        }
+        public List<dtPlanItem> PlanItems
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtPlanItems select x).ToList();
+            }
+        }
+        public List<dtProject> Projects
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtProjects select x).ToList();
+            }
+        }
+        public List<dtSession> Sessions
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtSessions select x).ToList();
+            }
+        }
+        public List<dtStatus> Stati
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtStatuses select x).ToList();
+            }
+        }
+        public List<dtTestDatum> TestData
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtTestData select x).ToList();
+            }
+        }
+        public List<dtType> Types
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtTypes select x).ToList();
+            }
+        }
+        public List<dtUser> Users
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtUsers select x).ToList();
+            }
+        }
+        #endregion Data Accessors
+
+        #region DTO Data Access
+        public List<dtColorCodeModel> ColorCodeDTOs()
         {
             if (_db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtColorCode, dtColorCodeModel>(); }));
             return mappr.Map<List<dtColorCodeModel>>((from x in _db.dtColorCodes select x).OrderBy(x => x.title).ToList());
         }
-        public List<dtProjectModel> DTProjects(int userId)
+        public List<dtProjectModel> ProjectDTOs(int userId)
         {
             if (_db == null) _db = InstantiateDB() as dtdb;
             List<dtProjectModel> projects = new List<dtProjectModel>();
-            return DTProjects((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
+            return ProjectDTOs((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault());
         }
-        public List<dtProjectModel> DTProjects(dtUser u)
+        public List<dtProjectModel> ProjectDTOs(dtUser u)
         {
             if (_db == null) throw new Exception("DB not set");
             List<dtProjectModel> projects = new List<dtProjectModel>();
@@ -123,15 +206,10 @@ namespace DanTech.Services
             {
                 projects.Add(mapper.Map<dtProjectModel>(p));
             }
-            _db.SaveChanges();
+            Save();
             return projects;
         }
-        public List<dtPlanItem> PlanItems()
-        {
-            if (_db == null) throw new Exception("DB not set");
-            return (from x in _db.dtPlanItems select x).ToList();
-        }
-        public List<dtPlanItemModel> PlanItems(dtUser user,
+        public List<dtPlanItemModel> PlanItemDTOs(dtUser user,
                                                     int daysBack = 1,
                                                     bool includeCompleted = false,
                                                     bool getAll = false,
@@ -155,7 +233,7 @@ namespace DanTech.Services
                                     && x.recurrence == null
                                  select x);
             _db.dtPlanItems.RemoveRange(itemsToRemove);
-            _db.SaveChanges();
+            Save();
             var items = (from x in _db.dtPlanItems where x.user == user.id select x)
                 .OrderBy(x => x.day)
                 .ThenBy(x => x.completed)
@@ -208,7 +286,7 @@ namespace DanTech.Services
 
         // We want this to run in its own thread and the app likely has already returned the controller method.
         // We use the static to avoid problems with the db context leaving scope.
-        public List<dtPlanItemModel> PlanItems(int userId,
+        public List<dtPlanItemModel> PlanItemDTOs(int userId,
                                                   int daysBack = 1,
                                                   bool includeCompleted = false,
                                                   bool getAll = false,
@@ -220,35 +298,26 @@ namespace DanTech.Services
             {
                 _db = InstantiateDB() as dtdb;
             }
-            return PlanItems((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll, onlyProject, onlyRecurrences);
+            return PlanItemDTOs((from x in _db.dtUsers where x.id == userId select x).FirstOrDefault(), daysBack, includeCompleted, getAll, onlyProject, onlyRecurrences);
         }
-        
-        public List<dtProject> Projects(int userId)
+
+        public List<dtProject> ProjectsForUser(int userId)
         {
             if (_db == null) throw new Exception("DB not set");
             return (from x in _db.dtProjects where x.user == userId select x).ToList();
         }
-        public List<dtRecurrenceModel> Recurrences()
+        public List<dtRecurrenceModel> RecurrenceDTOs()
         {
             if (_db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtRecurrence, dtRecurrenceModel>(); }));
             return mappr.Map<List<dtRecurrenceModel>>(from x in _db.dtRecurrences select x).ToList();
         }
-        public List<dtSession> Sessions()
-        {
-            if (_db == null) throw new Exception("DB not set");
-            return (from x in _db.dtSessions select x).ToList();
-        }
-        public List<dtStatusModel> Stati()
+        public List<dtStatusModel> StatusDTOs()
         {
             if (_db == null) throw new Exception("DB not set");
             var mappr = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtStatus, dtStatusModel>(); }));
             return mappr.Map<List<dtStatusModel>>((from x in _db.dtStatuses select x).OrderBy(x => x.title).ToList());
-        }
-        public List<dtTestDatum> TestData()
-        {
-            if (_db == null) throw new Exception("DB not set");
-            return (from x in _db.dtTestData select x).ToList();
+
         }
         public dtUserModel UserModelForSession(string session, string hostAddress)
         {
@@ -279,16 +348,11 @@ namespace DanTech.Services
                         sessionRecord.expires = DateTime.Now.AddDays(7);
                     }
                 }
-                _db.SaveChanges();
+                Save();
             }
             return mappedUser;
         }
-        public List<dtUser> Users()
-        {
-            if (_db == null) throw new Exception("DB not set");
-            return (from x in _db.dtUsers select x).ToList();
-        }
-        #endregion Data Access
+        #endregion DTO Data Access
 
 
         #region Data Maniuplation
@@ -296,13 +360,14 @@ namespace DanTech.Services
         {
             var today = DateTime.Parse(DateTime.Now.AddHours(DTConstants.TZOffset).ToShortDateString());
             if (_db == null) throw new Exception("DB not set");
-            var variedItems = (from x in _db.dtPlanItems where x.user == userId
+            var variedItems = (from x in _db.dtPlanItems
+                               where x.user == userId
                          && x.day == today
                          && (!x.recurrence.HasValue || !(x.recurrence.Value > 0))
                          && (!x.completed.HasValue || !(x.completed.Value))
                          && x.duration.HasValue
                          && (!x.fixedStart.HasValue || !(x.fixedStart.Value))
-                         select x)
+                               select x)
                 .OrderBy(x => x.day)
                 .ThenByDescending(x => x.priority.Value)
                 .ThenByDescending(x => (x.projectNavigation == null ? 0 : (x.projectNavigation.priority.HasValue ? x.projectNavigation.priority.Value : 0)))
@@ -314,7 +379,7 @@ namespace DanTech.Services
                               && x.day == today
                               && (!x.recurrence.HasValue || !(x.recurrence.Value > 0))
                               && (!x.completed.HasValue || !(x.completed.Value))
-                              && x.fixedStart.HasValue 
+                              && x.fixedStart.HasValue
                               && x.fixedStart.Value
                               && x.duration.HasValue
                               select x)
@@ -329,7 +394,7 @@ namespace DanTech.Services
                 var nextOpenTime = DateTime.Now.AddHours(DTConstants.TZOffset);
                 var targetEnd = nextOpenTime + item.duration.Value;
                 bool foundSpot = false;
-                for (int i=0; i < fixedItems.Count && !foundSpot; i++)
+                for (int i = 0; i < fixedItems.Count && !foundSpot; i++)
                 {
                     if (targetEnd <= fixedItems[i].start.Value)
                     {
@@ -356,11 +421,27 @@ namespace DanTech.Services
             }
             return true;
         }
+        public bool Delete(dtPlanItem item)
+        {
+            if (item == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtPlanItems.Remove(item);
+            Save();
+            return true;
+        }
+        public bool Delete(dtProject project)
+        {
+            if (project == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtProjects.Remove(project);
+            Save();
+            return true;
+        }
         public bool Delete(dtSession session)
         {
             if (session == null) return false;
             if (_db == null) throw new Exception("DB not set");
-            _db.Remove(session);
+            _db.dtSessions.Remove(session);
             Save();
             return true;
         }
@@ -368,7 +449,8 @@ namespace DanTech.Services
         {
             if (user == null) return false;
             if (_db == null) throw new Exception("DB not set");
-            _db.Remove(user);
+            var u = _db.dtUsers.Where(x => x.id == user.id).Include(x => x.dtPlanItems).FirstOrDefault();
+             _db.dtUsers.Remove(user);
             Save();
             return true;
         }
@@ -411,7 +493,7 @@ namespace DanTech.Services
             var item = (from x in _db.dtPlanItems where x.id == planItemId && x.user == userId select x).FirstOrDefault();
             if (item == null) return false;
             if (item.recurrence.HasValue)
-            {                
+            {
                 var children = (from x in _db.dtPlanItems where x.parent.Value == item.id select x).ToList();
                 if (deleteChildren)
                 {
@@ -424,13 +506,13 @@ namespace DanTech.Services
                         c.parent = null;
                     }
                 }
-                _db.SaveChanges();
+                Save();
             }
             _db.dtPlanItems.Remove(item);
-            _db.SaveChanges();
+            Save();
             return true;
         }
-        public bool DeleteProject(int projectId, int userId, bool deleteProjItems=true, int transferProject = 0)
+        public bool DeleteProject(int projectId, int userId, bool deleteProjItems = true, int transferProject = 0)
         {
             if (_db == null) throw new Exception("DB not set");
             var project = (from x in _db.dtProjects where x.id == projectId select x).FirstOrDefault();
@@ -439,10 +521,10 @@ namespace DanTech.Services
             {
                 var planItems = (from x in _db.dtPlanItems where x.project == project.id && x.recurrence == null select x).ToList();
                 _db.dtPlanItems.RemoveRange(planItems);
-                _db.SaveChanges();
+                Save();
                 planItems = (from x in _db.dtPlanItems where x.project == project.id select x).ToList();
                 _db.dtPlanItems.RemoveRange(planItems);
-                _db.SaveChanges();
+                Save();
             }
             if (transferProject > 0)
             {
@@ -451,13 +533,13 @@ namespace DanTech.Services
                 {
                     var planItems = (from x in _db.dtPlanItems where x.project == project.id select x).ToList();
                     foreach (var i in planItems) i.project = transferProject;
-                    _db.SaveChanges();
+                    Save();
                 }
             }
             var remainingLinkedItems = (from x in _db.dtPlanItems where x.project == project.id select x).ToList();
             foreach (var i in remainingLinkedItems) i.project = null;
             _db.dtProjects.Remove(project);
-            _db.SaveChanges();
+            Save();
             return true;
         }
         // Returns false if no propagations are made. True if at least one propagation is made.
@@ -633,7 +715,7 @@ namespace DanTech.Services
                 c.duration = parent.duration;
                 c.fixedStart = parent.fixedStart;
             }
-            _db.SaveChanges();
+            Save();
             return result;
         }
         public dtProject Set(dtProject project)
@@ -663,7 +745,7 @@ namespace DanTech.Services
                 else existing.colorCode = null;
             }
             if (existing.id < 1) _db.dtProjects.Add(existing);
-            _db.SaveChanges();
+            Save();
             return existing;
         }
         public dtPlanItem Set(dtPlanItem planItem)
@@ -705,7 +787,7 @@ namespace DanTech.Services
             if (planItem.fixedStart.HasValue) item.fixedStart = planItem.fixedStart.Value;
             else item.fixedStart = null;
             if (item.id < 1) _db.dtPlanItems.Add(item);
-            _db.SaveChanges();
+            Save();
             if (item.recurrence.HasValue)
             {
                 _recurringItem = item;
@@ -730,7 +812,7 @@ namespace DanTech.Services
             Save();
             return sessionToSave;
         }
-        public dtUser Set (dtUser aUser)
+        public dtUser Set(dtUser aUser)
         {
             if (aUser == null) return null;
             if (_db == null) _db = InstantiateDB() as dtdb;
@@ -753,10 +835,10 @@ namespace DanTech.Services
             Save();
 
             return userToSave;
-      }
-        public void SetConnString(string conn) 
-        { 
-            _conn = conn; 
+        }
+        public void SetConnString(string conn)
+        {
+            _conn = conn;
         }
         public static bool SetIfTesting(string key, string value)
         {
@@ -781,7 +863,7 @@ namespace DanTech.Services
             _db.SaveChanges();
             return true;
         }
-        public void SetUser (int userId)
+        public void SetUser(int userId)
         {
             _userId = userId;
         }
@@ -791,12 +873,12 @@ namespace DanTech.Services
             var usr = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
             if (usr == null) return false;
             usr.pw = pw;
-            _db.SaveChanges();
+            Save();
             return true;
         }
         // Returns the number of new items created by the update.
         public int UpdateRecurrences(int userId, int sourceItem = 0, bool force = false)
-        { 
+        {
             int itemCt = 0;
             _userId = userId;
             if (_db == null) _db = InstantiateDB() as dtdb;
@@ -804,7 +886,7 @@ namespace DanTech.Services
             if (user == null) return 0;
             if (!force && user.updated.HasValue && (DateTime.Parse(DateTime.Now.ToShortDateString()) - DateTime.Parse(user.updated.Value.ToShortDateString())).TotalDays < 1) return 0;
             user.updated = DateTime.Parse(DateTime.Now.ToShortDateString());
-            _db.SaveChanges();
+            Save();
             _currentUser = user;
             var recurrences = new List<dtPlanItem>();
             if (sourceItem > 0)
@@ -854,8 +936,7 @@ namespace DanTech.Services
             }
             db.SaveChanges();
             */
-         }
+        }
 
     }
-
 }

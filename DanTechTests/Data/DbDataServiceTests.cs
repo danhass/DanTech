@@ -15,22 +15,21 @@ namespace DanTechTests
     {
         private static string classTestName = "";
         private const string _testFlagKey = "Testing in progress";
-        private DTDBDataService _service = null;
+        private DTDBDataService _db = null;
 
         public DbDataServiceTests()
         {
-            _service = new DTDBDataService(DTDB.getDB(), DTTestOrganizer.Conn);
+            _db = new DTDBDataService(DTTestOrganizer.Conn);
         }
 
         [TestMethod]
         public void ColorCode_List()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var numColorCodes = (from x in db.dtColorCodes select x).ToList().Count;
+            var numColorCodes = _db.ColorCodes.Count;
 
             //Act
-            var colorCodes = _service.ColorCodes();
+            var colorCodes = _db.ColorCodeDTOs();
 
             //Assert
             Assert.AreEqual(colorCodes.Count, numColorCodes, "Color codes not correctly received.");
@@ -39,36 +38,32 @@ namespace DanTechTests
         [TestMethod]
         public void DBAccessible()
         {
-            var db = DTDB.getDB();
-            var typeCt = (from x in db.dtTypes where 1 == 1 select x).ToList().Count;
-            Assert.IsTrue(typeCt > 0);
+            var statusCt = _db.Stati.Count;
+            Assert.IsTrue(statusCt > 0);
         }
 
         [TestMethod]
         public void DBUserCRUD()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var userCt = (from x in db.dtUsers where 1 == 1 select x).ToList().Count;
+            var userCt = _db.Users.Count;
             classTestName = "test_" + DateTime.Now.Ticks;
 
-            var specUserCt = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
+            var specUserCt = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).ToList().Count;
 
             //Act
             dtUser u = new dtUser() { fName = classTestName, lName = classTestName, type = 1 };
-            db.dtUsers.Add(u);
-            db.SaveChanges();
-            var userCtAfterInsert = (from x in db.dtUsers where 1 == 1 select x).ToList().Count;
-            var specUserCtAfterInsert = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
-            u = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).FirstOrDefault();
+            u = _db.Set(u);
+            var userCtAfterInsert = _db.Users.Count;
+            var specUserCtAfterInsert = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).ToList().Count;
+            u = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).FirstOrDefault();
             var flagBeforeSuspension = u.suspended;
             u.suspended = 1;
-            db.SaveChanges();
-            u = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).FirstOrDefault();
-            db.dtUsers.Remove(u);
-            db.SaveChanges();
-            var userCtAfterRemove = (from x in db.dtUsers where 1 == 1 select x).ToList().Count;
-            var specUserCtAfterRemove = (from x in db.dtUsers where x.fName == classTestName && x.lName == classTestName && x.type == 1 select x).ToList().Count;
+            _db.Save();
+            u = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).FirstOrDefault();
+            _db.Delete(u);
+            var userCtAfterRemove = _db.Users.Count;
+            var specUserCtAfterRemove = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).ToList().Count;
 
             //Assert
             Assert.AreEqual(userCt + 1, userCtAfterInsert, "Adding user should increase user count by 1.");
@@ -83,27 +78,25 @@ namespace DanTechTests
         [TestMethod]
         public void InstantiateDB()
         {
-            var db = DTDB.getDB();
-            Assert.IsNotNull(db);
+            Assert.IsNotNull(_db);
         }
 
         [TestMethod]
         public void PlanItemAddRecurrence()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             string recurrenceTitle = DTTestConstants.TestValue + " for AddRecurrence Test";
-            var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var beginningRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
+            var beginningCount = _db.PlanItems.Where(x => x.user == testUser.id && (x.completed == null || !x.completed.Value)).ToList().Count;
+            var beginningRecurrenceCt = _db.PlanItems.Where(x => x.user == testUser.id && x.recurrence != null).ToList().Count;
             dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(13), recurrence = DTTestConstants.RecurrenceId_Daily, user = testUser.id };
 
             //Act
-            var results = _service.Set(recurrence);
-            var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var recurrenceAdded = (from x in db.dtPlanItems where x.id == results.id select x).FirstOrDefault();
-            var endRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
-            var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id select x).ToList().Count;
+            var results = _db.Set(recurrence);
+            var endCount = _db.PlanItems.Where(x => x.user == testUser.id && (x.completed == null || !x.completed.Value)).ToList().Count;
+            var recurrenceAdded = _db.PlanItems.Where(x => x.id == results.id).FirstOrDefault();
+            var endRecurrenceCt = _db.PlanItems.Where(x => x.user == testUser.id && x.recurrence != null).ToList().Count;
+            var childItemCount = _db.PlanItems.Where(x => x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id).ToList().Count;
 
             //Assert
             Assert.AreEqual(endCount, beginningCount + 31, "Adding daily recurrence should have added 31 plan items: recurrence + 1 per day for 30 days.");
@@ -112,20 +105,16 @@ namespace DanTechTests
             Assert.AreEqual(childItemCount, 30, "Should have generated 30 items with the recurrence as a parent.");
 
             //Antiseptic
-            var items = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.Value == recurrenceAdded.id select x).ToList();
-            foreach (var item in items) item.parent = null;
-            items.Add((from x in db.dtPlanItems where x.id == recurrenceAdded.id select x).FirstOrDefault());
-            db.RemoveRange(items);
-            db.SaveChanges(); 
+            _db.Delete(_db.PlanItems.Where(x => x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id).ToList());
+            _db.Delete(results);
         }
 
         [TestMethod]
         public void PlanItem_ClearPastDue()
         {
             //Arrange
-            var db = DTDB.getDB();
             var testUser = DTTestOrganizer.TestUser;
-            var numItems = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
+            var numItems = _db.PlanItems.Where(x => x.user == testUser.id).Count();
             dtPlanItemModel model = new dtPlanItemModel()
             {
                 title = DTTestConstants.TestPlanItemMinimumTitle,
@@ -161,34 +150,31 @@ namespace DanTechTests
             };
 
             //Act
-            var itemsBeforeSet = _service.PlanItems(testUser.id);
-            var baseline = _service.Set(model);
-            var pastDue = _service.Set(modelForPastDue);
-            var preserve = _service.Set(modelForPastDuePreserve);
-            var incomplete = _service.Set(modelForPastDueNotComplete);
-            var future = _service.Set(model);
-            var items = _service.PlanItems(testUser.id);
-            var itemsAfterSets = (from x in db.dtPlanItems where x.user == testUser.id select x).Count();
-
+            var itemsBeforeSet = _db.PlanItemDTOs(testUser.id);
+            var baseline = _db.Set(model);
+            var pastDue = _db.Set(modelForPastDue);
+            var preserve = _db.Set(modelForPastDuePreserve);
+            var incomplete = _db.Set(modelForPastDueNotComplete);
+            var future = _db.Set(model);
+            var items = _db.PlanItemDTOs(testUser.id);
+            var itemsAfterSets = _db.PlanItems.Where(x => x.user == testUser.id).ToList();  
+            
             //Assert
-            Assert.AreEqual(itemsAfterSets, numItems + 4, "Should be 4 more items in db after sets with completed past due deleted.");
+            Assert.AreEqual(itemsAfterSets.Count, numItems + 4, "Should be 4 more items in db after sets with completed past due deleted.");
             Assert.AreEqual(itemsBeforeSet.Count + 3, items.Count, "Only baseline and future should be added to current items.");
 
             //Antiseptic
-            db.dtPlanItems.Remove(baseline);
-            //db.dtPlanItems.Remove(pastDue);
-            db.dtPlanItems.Remove(preserve);
-            db.dtPlanItems.Remove(incomplete);
-            db.dtPlanItems.Remove(future);
-            db.SaveChanges();
+            _db.Delete(baseline);
+            _db.Delete(preserve); 
+            _db.Delete(incomplete);
+            _db.Delete(future); 
         }
 
         [TestMethod]
         public void PlanItemSet_MinimumItem()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel()
@@ -209,34 +195,32 @@ namespace DanTechTests
             };
 
             //Act
-            var item = _service.Set(model);
+            var item = _db.Set(model);
             int newItemId = item.id;
             item.note = DTTestConstants.TestValue;
-            item = _service.Set(item);
-            var item2 = _service.Set(model2);
-            var itemList = _service.PlanItems(testUser);
+            item = _db.Set(item);
+            var item2 = _db.Set(model2);
+            var itemList = _db.PlanItemDTOs(testUser);
 
             //Assert
             Assert.IsTrue(newItemId > 0, "Plan item creation failed.");
             Assert.IsTrue(item.id == newItemId, "Plan item update did not work.");
             Assert.AreEqual(item.note, DTTestConstants.TestValue, "Did not properly update plan item.");
-            Assert.AreEqual((from x in db.dtPlanItems where x.id == item.id select x.note).FirstOrDefault(), DTTestConstants.TestValue, "Did not properly update item note.");
+            Assert.AreEqual(_db.PlanItems.Where(x => x.id == item.id).First().note, DTTestConstants.TestValue, "Did not properly update item note.");
             Assert.IsTrue(item2.id > item.id, "Order of item creation is not correct.");
-            Assert.AreEqual((from x in db.dtPlanItems where x.id == item2.id select x.note).FirstOrDefault(), DTTestConstants.TestValue2, "Second test value not set correctly.");
+            Assert.AreEqual(_db.PlanItems.Where(x => x.id == item2.id).First().note, DTTestConstants.TestValue2, "Second test value not set correctly.");
             Assert.IsTrue(itemList.Where(x => x.title == model2.title).FirstOrDefault().day < itemList.Where(x => x.title == model.title).FirstOrDefault().day, "Date ordering of plan items is not correct");
 
             //Antiseptic
-            db.Remove(item);
-            db.Remove(item2);
-            db.SaveChanges();
+            _db.Delete(item);
+            _db.Delete(item2);
         }
 
         [TestMethod]
         public void PlanItemAdd_NoEndDate()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel(
@@ -257,7 +241,7 @@ namespace DanTechTests
                 );
 
             //Act
-            var item = _service.Set(model);
+            var item = _db.Set(model);
             var ts = item.duration;
             var tsExpected = TimeSpan.Parse("2:05");
 
@@ -267,16 +251,14 @@ namespace DanTechTests
             Assert.AreEqual(ts.Value.Minutes, tsExpected.Minutes, "Minutes are not what is expected.");
             Assert.AreEqual(ts.Value.Seconds, tsExpected.Seconds, "Something is wrong with seconds.");
 
-            db.Remove(item);
-            db.SaveChanges();
+            _db.Delete(item);
         }
 
         [TestMethod]
         public void PlanItemDelete()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel()
@@ -288,11 +270,11 @@ namespace DanTechTests
             };
 
             //Act
-            var item = _service.Set(model);
+            var item = _db.Set(model);
             int newItemId = item.id;
             int newItemUser = item.user;
-            var deleted = _service.DeletePlanItem(newItemId, newItemUser);
-            var result = (from x in db.dtPlanItems where x.id == newItemId select x).FirstOrDefault();
+            var deleted = _db.DeletePlanItem(newItemId, newItemUser);
+            var result = _db.Users.Where(x => x.id == newItemId).FirstOrDefault();
 
             //Assert
             Assert.IsNull(result, "Plan item not properly deleted.");
@@ -302,11 +284,10 @@ namespace DanTechTests
         public void PlanItemAddRecurrenceWith_TTh_Filter()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             string recurrenceTitle = DTTestConstants.TestValue + " for T-Th Recurrence Test";
-            var beginningCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var beginningRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
+            var beginningCount = _db.PlanItems.Where(x => x.user == testUser.id && (x.completed == null || !x.completed.Value)).ToList().Count;
+            var beginningRecurrenceCt = _db.PlanItems.Where(x => x.user == testUser.id && x.recurrence != null).ToList().Count;
             //Create a T-Th recurrence
             dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(14), recurrence = DTTestConstants.RecurrenceId_Daily, recurrenceData = "--*-*--", user = testUser.id };
             //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
@@ -314,11 +295,11 @@ namespace DanTechTests
             int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
 
             //Act
-            var results = _service.Set(recurrence);
-            var endCount = (from x in db.dtPlanItems where x.user == testUser.id && (x.completed == null || !x.completed.Value) select x).ToList().Count;
-            var recurrenceAdded = (from x in db.dtPlanItems where x.id == results.id select x).FirstOrDefault();
-            var endRecurrenceCt = (from x in db.dtPlanItems where x.user == testUser.id && x.recurrence != null select x).ToList().Count;
-            var childItemCount = (from x in db.dtPlanItems where x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id select x).ToList().Count;
+            var results = _db.Set(recurrence);
+            var endCount = _db.PlanItems.Where(x => x.user == testUser.id && (x.completed == null || !x.completed.Value)).ToList().Count;
+            var recurrenceAdded = _db.PlanItems.Where(x => x.id == results.id).FirstOrDefault();
+            var endRecurrenceCt = _db.PlanItems.Where(x => x.user == testUser.id && x.recurrence != null).ToList().Count;
+            var childItemCount = _db.PlanItems.Where(x => x.user == testUser.id && x.parent.HasValue && x.parent.Value == recurrenceAdded.id).ToList().Count;
 
             //Assert
             Assert.AreEqual(endCount, beginningCount + numberOfChildrenExpected + 1, "Adding daily recurrence should add plan items: recurrence + number of childrec expeced.");
@@ -333,12 +314,12 @@ namespace DanTechTests
         {
             //Arrange
             var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             var numProjects = (from x in db.dtProjects where x.user == testUser.id select x).ToList().Count;
 
             //Act
-            var numProjsFromAPI = _service.DTProjects(testUser.id);
-            var numProjsByUser = _service.DTProjects(testUser);
+            var numProjsFromAPI = _db.ProjectDTOs(testUser.id);
+            var numProjsByUser = _db.ProjectDTOs(testUser);
 
             //Assert
             Assert.AreEqual(numProjsFromAPI.Count, numProjects, "Data service returns wrong number by user id.");
@@ -349,10 +330,9 @@ namespace DanTechTests
         public void Project_Set()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var testUser = (from x in db.dtUsers where x.email == DTTestConstants.TestUserEmail select x).FirstOrDefault();
-            var testStatus = (from x in db.dtStatuses where x.title == DTTestConstants.TestStatus select x).FirstOrDefault();
-            var allProjects = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var testStatus = _db.Stati.Where(x => x.title == DTTestConstants.TestStatus).FirstOrDefault();
+            var allProjects = _db.Projects.Where(x => x.user == testUser.id).OrderBy(x => x.id).ToList();
             var newProj = new dtProject()
             {
                 shortCode = "TST",
@@ -369,12 +349,12 @@ namespace DanTechTests
             };
 
             //Act
-            var setNew_Result = _service.Set(newProj);
-            var setNew2 = _service.Set(newProj2);
+            var setNew_Result = _db.Set(newProj);
+            var setNew2 = _db.Set(newProj2);
             setNew2.notes = DTTestConstants.TestValue;
-            var setExist_Result = _service.Set(setNew2);
-            var allProjectsAfter = (from x in db.dtProjects where x.user == testUser.id select x).OrderBy(x => x.id).ToList();
-            var notesUpdated = (from x in db.dtProjects where x.id == setNew_Result.id select x).FirstOrDefault();
+            var setExist_Result = _db.Set(setNew2);
+            var allProjectsAfter = _db.Projects.Where(x => x.user == testUser.id).OrderBy(x => x.id).ToList();
+            var notesUpdated = _db.Projects.Where(x => x.id == setNew_Result.id).FirstOrDefault();
             DTTestOrganizer._numberOfProjects++;
 
             //Assert
@@ -386,11 +366,10 @@ namespace DanTechTests
         public void Recurrences_List()
         {
             //Arrange
-            var db = DTDB.getDB();
-            var numRecurrences = (from x in db.dtRecurrences select x).ToList().Count;
+            var numRecurrences = _db.RecurrenceDTOs().ToList().Count;
 
             //Act
-            var recurrences = _service.Recurrences();
+            var recurrences = _db.RecurrenceDTOs();
 
             //Assert
             Assert.AreEqual(recurrences.Count, numRecurrences, "Recurrences not correctly received.");
@@ -401,47 +380,41 @@ namespace DanTechTests
         {
             //Arrange
             string testPW = DTTestConstants.TestValue;
-            _service.SetUser(DTTestOrganizer.TestUser.id);
-            var db = DTDB.getDB();
-            var startingPW = (from x in db.dtUsers where x.id == DTTestOrganizer.TestUser.id select x.pw).FirstOrDefault();
+            _db.SetUser(DTTestOrganizer.TestUser.id);
 
             //Act
-            var res = _service.SetUserPW(testPW);
-            var setPW = (from x in db.dtUsers where x.id == DTTestOrganizer.TestUser.id select x.pw).FirstOrDefault();
+            var res = _db.SetUserPW(testPW);
+            var u = _db.Users.Where(x => x.id == DTTestOrganizer.TestUser.id).FirstOrDefault();
+            var setPW = u.pw;
 
             //Assert
             Assert.IsTrue(res, "Did not successfully set password.");
             Assert.AreEqual(testPW, setPW, "PW set to wrong value");
 
             //Cleanup
-            var u = (from x in db.dtUsers where x.id == DTTestOrganizer.TestUser.id select x).FirstOrDefault();
-            u.pw = startingPW;
-            db.SaveChanges();
         }
 
         [TestMethod]
         public void SetTestingFlag()
         {
-            var db = DTDB.getDB();
-
             //Arrange
 
             //Act
 
             //Turn off testing
-            bool testFlagBeforeToggle = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
+            bool testFlagBeforeToggle = _db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault() != null;
             if (testFlagBeforeToggle)
             {
-                _service.ToggleTestFlag();
-                testFlagBeforeToggle = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
+                _db.ToggleTestFlag();
+                testFlagBeforeToggle = _db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault() != null;
             }
 
             //Now turn it on.
-            _service.ToggleTestFlag();
-            bool testFlagShouldBeSet = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null;
-            var testInProgressFlag = (from x in db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault();
+            _db.ToggleTestFlag();
+            bool testFlagShouldBeSet = _db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault() != null;
+            var testInProgressFlag = _db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault();
             bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
-            var testDataElementFlag = (from x in db.dtTestData where x.title == DTTestConstants.TestElementKey select x).FirstOrDefault();
+            var testDataElementFlag = _db.TestData.Where(x => x.title == DTTestConstants.TestElementKey).FirstOrDefault();
 
             //Assert
             Assert.IsFalse(testFlagBeforeToggle, "Did not set initial state to 'not testing'.");
@@ -462,7 +435,7 @@ namespace DanTechTests
             var numStati = (from x in db.dtStatuses select x).ToList().Count;
 
             //Act
-            var statuses = _service.Stati();
+            var statuses = _db.StatusDTOs();
 
             //Assert
             Assert.AreEqual(statuses.Count, numStati, "Status not correctly retrieved.");

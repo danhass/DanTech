@@ -144,9 +144,15 @@ G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.MvcApplicati
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorAssemblyInfo.cache
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorAssemblyInfo.cs
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.Manifest.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.Pack.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\msbuild.DanTech.Microsoft.AspNetCore.StaticWebAssets.props
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\msbuild.build.DanTech.props
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\msbuild.buildMultiTargeting.DanTech.props
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\msbuild.buildTransitive.DanTech.props
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.TagHelpers.input.cache
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.TagHelpers.output.cache
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.RazorCoreGenerate.cache
+G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Admin\Index.cshtml.g.cs
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\GoogleSignin.cshtml.g.cs
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\GoogleTokens.cshtml.g.cs
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Home\Index.cshtml.g.cs
@@ -167,9 +173,3 @@ G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.csproj.CopyC
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.dll
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.pdb
 G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\DanTech.genruntimeconfig.cache
-G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\Razor\Views\Admin\Index.cshtml.g.cs
-G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\DanTech.StaticWebAssets.Pack.cache
-G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\msbuild.DanTech.Microsoft.AspNetCore.StaticWebAssets.props
-G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\msbuild.build.DanTech.props
-G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\msbuild.buildMultiTargeting.DanTech.props
-G:\My Drive\Projects\DP\api\DanTech\obj\Debug\netcoreapp3.1\staticwebassets\msbuild.buildTransitive.DanTech.props

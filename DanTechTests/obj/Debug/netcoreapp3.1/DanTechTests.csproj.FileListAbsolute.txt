@@ -227,12 +227,7 @@ C:\Dev\Projects\DanTech\DanTech\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTest
 C:\Dev\Projects\DanTech\DanTech\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTests.pdb
 C:\Dev\Projects\DanTech\DanTech\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTests.genruntimeconfig.cache
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\CoverletSourceRootsMapping
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\testhost.exe
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\testhost.dll
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.dll
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.Interface.dll
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.dll
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.TestPlatform.AdapterUtilities.dll
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.Views.dll
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.Views.pdb
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.deps.json
@@ -240,12 +235,12 @@ G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.runtime
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.runtimeconfig.dev.json
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\appsettings.json
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTech.exe
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\testhost.exe
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.TestPlatform.PlatformAbstractions.dll
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.deps.json
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.runtimeconfig.json
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.runtimeconfig.dev.json
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.dll
-G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.pdb
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.Interface.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Microsoft.TestPlatform.AdapterUtilities.dll
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\AutoMapper.dll
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\BouncyCastle.Crypto.dll
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\Castle.Core.dll
@@ -457,4 +452,9 @@ G:\My Drive\Projects\DP\api\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTests.cs
 G:\My Drive\Projects\DP\api\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTests.csproj.CopyComplete
 G:\My Drive\Projects\DP\api\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTests.dll
 G:\My Drive\Projects\DP\api\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTests.pdb
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.deps.json
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.runtimeconfig.json
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.runtimeconfig.dev.json
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.pdb
 G:\My Drive\Projects\DP\api\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTests.genruntimeconfig.cache

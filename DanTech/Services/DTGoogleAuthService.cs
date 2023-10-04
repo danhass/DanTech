@@ -139,11 +139,11 @@ namespace DanTech.Services
         {
             dtLogin login = new dtLogin();
             db.RemoveOutOfDateSessions();
-            var session = db.Sessions().Where(x => x.session == sessionId).FirstOrDefault();
+            var session = db.Sessions.Where(x => x.session == sessionId).FirstOrDefault();
             if (session != null)
             {
                 login.Session = session.session;
-                var user = db.Users().Where(x => x.id == session.user).FirstOrDefault();
+                var user = db.Users.Where(x => x.id == session.user).FirstOrDefault();
                 if (user != null)
                 {
                     login.Email = user.email;
@@ -165,7 +165,7 @@ namespace DanTech.Services
             Guid sessionGuid = Guid.NewGuid();
             if (userInfo != null && !string.IsNullOrEmpty(userInfo.Email) && !(string.IsNullOrEmpty(userInfo.GivenName) && string.IsNullOrEmpty(userInfo.FamilyName)))
             {
-                var user = db.Users().Where(x => (x.email != null && x.email.ToLower() == userInfo.Email.ToLower())).FirstOrDefault();
+                var user = db.Users.Where(x => (x.email != null && x.email.ToLower() == userInfo.Email.ToLower())).FirstOrDefault();
                 if (user == null)
                 {
                     user = new dtUser() { type = 1 };
@@ -183,7 +183,7 @@ namespace DanTech.Services
 
                 var hostAddress = ctx.Request.Host.Value;
 
-                var session = db.Sessions().Where(x => (x.user == user.id && x.hostAddress == hostAddress)).FirstOrDefault();
+                var session = db.Sessions.Where(x => (x.user == user.id && x.hostAddress == hostAddress)).FirstOrDefault();
                 if (session == null)
                 {
                     session = new dtSession() { user = user.id, hostAddress = hostAddress};

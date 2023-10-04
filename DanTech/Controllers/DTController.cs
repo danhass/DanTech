@@ -18,37 +18,35 @@ namespace DanTech.Controllers
     {
         protected readonly IConfiguration _configuration;
         protected readonly ILogger<DTController> _logger;
-        protected static dtdb _db = null;
-        protected DTDBDataService _svc;
+        protected IDTDBDataService _db;
         protected dtUser _user = null;
 
         public DTViewModel VM { get; set; }
 
         protected void log(string entry, string key="Debug logging")
         {
-            _db.dtMiscs.Add(new dtMisc() { title = key, value = entry });
-            _db.SaveChanges();
+            _db.Log(new dtMisc() { title = key, value = entry });
         }
 
-        public DTController(IConfiguration configuration, ILogger<DTController> logger, dtdb dtdb)
-        {
-            _db = dtdb;
+        public DTController(IConfiguration configuration, ILogger<DTController> logger, IDTDBDataService data)
+        {            
             _logger = logger;
             _configuration = configuration;
-            if (_db == null)
+
+            _db = data;
+            var rawDB = data.Instantiate(configuration);
+            if (_db == null || rawDB == null)
             {
                 throw new Exception("Database is null");
             }
 
-            _svc = new DTDBDataService(_db, _configuration.GetConnectionString("dg"));
-
-            if (!DTConstants.Initialized()) DTConstants.Init(_db);
+            if (!DTConstants.Initialized()) DTConstants.Init(rawDB);
         }
 
         protected void SetVM(string sessionId)
         {
             VM = new DTViewModel();
-            var session = (from x in _db.dtSessions where x.session == sessionId select x).FirstOrDefault();
+            var session = _db.Sessions.Where (x => x.session == sessionId).FirstOrDefault();
             if (session != null && session.userNavigation != null)
             {
                 var user = session.userNavigation;

@@ -42,10 +42,10 @@ namespace DanTechTests.Controllers
         {
             _cfg = DTTestOrganizer.InitConfiguration();
             _db = new DTDBDataService(_cfg.GetConnectionString("DG"));
-            _goodUser = _db.Users().Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
-            _goodSession = _db.Sessions().Where(x => x.user == _goodUser.id).FirstOrDefault();
-            _knownGoodUser = _db.Users().Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
-            _knownGoodSession = _db.Sessions().Where(x => x.user == _knownGoodUser.id).FirstOrDefault();
+            _goodUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            _goodSession = _db.Sessions.Where(x => x.user == _goodUser.id).FirstOrDefault();
+            _knownGoodUser = _db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
+            _knownGoodSession = _db.Sessions.Where(x => x.user == _knownGoodUser.id).FirstOrDefault();
         }
 
         [TestMethod]
@@ -66,7 +66,7 @@ namespace DanTechTests.Controllers
             //Arrange
             DTTestOrganizer.SetGoodUserData();
             var controller = DTTestOrganizer.InitializeHomeController(_db , _knownGoodSession != null, DTTestConstants.TestKnownGoodUserEmail, _knownGoodSession == null ? "" : _knownGoodSession.session);
-            _knownGoodSession = _db.Sessions().Where(x => x.user == _knownGoodUser.id).FirstOrDefault();
+            _knownGoodSession = _db.Sessions.Where(x => x.user == _knownGoodUser.id).FirstOrDefault();
 
             //Act
             var login = controller.EstablishSession();
@@ -103,7 +103,7 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var controller = DTTestOrganizer.InitializeHomeController(_db, _knownGoodSession == null, "", _knownGoodSession == null ? "" : _knownGoodSession.session);
-            _knownGoodSession = _db.Sessions().Where(x => x.user == _knownGoodUser.id).FirstOrDefault();
+            _knownGoodSession = _db.Sessions.Where(x => x.user == _knownGoodUser.id).FirstOrDefault();
             Console.WriteLine("Good session: " + _knownGoodSession.id);
 
             //Act
@@ -126,7 +126,7 @@ namespace DanTechTests.Controllers
 
             //Act
             var login = controller.EstablishSession(_knownGoodUser.token, _knownGoodUser.refreshToken);
-            var session = _db.Sessions().Where(x => x.session == login.Session);
+            var session = _db.Sessions.Where(x => x.session == login.Session);
             var cookie = "";
             foreach (var header in controller.Response.Headers.Values)
             {
@@ -164,7 +164,7 @@ namespace DanTechTests.Controllers
             var sessionJson = controller.EstablishSession(DTTestConstants.TestGoogleCode, true, DTTestConstants.LocalHostDomain);
             var login = (dtLogin)(sessionJson.Value);
             string expectSession = login.Session;
-            var storedSessionObject = controller.VM == null || controller.VM.User == null ? null : _db.Sessions().Where(x => (x.user == controller.VM.User.id && x.hostAddress == DTTestConstants.LocalHostDomain)).FirstOrDefault();
+            var storedSessionObject = controller.VM == null || controller.VM.User == null ? null : _db.Sessions.Where(x => (x.user == controller.VM.User.id && x.hostAddress == DTTestConstants.LocalHostDomain)).FirstOrDefault();
             var storedSession = storedSessionObject == null ? "None" : storedSessionObject.session;
 
             //Assert

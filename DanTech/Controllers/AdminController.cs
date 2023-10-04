@@ -12,8 +12,8 @@ namespace DanTech.Controllers
 {
     public class AdminController : DTController
     {
-        public AdminController(IConfiguration configuration, ILogger<AdminController> logger, dtdb dtdb) :
-        base(configuration, logger, dtdb)
+        public AdminController(IConfiguration configuration, ILogger<AdminController> logger, IDTDBDataService data) :
+        base(configuration, logger, data)
         {
         }
 
@@ -28,8 +28,8 @@ namespace DanTech.Controllers
         public IActionResult SetPW(string sessionId, string pw)
         {
             if (VM == null || VM.User == null) return Json(null);
-            _svc.SetUser(VM.User.id);
-            _svc.SetUserPW(pw);
+            _db.SetUser(VM.User.id);
+            _db.SetUserPW(pw);
             return View(VM);
         }
     }

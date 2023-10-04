@@ -27,6 +27,7 @@ namespace DanTechTests
     {
         private static IDTDBDataService _db = null;
         private static Mock<IDTGoogleAuthService> _google = null;
+        private static IConfiguration _config = null;
 
         public static int _numberOfProjects = 0;
         //public static dtdb DB(int numberOfProjects = 0) { if (_db == null) _db = DTDB.getDB(numberOfProjects); return _db; }
@@ -46,7 +47,7 @@ namespace DanTechTests
             var cfg = InitConfiguration();
             Conn = cfg.GetConnectionString("DG");
             _db = new DTDBDataService(Conn);
-            var testUser = _db.Users().Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             if (testUser == null)
             {
                 testUser = new dtUser() { type = 1, fName = DTTestConstants.TestUserFName, lName = DTTestConstants.TestUserLName, email = DTTestConstants.TestUserEmail };
@@ -58,9 +59,9 @@ namespace DanTechTests
 
         public static void SetGoodUserData()
         {
-            var goodUser = _db.Users().Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
+            var goodUser = _db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
             GoodGoogleTokens["AccessToken"] = goodUser.token;
-            var goodUserSession = _db.Sessions().Where(x => x.user == goodUser.id && x.hostAddress == DTTestConstants.LocalHostDomain).FirstOrDefault();
+            var goodUserSession = _db.Sessions.Where(x => x.user == goodUser.id && x.hostAddress == DTTestConstants.LocalHostDomain).FirstOrDefault();
             if (goodUserSession == null)
             {
                 goodUserSession = new dtSession() { session = Guid.NewGuid().ToString(), user = goodUser.id, expires = DateTime.Now.AddDays(7), hostAddress = DTTestConstants.LocalHostDomain };
@@ -85,11 +86,12 @@ namespace DanTechTests
 
         public static IConfiguration InitConfiguration()
         {
-            var config = new ConfigurationBuilder()
+            if (_config == null)
+             _config = new ConfigurationBuilder()
               .AddJsonFile("appsettings.json")
                .AddEnvironmentVariables()
                .Build();
-            return config;
+            return _config;
         }
 
         public static ILogger<DTController> InitLogger()
@@ -104,14 +106,14 @@ namespace DanTechTests
             return logger;
         }
 
-        public static DTController InitializeDTController(DTDBDataService db, bool withLoggedInUser, string userEmail = "")
+        public static DTController InitializeDTController(IDTDBDataService db, bool withLoggedInUser, string userEmail = "")
         {
             //Set up db
             if (withLoggedInUser)
             {
                 if (string.IsNullOrEmpty(userEmail)) userEmail = DTTestConstants.TestKnownGoodUserEmail;
-                var testUser = db.Users().Where(x => x.email == userEmail).FirstOrDefault();               
-                var testSession = db.Sessions().Where(x => (x.user == testUser.id && x.hostAddress == DTTestConstants.LocalHostDomain)).FirstOrDefault();
+                var testUser = db.Users.Where(x => x.email == userEmail).FirstOrDefault();               
+                var testSession = db.Sessions.Where(x => (x.user == testUser.id && x.hostAddress == DTTestConstants.LocalHostDomain)).FirstOrDefault();
                 if (testSession == null)
                 {
                     testSession = new dtSession() { user = testUser.id, hostAddress = DTTestConstants.LocalHostDomain };
@@ -123,7 +125,7 @@ namespace DanTechTests
 
             //Set up controller
             var logger = DTTestOrganizer.InitLogger();
-            var controller = new DTController(InitConfiguration(), logger, db.dtdb());
+            var controller = new DTController(InitConfiguration(), logger, db);
 
             return controller;
         }
@@ -134,8 +136,8 @@ namespace DanTechTests
             if (withLoggedInUser)
             {
                 if (string.IsNullOrEmpty(userEmail)) userEmail = DTTestConstants.TestUserEmail;
-                var user = db.Users().Where(x => x.email == userEmail).FirstOrDefault();
-                var testSession = db.Sessions().Where(x => x.user == user.id).FirstOrDefault();
+                var user = db.Users.Where(x => x.email == userEmail).FirstOrDefault();
+                var testSession = db.Sessions.Where(x => x.user == user.id).FirstOrDefault();
                 if (testSession == null)
                 {
                     testSession = new dtSession()
@@ -155,7 +157,7 @@ namespace DanTechTests
                 db.Set(testSession);
             }
 
-            var ctl = new HomeController(InitConfiguration(), new ServiceCollection().AddLogging().BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger<HomeController>(), (db as DTDBDataService).dtdb());
+            var ctl = new HomeController(InitConfiguration(), new ServiceCollection().AddLogging().BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger<HomeController>(), db);
             ctl.ControllerContext = new ControllerContext(new ActionContext(InitializeContext(DTTestConstants.LocalHostDomain, false, sessionId), new RouteData(), new ControllerActionDescriptor()));
             return ctl;
         }
@@ -181,16 +183,17 @@ namespace DanTechTests
 
         public static void Cleanup(IDTDBDataService db)
         {
-            var u = db.Users().Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var u = db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             if (u != null)
             {
-                db.Delete(db.Projects(u.id));
-                db.Delete(db.PlanItems().Where(x => x.user == u.id && x.parent != null).ToList());
-                db.Delete(db.PlanItems().Where(x => x.user == u.id).ToList());
+                db.Delete(db.Projects.Where(x => x.user == u.id).ToList());
+                db.Delete(db.PlanItems.Where(x => x.user == u.id && x.parent != null).ToList());
+                db.Delete(db.PlanItems.Where(x => x.user == u.id).ToList());
+                db.Delete(db.Sessions.Where(x => x.user == u.id).ToList());
                 db.Delete(u);
-                db.Delete(db.TestData().Where(x => x.title != DTTestConstants.AuthTokensNeedToBeResetKey).ToList());
+                db.Delete(db.TestData.Where(x => x.title != DTTestConstants.AuthTokensNeedToBeResetKey).ToList());
             }
-            db.Delete(db.Sessions().Where(x => x.hostAddress == DTTestConstants.TestRemoteHost).ToList());
+            db.Delete(db.Sessions.Where(x => x.hostAddress == DTTestConstants.TestRemoteHost).ToList());
         }
          
         [TestMethod]

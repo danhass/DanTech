@@ -20,12 +20,12 @@ namespace DanTech.Controllers
     public class DTAuthenticate : ActionFilterAttribute
     {
         private readonly IConfiguration _configuration;
-        private dtdb _db = null;
+        private IDTDBDataService _db = null;
         private const string _testFlagKey = "Testing in progress";
 
-        public DTAuthenticate(IConfiguration configuration, dtdb db)
+        public DTAuthenticate(IConfiguration configuration, IDTDBDataService data)
         {
-            _db = db;
+            _db = data;
             _configuration = configuration;
         }
         public override void OnActionExecuting(ActionExecutingContext context)
@@ -46,7 +46,7 @@ namespace DanTech.Controllers
             controller.VM = new DTViewModel();
             controller.VM.TestEnvironment = host.ToString().StartsWith("localhost");
             var dataService = new DTDBDataService(_configuration.GetConnectionString("dg"));
-            controller.VM.IsTesting = ((from x in _db.dtTestData where x.title == _testFlagKey select x).FirstOrDefault() != null);
+            controller.VM.IsTesting = (_db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault() != null);
             controller.VM.User = dataService.UserModelForSession(session, hostAddress);            
             if (controller.VM.User == null) context.HttpContext.Response.Cookies.Delete("dtSessionId");
 

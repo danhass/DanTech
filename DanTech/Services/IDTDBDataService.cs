@@ -1,5 +1,6 @@
 ﻿using DanTech.Data;
 using DanTech.Models.Data;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,39 +14,49 @@ namespace DanTech.Services
 
         // Utility
         void ClearResetFlags();
+        Idtdb Instantiate(IConfiguration cfg);
         void Save();
         void SetConnString(string conn);
         void SetUser(int userId);
         bool SetUserPW(string pw);
         void ToggleTestFlag();
 
-        // Data Access
-        List<dtColorCodeModel> ColorCodes();
-        List<dtProjectModel> DTProjects(int userId);
-        List<dtProjectModel> DTProjects(dtUser u);
-        List<dtProject> Projects(int userId);
-        List<dtPlanItem> PlanItems();
-        List<dtPlanItemModel> PlanItems(dtUser user,
+        // Accessors for data lists
+        List<dtColorCode> ColorCodes {  get; }
+        List<dtPlanItem> PlanItems { get; }
+        List<dtProject> Projects { get; }
+        List<dtSession> Sessions { get; }
+        List<dtStatus> Stati {  get; }
+        List<dtTestDatum> TestData { get; }
+        List<dtType> Types { get; }
+        List<dtUser> Users { get; }
+
+
+        // DTO Data Access
+        List<dtColorCodeModel> ColorCodeDTOs();
+        List<dtProjectModel> ProjectDTOs(int userId);
+        List<dtProjectModel> ProjectDTOs(dtUser u);
+        List<dtProject> ProjectsForUser(int userId);
+        List<dtPlanItemModel> PlanItemDTOs(dtUser user,
                                         int daysBack = 1,
                                         bool includeCompleted = false,
                                         bool getAll = false,
                                         int onlyProject = 0,
                                         bool onlyRecurrences = false);
-        List<dtPlanItemModel> PlanItems(int userId,
+        List<dtPlanItemModel> PlanItemDTOs(int userId,
                                         int daysBack = 1,
                                         bool includeCompleted = false,
                                         bool getAll = false,
                                         int onlyProject = 0,
                                         bool onlyRecurrences = false);
-        List<dtRecurrenceModel> Recurrences();
-        List<dtSession> Sessions();
-        List<dtStatusModel> Stati();
-        List<dtTestDatum> TestData();
+        List<dtRecurrenceModel> RecurrenceDTOs();
+        List<dtStatusModel> StatusDTOs();
         dtUserModel UserModelForSession(string session, string hostAddress);
-        List<dtUser> Users();
 
         // Data Manipulation
         bool Adjust(int userId);
+        bool Delete(dtPlanItem item);
+        bool Delete(dtProject project);
         bool Delete(dtSession session);
         bool Delete(dtUser user);
         bool Delete(List<dtPlanItem> planItems);

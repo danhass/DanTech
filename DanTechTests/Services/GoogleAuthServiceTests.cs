@@ -137,8 +137,8 @@ namespace DanTechTests
             Guid.TryParse(login.Session, out sessionAsGuid);
             var setCookie = ctx.Response.GetTypedHeaders().SetCookie.ToList()[0];
             var requestHost = ctx.Request.Host.Value;
-            var user = db.Users().Where(x => x.email == TEST_USER_EMAIL).FirstOrDefault();
-            var session = db.Sessions().Where(x => x.session == login.Session).FirstOrDefault();
+            var user = db.Users.Where(x => x.email == TEST_USER_EMAIL).FirstOrDefault();
+            var session = db.Sessions.Where(x => x.session == login.Session).FirstOrDefault();
             //Assert
             Assert.IsFalse(string.IsNullOrEmpty(login.Session), "Session id should be a string that can be parsed into a guid.");
             Assert.AreNotEqual(sessionAsGuid, Guid.Empty, "Session should not be an empty GUID.");
@@ -160,8 +160,8 @@ namespace DanTechTests
             var cfg = InitConfiguration();
             DTDBDataService db = new DTDBDataService(cfg.GetConnectionString("DG"));
             var ctrl = DTTestOrganizer.InitializeDTController(db, true);
-            var testUser = db.Users().Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
-            var testSession = db.Sessions().Where(x => x.user == testUser.id).FirstOrDefault();
+            var testUser = db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
+            var testSession = db.Sessions.Where(x => x.user == testUser.id).FirstOrDefault();
             var log = "";
 
             //Act

@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DanTech.Controllers;
+using DanTech.Services;
 
 namespace DanTech
 {
@@ -31,11 +32,12 @@ namespace DanTech
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<dtdb>(options => options.UseMySQL(Configuration.GetConnectionString("DG")));
+            //services.AddDbContext<dtdb>(options => options.UseMySQL(Configuration.GetConnectionString("DG")));
             services.AddControllersWithViews();
-            services.AddScoped<DTAuthenticate>();
             services.AddSingleton<IConfiguration>(Configuration);
-            
+            services.AddSingleton<IDTDBDataService, DTDBDataService>();
+            services.AddScoped<DTAuthenticate>();
+
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(
@@ -77,7 +79,7 @@ namespace DanTech
                 Secure = CookieSecurePolicy.Always,
                 MinimumSameSitePolicy = SameSiteMode.Strict
             });
-            app.UseCors();
+            app.UseCors(); app.ApplicationServices.GetServices<IConfiguration>().ToList();
         }
     }
 }
