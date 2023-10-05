@@ -3,24 +3,18 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Logging;
 using System.Net;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 using DanTech.Controllers;
 using Microsoft.Extensions.Configuration;
 using DanTechTests.Data;
-using DanTech.Data;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Primitives;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using System.Collections.Specialized;
 using DanTech.Services;
 
 namespace DanTechTests

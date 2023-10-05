@@ -1,11 +1,7 @@
 ﻿using Google.Apis.Oauth2.v2.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using DanTech.Data;
 using DanTech.Models.Data;
 
 

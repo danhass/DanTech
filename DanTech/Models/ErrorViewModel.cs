@@ -1,5 +1,3 @@
-using System;
-
 namespace DanTech.Models
 {
     public class ErrorViewModel

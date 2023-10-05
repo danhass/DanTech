@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+﻿using Microsoft.EntityFrameworkCore;
 using DanTech.Data;
 using System.IO;
-using Microsoft.Extensions.Configuration;
 
 namespace DanTechTests.Data
 {

@@ -458,3 +458,11 @@ G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.ru
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.dll
 G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\DanTechTests.pdb
 G:\My Drive\Projects\DP\api\DanTechTests\obj\Debug\netcoreapp3.1\DanTechTests.genruntimeconfig.cache
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\BouncyCastle.Cryptography.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\MailKit.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\MimeKit.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\System.Formats.Asn1.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\System.Security.Cryptography.Cng.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\System.Security.Cryptography.Pkcs.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\System.Text.Encoding.CodePages.dll
+G:\My Drive\Projects\DP\api\DanTechTests\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\System.Security.Cryptography.Cng.dll

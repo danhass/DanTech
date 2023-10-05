@@ -1,19 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using DanTech.Data;
 using DanTech.Models.Data;
-using System.IO;
 using DanTech.Models;
-using System.Net;
-using System.Threading;
-using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using MySqlX.XDevAPI;
 
 
 namespace DanTech.Services

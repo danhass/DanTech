@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Primitives;
-using DanTechTests.Data;
 using DanTech.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -104,6 +103,16 @@ namespace DanTechTests
 
             var logger = factory.CreateLogger<DTController>();
             return logger;
+        }
+
+        public static IDTDBDataService DataService()
+        {
+            if (_db == null)
+            {
+                if (_config == null) InitConfiguration();
+                _db = new DTDBDataService(_config.GetConnectionString("DG"));
+            }
+            return _db;
         }
 
         public static DTController InitializeDTController(IDTDBDataService db, bool withLoggedInUser, string userEmail = "")

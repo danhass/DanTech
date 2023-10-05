@@ -3,13 +3,7 @@ using DanTech.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using DanTech.Models.Data;
-using System.Web.Http.Cors;
-using System.Threading;
 
 namespace DanTech.Controllers
 {

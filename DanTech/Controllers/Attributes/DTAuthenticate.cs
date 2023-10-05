@@ -1,22 +1,11 @@
-﻿using System.Web.Http;
-using System;
-using System.Web;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
-using DanTech.Data;
 using DanTech.Models;
-using DanTech.Models.Data;
-using DanTech.Controllers;
-using Microsoft.AspNetCore.Http;
-using AutoMapper;
 using DanTech.Services;
-using System.IO;
 
 namespace DanTech.Controllers
-{     
+{
     public class DTAuthenticate : ActionFilterAttribute
     {
         private readonly IConfiguration _configuration;

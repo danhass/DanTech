@@ -1,12 +1,9 @@
 ﻿using DanTech.Data;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using DanTech.Models;
 using DanTech.Models.Data;
 using AutoMapper;
@@ -40,6 +37,7 @@ namespace DanTech.Controllers
                 throw new Exception("Database is null");
             }
 
+            var emailer = new DTGmailClient(_configuration);
             if (!DTConstants.Initialized()) DTConstants.Init(rawDB);
         }
 

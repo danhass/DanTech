@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 using DanTech.Data;
@@ -9,7 +8,6 @@ using DanTech.Services;
 using System;
 using Microsoft.Extensions.Configuration;
 using System.Net;
-using System.Diagnostics;
 
 namespace DanTechTests
 {
@@ -22,32 +20,24 @@ namespace DanTechTests
         private const string TEST_AUTH_CODE = "TestAccessToken-123456";
         private const string TEST_REFRESH_CODE = "TestRefreshToken-654321";
         private const string TEST_REMOTE_IP = "1.1.1.1";
-        private dtdb _db = null;
+        private IDTDBDataService _db = null;
         private dtUser _goodUser = null;
 
         public TestContext TestContext { get; set; }
 
         public GoogleAuthServiceTests()
         {
-            _db = DTDB.getDB();
-            _goodUser = (from x in _db.dtUsers where x.email == DTTestConstants.TestKnownGoodUserEmail select x).FirstOrDefault();
+            _db = DTTestOrganizer.DataService();
+            _goodUser = _db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
 
         }
 
-        public static IConfiguration InitConfiguration()
-        {
-            var config = new ConfigurationBuilder()
-              .AddJsonFile("appsettings.json")
-               .AddEnvironmentVariables()
-               .Build();
-            return config;
-        }   
 
         [TestMethod()]
         public void GoogleAuthEndpoint()
         {
             //Arrange
-            var config = InitConfiguration();
+            var config = DTTestOrganizer.InitConfiguration();
 
             //Act
             var google = new DTGoogleAuthService();
@@ -111,7 +101,7 @@ namespace DanTechTests
         {
             //Arrange
             if (string.IsNullOrEmpty(_goodUser.refreshToken)) Assert.Inconclusive();
-            var config = InitConfiguration();
+            var config = DTTestOrganizer.InitConfiguration();
 
             //Act
             var token = new DTGoogleAuthService().RefreshAuthToken(_goodUser.refreshToken);
@@ -128,7 +118,7 @@ namespace DanTechTests
             HttpContext ctx = new DefaultHttpContext();
             ctx.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
             ctx.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
-            var cfg = InitConfiguration();
+            var cfg = DTTestOrganizer.InitConfiguration();
             DTDBDataService db = new DTDBDataService(cfg.GetConnectionString("DG"));
 
             //Act
@@ -157,7 +147,7 @@ namespace DanTechTests
         public void SetLogin_SessionId()
         {
             //Arrange
-            var cfg = InitConfiguration();
+            var cfg = DTTestOrganizer.InitConfiguration();
             DTDBDataService db = new DTDBDataService(cfg.GetConnectionString("DG"));
             var ctrl = DTTestOrganizer.InitializeDTController(db, true);
             var testUser = db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
@@ -177,8 +167,6 @@ namespace DanTechTests
             Assert.AreEqual(testUser.email, goodLogin.Email, "Login email incorrect.");
             Assert.AreEqual(testUser.fName, goodLogin.FName, "Login first name incorrect.");
             Assert.AreEqual(testUser.lName, goodLogin.LName, "Login last name incorrect");
-
-
         }
 
     }
