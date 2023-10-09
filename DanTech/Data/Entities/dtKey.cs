@@ -1,11 +1,15 @@
-﻿#nullable disable
+﻿using System;
+using System.Collections.Generic;
 
-namespace DanTech.Data
+namespace DanTech.Data;
+
+public partial class dtKey
 {
-    public partial class dtKey
-    {
-        public int id { get; set; }
-        public string key { get; set; }
-        public string note { get; set; }
-    }
+    public int id { get; set; }
+
+    public string key { get; set; }
+
+    public string note { get; set; }
+
+    public virtual ICollection<dtAuthorization> dtAuthorizations { get; set; } = new List<dtAuthorization>();
 }

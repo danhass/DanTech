@@ -1,22 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
-#nullable disable
+namespace DanTech.Data;
 
-namespace DanTech.Data
+/// <summary>
+/// This is a system table. Users do not make custom stati.
+/// </summary>
+public partial class dtStatus
 {
-    public partial class dtStatus
-    {
-        public dtStatus()
-        {
-            dtProjects = new HashSet<dtProject>();
-        }
+    public int id { get; set; }
 
-        public int id { get; set; }
-        public string title { get; set; }
-        public string note { get; set; }
-        public int? colorCode { get; set; }
+    public string title { get; set; }
 
-        public virtual dtColorCode colorCodeNavigation { get; set; }
-        public virtual ICollection<dtProject> dtProjects { get; set; }
-    }
+    public string note { get; set; }
+
+    public int? colorCode { get; set; }
+
+    public virtual dtColorCode colorCodeNavigation { get; set; }
+
+    public virtual ICollection<dtProject> dtProjects { get; set; } = new List<dtProject>();
 }

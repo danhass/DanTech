@@ -14,5 +14,18 @@ namespace DanTechTests
     [TestClass]
     public class DTGmailClientTests
     {
+        [TestMethod()]
+        public void DTGmailClient_InstantiateAndPing()
+        {
+            //Arrange
+            var client = new DTGmailClient(DTTestOrganizer.InitConfiguration());
+
+
+            //Act
+            var result = client.Send();
+
+            //Assert
+            Assert.IsTrue(result, "Cound not call default Send() method on Gmail client");
+        }
     }
 }

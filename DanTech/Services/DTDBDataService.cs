@@ -23,7 +23,7 @@ namespace DanTech.Services
 
         public DTDBDataService(IConfiguration cfg)
         {
-            _conn = cfg.GetConnectionString("DG");
+            _conn = cfg.GetConnectionString("DG").ToString();
             InstantiateDB();
         }
 
@@ -49,6 +49,8 @@ namespace DanTech.Services
                 var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
                 optionsBuilder.UseMySQL(_conn);
                 _db = new dtdb(optionsBuilder.Options);
+                var test = (from x in _db.dtColorCodes select x).ToList();
+                var ct = test.Count;
             }
             return _db;
         }
@@ -655,7 +657,7 @@ namespace DanTech.Services
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw new Exception(ex.Message);
             }
             return items;
         }

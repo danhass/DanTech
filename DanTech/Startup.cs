@@ -23,7 +23,6 @@ namespace DanTech
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddDbContext<dtdb>(options => options.UseMySQL(Configuration.GetConnectionString("DG")));
             services.AddControllersWithViews();
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<IDTDBDataService, DTDBDataService>();

@@ -70,7 +70,7 @@ namespace DanTechTests
             Assert.AreEqual(specUserCt + 1, specUserCtAfterInsert, "Adding a spec users should increase the count of spec users.");
             Assert.IsNotNull(u, "Inserted user not found.");
             Assert.IsNull(flagBeforeSuspension, "Suspension flag wrongly set.");
-            Assert.AreEqual(u.suspended, (byte)1, "Suspension flag should be set.");
+            Assert.AreEqual(u.suspended, (SByte)1, "Suspension flag should be set.");
             Assert.AreEqual(specUserCt, specUserCtAfterRemove, "Removing spec users should have reduced user count.");
         }
 

@@ -1034,27 +1034,25 @@ namespace DanTechTests.Controllers
             int numProjects = DTTestOrganizer._numberOfProjects;
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             var testStatus = _db.Stati.Where(x => x.title == DTTestConstants.TestStatus).FirstOrDefault();
-            var allProjects = _db.Projects.OrderBy(x => x.id).ToList();
-            var existingProject = allProjects[allProjects.Count - 1]; //The last three are test projects
-            var copyOfExisting = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtProject, dtProject>(); })).Map<dtProject>(existingProject);
-            copyOfExisting.notes = "Updated by PlannerTests:SetProject";
+            string projTitle = DTTestConstants.TestProjectTitlePrefix + "_For_SetProject_Test";
+            string projTitleUpdated = projTitle + "_Updated";
             var newProj = new dtProject()
             {
                 notes = "new test item from PlannerTests:SetProject",
                 shortCode = "TST",
                 status = testStatus.id,
-                title = DTTestConstants.TestProjectTitlePrefix + "New_Test_Through_Controller",
+                title = projTitle,
                 user = testUser.id
             };
             SetControllerQueryString();
 
             //Act
             var projectsWithNewItem = _controller.SetProject(DTTestOrganizer.TestSession.session, newProj.title, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes);
-            var projectsWithUpdatedItem = _controller.SetProject(DTTestOrganizer.TestSession.session, copyOfExisting.title, copyOfExisting.shortCode, copyOfExisting.status, copyOfExisting.colorCode ?? 0, copyOfExisting.priority, copyOfExisting.sortOrder, copyOfExisting.notes);
+            var projectsWithUpdatedItem = _controller.SetProject(DTTestOrganizer.TestSession.session, projTitleUpdated, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes + "_Updated");
 
             //Assert
-            Assert.AreEqual(1,((List<dtProjectModel>)projectsWithNewItem.Value).Where(x => x.title.Contains("New_Test_Through_Controller")).ToList().Count, "Should be one new project with the title showing it was created here.");
-            Assert.AreEqual(1, ((List<dtProjectModel>)projectsWithUpdatedItem.Value).Where(x => x.notes == "Updated by PlannerTests:SetProject").ToList().Count, "Should be exactly one projected updated through this.");
+            Assert.AreEqual(1, _db.Projects.Where(x => x.title == projTitle).ToList().Count, "Should be one new project with the title showing it was created here.");
+            Assert.AreEqual(1, _db.Projects.Where(x => x.title == projTitleUpdated).ToList().Count, "Should be exactly one projected updated through this.");
 
             //Antiseptic
             _db.Delete(_db.Projects.Where(x => x.title == newProj.title).ToList());

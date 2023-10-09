@@ -1,16 +1,21 @@
-﻿#nullable disable
+﻿using System;
+using System.Collections.Generic;
 
-namespace DanTech.Data
+namespace DanTech.Data;
+
+public partial class dtConfig
 {
-    public partial class dtConfig
-    {
-        public int id { get; set; }
-        public int key { get; set; }
-        public string value { get; set; }
-        public int type { get; set; }
-        public int user { get; set; }
+    public int id { get; set; }
 
-        public virtual dtType typeNavigation { get; set; }
-        public virtual dtUser userNavigation { get; set; }
-    }
+    public int key { get; set; }
+
+    public string value { get; set; }
+
+    public int type { get; set; }
+
+    public int user { get; set; }
+
+    public virtual dtType typeNavigation { get; set; }
+
+    public virtual dtUser userNavigation { get; set; }
 }

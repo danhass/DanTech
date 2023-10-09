@@ -59,6 +59,8 @@ namespace DanTechTests
         public static void SetGoodUserData()
         {
             var goodUser = _db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
+            var badSessions = _db.Sessions.Where(x => x.user == goodUser.id && x.hostAddress != DTTestConstants.LocalHostDomain).ToList();
+            _db.Delete(badSessions);
             GoodGoogleTokens["AccessToken"] = goodUser.token;
             var goodUserSession = _db.Sessions.Where(x => x.user == goodUser.id && x.hostAddress == DTTestConstants.LocalHostDomain).FirstOrDefault();
             if (goodUserSession == null)

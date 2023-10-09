@@ -29,6 +29,7 @@ namespace DanTech.Controllers
         {            
             _logger = logger;
             _configuration = configuration;
+            var dgCon = _configuration.GetConnectionString("DG");
 
             _db = data;
             var rawDB = data.Instantiate(configuration);
