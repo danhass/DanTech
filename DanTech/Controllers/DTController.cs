@@ -4,8 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
-using DanTech.Models;
-using DanTech.Models.Data;
+using DanTech.Data.Models;
 using AutoMapper;
 using DanTech.Services;
 
@@ -39,7 +38,7 @@ namespace DanTech.Controllers
             }
 
             var emailer = new DTGmailClient(_configuration);
-            if (!DTConstants.Initialized()) DTConstants.Init(rawDB);
+            if (!DTDBConstants.Initialized()) DTDBConstants.Init(rawDB);
         }
 
         protected void SetVM(string sessionId)

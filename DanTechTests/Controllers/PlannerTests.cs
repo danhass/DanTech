@@ -8,7 +8,7 @@ using DanTech.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
-using DanTech.Models.Data;
+using DanTech.Data.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -49,7 +49,7 @@ namespace DanTechTests.Controllers
                 testSession.session = DTTestOrganizer.TestSession.session;
                 testSession = _db.Set(testSession);
             }
-            _controller.VM = new DanTech.Models.DTViewModel();
+            _controller.VM = new DanTech.Data.Models.DTViewModel();
             _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(_testUser);
         }
         private void SetControllerQueryString(string sessionId = "")

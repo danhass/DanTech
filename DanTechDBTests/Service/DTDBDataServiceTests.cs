@@ -1,24 +1,21 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
+﻿using AutoMapper;
 using DanTech.Data;
-using DanTechTests.Data;
 using DanTech.Data.Models;
 using DanTech.Services;
-using System;
-using AutoMapper;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DanTechTests
+namespace DanTechDBTests.Service
 {
     [TestClass]
-    public class DbDataServiceTests
+    public class DTDBDataServiceTests
     {
         private static string classTestName = "";
         private const string _testFlagKey = "Testing in progress";
-        private DTDBDataService _db = null;
+        private DTDBDataService? _db = null;
 
-        public DbDataServiceTests()
+        public DTDBDataServiceTests()
         {
-            _db = new DTDBDataService(DTTestOrganizer.Conn);
+            _db = DTTestOrganizer.DB() as DTDBDataService;
         }
 
         [TestMethod]
@@ -85,10 +82,10 @@ namespace DanTechTests
         {
             //Arrange
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
-            string recurrenceTitle = DTTestConstants.TestValue + " for AddRecurrence Test";
+            string recurrenceTitle = DTTestConstants.TestString + " for AddRecurrence Test";
             var beginningCount = _db.PlanItems.Where(x => x.user == testUser.id && (x.completed == null || !x.completed.Value)).ToList().Count;
             var beginningRecurrenceCt = _db.PlanItems.Where(x => x.user == testUser.id && x.recurrence != null).ToList().Count;
-            dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(13), recurrence = DTTestConstants.RecurrenceId_Daily, user = testUser.id };
+            dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(13), recurrence = (int)DtRecurrence.Daily_Weekly, user = testUser.id };
 
             //Act
             var results = _db.Set(recurrence);
@@ -112,24 +109,24 @@ namespace DanTechTests
         public void PlanItem_ClearPastDue()
         {
             //Arrange
-            var testUser = DTTestOrganizer.TestUser;
+            var testUser = DTTestConstants.TestUser;
             var numItems = _db.PlanItems.Where(x => x.user == testUser.id).Count();
             dtPlanItemModel model = new dtPlanItemModel()
             {
-                title = DTTestConstants.TestPlanItemMinimumTitle,
+                title = DTTestConstants.TestString + " (Min)",
                 day = DateTime.Parse(DateTime.Now.ToShortDateString()),
                 userId = testUser.id
             };
             dtPlanItemModel modelForPastDue = new dtPlanItemModel()
             {
-                title = DTTestConstants.TestPlanItemMinimumTitle + " 2 days old",
+                title = DTTestConstants.TestString + " (2 days old)",
                 day = DateTime.Parse(DateTime.Now.AddDays(-2).ToShortDateString()),
                 completed = true,
                 userId = testUser.id
             };
             dtPlanItemModel modelForPastDuePreserve = new dtPlanItemModel()
             {
-                title = DTTestConstants.TestPlanItemMinimumTitle + " 2 days old preserved",
+                title = DTTestConstants.TestString + " (2 days old preserved)",
                 day = DateTime.Parse(DateTime.Now.AddDays(-2).ToShortDateString()),
                 completed = true,
                 preserve = true,
@@ -137,13 +134,13 @@ namespace DanTechTests
             };
             dtPlanItemModel modelForPastDueNotComplete = new dtPlanItemModel()
             {
-                title = DTTestConstants.TestPlanItemMinimumTitle + " 2 days old not complete",
+                title = DTTestConstants.TestString + " (2 days old not complete)",
                 day = DateTime.Parse(DateTime.Now.AddDays(-2).ToShortDateString()),
                 userId = testUser.id
             };
             dtPlanItemModel modelForFutureItem = new dtPlanItemModel()
             {
-                title = DTTestConstants.TestPlanItemMinimumTitle + " 2 days in future",
+                title = DTTestConstants.TestString + " (2 days in future)",
                 day = DateTime.Parse(DateTime.Now.AddDays(+2).ToShortDateString()),
                 userId = testUser.id
             };
@@ -156,17 +153,17 @@ namespace DanTechTests
             var incomplete = _db.Set(modelForPastDueNotComplete);
             var future = _db.Set(model);
             var items = _db.PlanItemDTOs(testUser.id);
-            var itemsAfterSets = _db.PlanItems.Where(x => x.user == testUser.id).ToList();  
-            
+            var itemsAfterSets = _db.PlanItems.Where(x => x.user == testUser.id).ToList();
+
             //Assert
             Assert.AreEqual(itemsAfterSets.Count, numItems + 4, "Should be 4 more items in db after sets with completed past due deleted.");
             Assert.AreEqual(itemsBeforeSet.Count + 3, items.Count, "Only baseline and future should be added to current items.");
 
             //Antiseptic
             _db.Delete(baseline);
-            _db.Delete(preserve); 
+            _db.Delete(preserve);
             _db.Delete(incomplete);
-            _db.Delete(future); 
+            _db.Delete(future);
         }
 
         [TestMethod]
@@ -178,7 +175,7 @@ namespace DanTechTests
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel()
             {
-                title = DTTestConstants.TestValue + " Min Item 1",
+                title = DTTestConstants.TestString + " (Min Item 1)",
                 day = DateTime.Now.AddDays(2).Date,
                 user = mapper.Map<dtUserModel>(testUser),
                 userId = testUser.id
@@ -186,17 +183,17 @@ namespace DanTechTests
 
             dtPlanItemModel model2 = new dtPlanItemModel()
             {
-                title = DTTestConstants.TestValue + " Min Item 2",
+                title = DTTestConstants.TestString + " (Min Item 2)",
                 day = DateTime.Now.AddDays(1).Date,
                 user = mapper.Map<dtUserModel>(testUser),
                 userId = testUser.id,
-                note = DTTestConstants.TestValue2
+                note = DTTestConstants.TestString2
             };
 
             //Act
             var item = _db.Set(model);
             int newItemId = item.id;
-            item.note = DTTestConstants.TestValue;
+            item.note = DTTestConstants.TestString3;
             item = _db.Set(item);
             var item2 = _db.Set(model2);
             var itemList = _db.PlanItemDTOs(testUser);
@@ -204,10 +201,10 @@ namespace DanTechTests
             //Assert
             Assert.IsTrue(newItemId > 0, "Plan item creation failed.");
             Assert.IsTrue(item.id == newItemId, "Plan item update did not work.");
-            Assert.AreEqual(item.note, DTTestConstants.TestValue, "Did not properly update plan item.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.id == item.id).First().note, DTTestConstants.TestValue, "Did not properly update item note.");
+            Assert.AreEqual(item.note, DTTestConstants.TestString3, "Did not properly update plan item.");
+            Assert.AreEqual(_db.PlanItems.Where(x => x.id == item.id).First().note, DTTestConstants.TestString3, "Did not properly update item note.");
             Assert.IsTrue(item2.id > item.id, "Order of item creation is not correct.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.id == item2.id).First().note, DTTestConstants.TestValue2, "Second test value not set correctly.");
+            Assert.AreEqual(_db.PlanItems.Where(x => x.id == item2.id).First().note, DTTestConstants.TestString2, "Second test value not set correctly.");
             Assert.IsTrue(itemList.Where(x => x.title == model2.title).FirstOrDefault().day < itemList.Where(x => x.title == model.title).FirstOrDefault().day, "Date ordering of plan items is not correct");
 
             //Antiseptic
@@ -223,7 +220,7 @@ namespace DanTechTests
             var config = new MapperConfiguration(cfg => cfg.CreateMap<dtUser, dtUserModel>());
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel(
-                DTTestConstants.TestPlanItemAdditionalTitle,
+                DTTestConstants.TestString + " (No end Data)",
                 string.Empty,
                 DateTime.Now.AddDays(5).ToShortDateString(),
                 DTTestConstants.TestTimeSpanStart,
@@ -262,7 +259,7 @@ namespace DanTechTests
             var mapper = new Mapper(config);
             dtPlanItemModel model = new dtPlanItemModel()
             {
-                title = DTTestConstants.TestPlanItemMinimumTitle + " Delete Test",
+                title = DTTestConstants.TestString + " (Delete Test)",
                 day = DateTime.Now.AddDays(2).Date,
                 user = mapper.Map<dtUserModel>(testUser),
                 userId = testUser.id
@@ -284,11 +281,11 @@ namespace DanTechTests
         {
             //Arrange
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
-            string recurrenceTitle = DTTestConstants.TestValue + " for T-Th Recurrence Test";
+            string recurrenceTitle = DTTestConstants.TestString + " (T-Th Recurrence Test)";
             var beginningCount = _db.PlanItems.Where(x => x.user == testUser.id && (x.completed == null || !x.completed.Value)).ToList().Count;
             var beginningRecurrenceCt = _db.PlanItems.Where(x => x.user == testUser.id && x.recurrence != null).ToList().Count;
             //Create a T-Th recurrence
-            dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(14), recurrence = DTTestConstants.RecurrenceId_Daily, recurrenceData = "--*-*--", user = testUser.id };
+            dtPlanItem recurrence = new dtPlanItem() { title = recurrenceTitle, day = DateTime.Parse(DateTime.Now.ToShortDateString()), start = DateTime.Parse(DateTime.Now.ToShortDateString()).AddHours(14), recurrence = (int)DtRecurrence.Daily_Weekly, recurrenceData = "--*-*--", user = testUser.id };
             //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
             DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
             int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
@@ -350,15 +347,19 @@ namespace DanTechTests
             //Act
             var setNew_Result = _db.Set(newProj);
             var setNew2 = _db.Set(newProj2);
-            setNew2.notes = DTTestConstants.TestValue;
+            setNew2.notes = DTTestConstants.TestString + " (Proj note)";
             var setExist_Result = _db.Set(setNew2);
             var allProjectsAfter = _db.Projects.Where(x => x.user == testUser.id).OrderBy(x => x.id).ToList();
             var notesUpdated = _db.Projects.Where(x => x.id == setNew_Result.id).FirstOrDefault();
-            DTTestOrganizer._numberOfProjects++;
 
             //Assert
             Assert.AreEqual(allProjects.Count + 2, allProjectsAfter.Count, "Should have added 2 new projects.");
-            Assert.AreEqual(setNew2.notes, DTTestConstants.TestValue, "Should have updated existing project to show new note.");
+            Assert.AreEqual(setNew2.notes, DTTestConstants.TestString + " (Proj note)", "Should have updated existing project to show new note.");
+            Assert.AreEqual(setExist_Result.notes, DTTestConstants.TestString + " (Proj note)", "Should have updated existing project to show new note.");
+ 
+            //Cleanup
+            _db.Delete(setExist_Result);
+            _db.Delete(setNew_Result);
         }
 
         [TestMethod]
@@ -378,12 +379,12 @@ namespace DanTechTests
         public void SetPW_Success()
         {
             //Arrange
-            string testPW = DTTestConstants.TestValue;
-            _db.SetUser(DTTestOrganizer.TestUser.id);
+            string testPW = DTTestConstants.TestString;
+            _db.SetUser(DTTestConstants.TestUser.id);
 
             //Act
             var res = _db.SetUserPW(testPW);
-            var u = _db.Users.Where(x => x.id == DTTestOrganizer.TestUser.id).FirstOrDefault();
+            var u = _db.Users.Where(x => x.id == DTTestConstants.TestUser.id).FirstOrDefault();
             var setPW = u.pw;
 
             //Assert
@@ -412,7 +413,7 @@ namespace DanTechTests
             _db.ToggleTestFlag();
             bool testFlagShouldBeSet = _db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault() != null;
             var testInProgressFlag = _db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault();
-            bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestValue);
+            bool setTestDataElementResult = DTDBDataService.SetIfTesting(DTTestConstants.TestElementKey, DTTestConstants.TestString);
             var testDataElementFlag = _db.TestData.Where(x => x.title == DTTestConstants.TestElementKey).FirstOrDefault();
 
             //Assert
@@ -423,7 +424,7 @@ namespace DanTechTests
             Assert.AreEqual(testInProgressFlag.value, DTTestConstants.TestStringTrueValue, "Test in progress element has wrong value");
             Assert.IsTrue(setTestDataElementResult, "Failed to set test element.");
             Assert.IsNotNull(testDataElementFlag, "Test data element not correctly set.");
-            Assert.AreEqual(testDataElementFlag.value, DTTestConstants.TestValue, "Testing flag not set.");
+            Assert.AreEqual(testDataElementFlag.value, DTTestConstants.TestString, "Testing flag not set.");
         }
 
         [TestMethod]

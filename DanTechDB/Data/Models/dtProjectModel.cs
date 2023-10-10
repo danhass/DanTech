@@ -17,8 +17,23 @@ namespace DanTech.Data.Models
         public int? sortOrder { get; set; }
         [AllowNull]
         public dtUserModel user { get; set; }
-        public int colorCodeId { get; set; }
+        public int? colorCodeId { get; set; }
         public int status { get; set; }
+
+        public dtProjectModel() { }
+        public dtProjectModel(dtProject proj)
+        {
+            id = proj.id;
+            title = proj.title;
+            shortCode = proj.shortCode;
+            notes = proj.notes;
+            priority = proj.priority;
+            sortOrder = proj.sortOrder;
+            colorCodeId = proj.colorCode;
+            status = proj.status;
+            Mapper userMap = new Mapper(dtUserModel.mapperConfiguration);
+            user = userMap.Map<dtUserModel>(proj.userNavigation);
+        }
 
         public static MapperConfiguration mapperConfiguration
         {

@@ -192,7 +192,7 @@ namespace DanTechTests
             var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
 
             //Assert
-            Assert.IsNull(controller.VM.User, "Invalid user from query string.");
+            Assert.AreEqual(0,controller.VM.User.id, "Invalid user from query string.");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
         }
 
@@ -234,7 +234,7 @@ namespace DanTechTests
 
             //Assert
             Assert.IsNotNull(controller.VM, "Controller's VM not set.");
-            Assert.IsNull(controller.VM.User, "User should be null.");
+            Assert.AreEqual(0,controller.VM.User.id, "User should be null.");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
         }
     }

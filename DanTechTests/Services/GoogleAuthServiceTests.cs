@@ -93,6 +93,7 @@ namespace DanTechTests
 
             //Assert
             Assert.IsFalse(string.IsNullOrEmpty(_goodUser.email), "Could not find known good user.");
+            Assert.IsNotNull(userInfo);
             Assert.AreEqual(_goodUser.email, userInfo.Email, "Did not retrieve expected info.");
         }
 

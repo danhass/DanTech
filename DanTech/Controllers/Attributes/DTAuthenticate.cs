@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
-using DanTech.Models;
+using DanTech.Data.Models;
 using DanTech.Services;
 
 namespace DanTech.Controllers

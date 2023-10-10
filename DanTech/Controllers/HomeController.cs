@@ -1,4 +1,4 @@
-﻿using DanTech.Models;
+﻿using DanTech.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
@@ -9,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using DanTech.Services;
 using Microsoft.AspNetCore.Http;
 using System.Web.Http.Cors;
-using DanTech.Models.Data;
 
 namespace DanTech.Controllers
 {

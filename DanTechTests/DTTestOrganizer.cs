@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Google.Apis.Oauth2.v2.Data;
 using Moq;
+using System.IO;
 
 namespace DanTechTests
 {
@@ -74,7 +75,7 @@ namespace DanTechTests
             _google.Setup(x => x.AuthToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(BadGoogleTokens);
             _google.Setup(x => x.AuthToken(DTTestConstants.TestGoogleCode, DTTestConstants.LocalHostDomain, It.IsAny<string>())).Returns(GoodGoogleTokens);
             _google.Setup(x => x.SetLogin(It.IsAny<Userinfo>(), It.IsAny<HttpContext>(), It.IsAny<IDTDBDataService>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(new DanTech.Models.Data.dtLogin() { Email = goodUser.email, FName = goodUser.fName, LName = goodUser.lName, Session = goodUserSession.session });
+                .Returns(new DanTech.Data.Models.dtLogin() { Email = goodUser.email, FName = goodUser.fName, LName = goodUser.lName, Session = goodUserSession.session });
 
             TestSession = goodUserSession;
         }
@@ -87,12 +88,11 @@ namespace DanTechTests
 
         public static IConfiguration InitConfiguration()
         {
-            if (_config == null)
-             _config = new ConfigurationBuilder()
-              .AddJsonFile("appsettings.json")
-               .AddEnvironmentVariables()
-               .Build();
-            return _config;
+            var bldr = new ConfigurationBuilder()
+                            .SetBasePath(Directory.GetCurrentDirectory())
+                            .AddJsonFile("appsettings.json");
+            var config = bldr.Build();
+            return config;
         }
 
         public static ILogger<DTController> InitLogger()

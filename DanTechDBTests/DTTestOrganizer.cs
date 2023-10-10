@@ -1,69 +1,4 @@
-﻿
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -89,7 +24,7 @@ namespace DanTechDBTests
         {
             var bldr = new ConfigurationBuilder()
                             .SetBasePath(Directory.GetCurrentDirectory())
-                            .AddJsonFile("appsettings.json");
+                            .AddJsonFile("appsettings.db.json");
             var config = bldr.Build();
 
             _conn = config.GetConnectionString(DTTestConstants.ConnectionStringSegment) ?? string.Empty;

@@ -45,5 +45,9 @@
     <PackageReference Include="System.Web.Http.Common" Version="4.0.20126.16343" />
     <PackageReference Include="WebMatrix.WebData" Version="2.0.30506" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\DanTechDB\DanTechDB.csproj" />
+  </ItemGroup>
 
 </Project>

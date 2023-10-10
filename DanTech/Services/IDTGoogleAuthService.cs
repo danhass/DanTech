@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
-using DanTech.Models.Data;
+using DanTech.Data.Models;
 
 
 namespace DanTech.Services

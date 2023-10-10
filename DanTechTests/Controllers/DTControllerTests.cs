@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using DanTech.Data;
-using DanTech.Models.Data;
+using DanTech.Data.Models;
 using DanTech.Services;
 
 namespace DanTechTests.Controllers
@@ -113,7 +113,7 @@ namespace DanTechTests.Controllers
                 {
                     foreach (var h in header)
                     {
-                        if (h.StartsWith(DTConstants.SessionKey))
+                        if (h.StartsWith("dtSession"))
                         {
                             if (h.Split(";").Length > 0 && h.Split(";")[0].Split("=", 2).Length > 1) cookie = h.Split(";")[0].Split("=", 2)[1];
                             cookieCount = cookieCount + 1;

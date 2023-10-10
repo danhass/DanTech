@@ -14,7 +14,7 @@ namespace DantechDB
                 .AddJsonFile("appsettings.json");
             var config = bldr.Build();
 
-            _db = new DTDBDataService(config.GetConnectionString("DT")!);
+            _db = new DTDBDataService(config.GetConnectionString("DG")!);
 
             Console.WriteLine("There are " + _db.ColorCodes.Count + " color codes");
 
