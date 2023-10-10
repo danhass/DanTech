@@ -363,3 +363,8 @@ MigrationBackup/
 FodyWeavers.xsd
 /DanTech/appsettings.json
 /DanTech/appsettings.json
+/DanTechDBTests/appsettings.json
+/DanTechDB/appsettings.json
+/DanTechDB/appsettings.db.json
+/DanTechTests/appsettings.json
+/DanTechDBTests/appsettings.json
