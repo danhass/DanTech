@@ -49,8 +49,16 @@ namespace DanTechDBTests
                     DTTestConstants.TestUser = _db.Set(usr);
                 }
             }
-
-            if (DTTestConstants.TestProject == null)
+            if (DTTestConstants.TestSession == null)
+            {
+                DTTestConstants.TestSession = _db.Sessions.Where(x => x.user == DTTestConstants.TestUser.id).FirstOrDefault();
+                if (DTTestConstants.TestSession == null)
+                {
+                    var session = new dtSession() { user = DTTestConstants.TestUser.id, expires = DateTime.Now.AddDays(7), hostAddress = DTTestConstants.TestReturnDomain, session = Guid.NewGuid().ToString() };
+                    DTTestConstants.TestSession = _db.Set(session);
+                }
+            }
+           if (DTTestConstants.TestProject == null)
             {
                 DTTestConstants.TestProject = _db.Projects.Where(x => x.title == DTTestConstants.TestString + " (Project)").FirstOrDefault();
                 if (DTTestConstants.TestProject == null)

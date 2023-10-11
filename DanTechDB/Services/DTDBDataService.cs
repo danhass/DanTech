@@ -121,6 +121,14 @@ namespace DanTech.Services
                 return (from x in _db.dtColorCodes select x).ToList();
             }
         }
+        public List<dtMisc> Misces
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtMiscs select x).ToList();
+            }
+        }
         public List<dtPlanItem> PlanItems
         {
             get
@@ -423,6 +431,14 @@ namespace DanTech.Services
             }
             return true;
         }
+        public bool Delete(dtMisc item)
+        {
+            if (item == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtMiscs.Remove(item);
+            Save();
+            return true;
+        }
         public bool Delete(dtPlanItem item)
         {
             if (item == null) return false;
@@ -720,6 +736,27 @@ namespace DanTech.Services
             Save();
             return result;
         }
+        public dtMisc Set(dtMisc item)
+        {
+            if (_db == null) _db = InstantiateDB() as dtdb;
+            dtMisc? existing = null;
+            if (item.id > 0)
+            {
+                existing = (from x in _db.dtMiscs where x.id == item.id select x).FirstOrDefault();
+            }
+            if (existing == null)
+            {
+                existing = item;
+            }
+            else
+            {
+                existing.title = item.title;
+                existing.value = item.value;
+            }
+            if (existing.id < 1) _db.dtMiscs.Add(existing);
+            Save();
+            return existing;
+        }
         public dtProject Set(dtProject project)
         {
             if (_db == null) _db = InstantiateDB() as dtdb;
@@ -728,7 +765,6 @@ namespace DanTech.Services
             {
                 existing = (from x in _db.dtProjects where x.id == project.id select x).FirstOrDefault();
             }
-
             if (existing == null)
             {
                 existing = project;
@@ -864,6 +900,46 @@ namespace DanTech.Services
             if (m != null) m.value = value;
             _db.SaveChanges();
             return true;
+        }
+        public dtLogin? SetLogin(string email, string hostAddress)
+        {
+            dtLogin login = new dtLogin();
+            RemoveOutOfDateSessions();
+            var user = Users.Where(x => x.email == email).FirstOrDefault();
+            if (user == null) return null;
+            var session = Sessions.Where(x => x.user == user.id).FirstOrDefault();
+            if (session == null)
+            {
+                session = Set(new dtSession() { user = user.id, hostAddress = hostAddress, expires = DateTime.Now.AddDays(7), session = Guid.NewGuid().ToString() });
+            }
+            if (session != null) 
+            { 
+                login.Session = session.session;
+                login.Email = user.email;
+                login.FName = user.fName;
+                login.LName = user.lName;                
+            }
+            else
+            {
+                Log(new dtMisc() { title = "Cannot set session", value = "Invalid session; email: " + email + "; host: " + hostAddress });
+                login.Message = "Invalid session";
+            }
+            return login;
+        }
+        public dtLogin? SetLogin(string email, string fname, string lname, string hostAddress, int userType, string accessToken, string refreshToken)
+        {
+            dtUser? usr = Users.Where(x => x.email == email).FirstOrDefault();
+            if (usr == null)
+            {
+                usr = new dtUser() { email = email };
+            }
+            usr.fName = fname;
+            usr.lName = lname;
+            usr.token = accessToken;
+            usr.refreshToken = refreshToken;
+            usr.type = userType;
+            usr = Set(usr);
+            return SetLogin(email, hostAddress);
         }
         public void SetUser(int userId)
         {

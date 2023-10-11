@@ -3687,6 +3687,23 @@
         "runtime": {
           "bin/placeholder/DanTechDB.dll": {}
         }
+      },
+      "DTGoogleAuth/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v6.0",
+        "dependencies": {
+          "DanTechDB": "1.0.0",
+          "Google.Apis.Auth.AspNetCore3": "1.57.0",
+          "Google.Apis.Gmail.v1": "1.57.0.2650",
+          "Google.Apis.Oauth2.v2": "1.57.0.1869",
+          "Google.Apis.PeopleService.v1": "1.57.0.2707"
+        },
+        "compile": {
+          "bin/placeholder/DTGoogleAuth.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/DTGoogleAuth.dll": {}
+        }
       }
     }
   },
@@ -10259,11 +10276,17 @@
       "type": "project",
       "path": "../DanTechDB/DanTechDB.csproj",
       "msbuildProject": "../DanTechDB/DanTechDB.csproj"
+    },
+    "DTGoogleAuth/1.0.0": {
+      "type": "project",
+      "path": "../DTGoogleAuth/DTGoogleAuth.csproj",
+      "msbuildProject": "../DTGoogleAuth/DTGoogleAuth.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net6.0": [
       "AutoMapper >= 11.0.1",
+      "DTGoogleAuth >= 1.0.0",
       "DanTechDB >= 1.0.0",
       "EASendMail >= 7.9.1.9",
       "Google.Apis.Auth.AspNetCore3 >= 1.57.0",
@@ -10322,6 +10345,9 @@
           "projectReferences": {
             "G:\\My Drive\\Projects\\DP\\api\\DanTechDB\\DanTechDB.csproj": {
               "projectPath": "G:\\My Drive\\Projects\\DP\\api\\DanTechDB\\DanTechDB.csproj"
+            },
+            "G:\\My Drive\\Projects\\DP\\api\\DTGoogleAuth\\DTGoogleAuth.csproj": {
+              "projectPath": "G:\\My Drive\\Projects\\DP\\api\\DTGoogleAuth\\DTGoogleAuth.csproj"
             }
           }
         }

@@ -22,6 +22,7 @@ namespace DanTech.Services
         List<dtColorCode> ColorCodes { get; }
         List<dtPlanItem> PlanItems { get; }
         List<dtProject> Projects { get; }
+        List<dtMisc> Misces { get; }
         List<dtSession> Sessions { get; }
         List<dtStatus> Stati { get; }
         List<dtTestDatum> TestData { get; }
@@ -54,6 +55,7 @@ namespace DanTech.Services
         // Data Manipulation
         bool Adjust(int userId);
         bool Delete(dtPlanItem item);
+        bool Delete(dtMisc item);
         bool Delete(dtProject project);
         bool Delete(dtSession session);
         bool Delete(dtUser user);
@@ -66,11 +68,15 @@ namespace DanTech.Services
         dtMisc Log(dtMisc aLogEntry);
         bool Propagate(int itemId, int userId);
         void RemoveOutOfDateSessions();
+        dtMisc Set(dtMisc item);
         dtProject Set(dtProject project);
         dtPlanItem Set(dtPlanItem planItem);
         dtPlanItem Set(dtPlanItemModel planItem);
         dtUser Set(dtUser aUser);
         dtSession Set(dtSession aSession);
-        int UpdateRecurrences(int userId, int sourceItem = 0, bool force = false);
+
+        dtLogin SetLogin(string email, string hostAddress);
+        public dtLogin? SetLogin(string email, string fname, string lname, string hostAddress, int userType, string accessToken, string refreshToken);
+        int UpdateRecurrences(int userId, int sourceItem = 0, bool force = false);       
     }
 }

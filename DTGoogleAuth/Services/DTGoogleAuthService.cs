@@ -15,10 +15,13 @@ namespace DanTech.Services
 {
     public class DTGoogleAuthService : IDTGoogleAuthService
     {
-        private static readonly string GoogleAuthEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
-        private static readonly string GoogleCalendarScope = "https://www.googleapis.com/auth/calendar";
-        private static readonly string GoogleUserInfoEmailScope = "https://www.googleapis.com/auth/userinfo.email";
-        private static readonly string GoogleUserInfoProfileScope = "https://www.googleapis.com/auth/userinfo.profile";
+        public static readonly string GoogleAuthEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+        public static readonly string GoogleCalendarScope = "https://www.googleapis.com/auth/calendar";
+        public static readonly string GoogleUserInfoEmailScope = "https://www.googleapis.com/auth/userinfo.email";
+        public static readonly string GoogleUserInfoProfileScope = "https://www.googleapis.com/auth/userinfo.profile";
+        public static readonly string GoogleMailScope = "https://mail.google.com/";
+        public static readonly string GoogleGmailSendScope = "https://www.googleapis.com/auth/gmail.send";
+        public static readonly string GoogleGmailModifyScope = "https://www.googleapis.com/auth/gmail.modify";
 
         private IConfiguration? _config = null;
 
@@ -73,11 +76,11 @@ namespace DanTech.Services
             return tokenString;
         }
 
-        public Dictionary<string, string> AuthToken(string code, string domain, List<string> scopes, string endPoint = "")
+        public Dictionary<string, string> AuthToken(string code, string domain, List<string> scopes, IConfiguration config, string endPoint = "")
         {
-            if (string.IsNullOrEmpty(endPoint) || domain.StartsWith("https://localhost:44324")) endPoint = "/Home/GoogleSignin";
+            if (string.IsNullOrEmpty(endPoint)) endPoint = "/Home/GoogleSignin";
+            if (!endPoint.StartsWith("/")) endPoint = "/" + endPoint;
             Dictionary<string, string> res = new Dictionary<string, string>();
-            var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build();
             var clientSecrets = new ClientSecrets
             {
                 ClientId = config.GetValue<string>("Google:ClientId"),
@@ -113,7 +116,7 @@ namespace DanTech.Services
             return res;
         }
 
-        public Userinfo GetUserInfo (string token, string refreshToken = "")
+        public Userinfo? GetUserInfo (string? token, string? refreshToken = "")
         {
             var cred = GoogleCredential.FromAccessToken(token, null);
             var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
@@ -144,64 +147,6 @@ namespace DanTech.Services
                 }
             }
             return userInfo;
-        }
-
-        public dtLogin SetLogin(string sessionId, string hostAddress, IDTDBDataService db, ref string log)
-        {
-            dtLogin login = new dtLogin();
-            db.RemoveOutOfDateSessions();
-            var session = db.Sessions.Where(x => x.session == sessionId).FirstOrDefault();
-            if (session != null)
-            {
-                login.Session = session.session;
-                var user = db.Users.Where(x => x.id == session.user).FirstOrDefault();
-                if (user != null)
-                {
-                    login.Email = user.email;
-                    login.FName = user.fName;
-                    login.LName = user.lName;
-                }
-            }
-            else
-            {
-                log += "Invalid session";
-                login.Message = log;
-            }
-            return login;
-        }
-
-        public dtLogin SetLogin(Userinfo userInfo, string hostAddress, IDTDBDataService db, string accessToken, string refreshToken)
-        {
-            dtLogin login = new dtLogin();
-            Guid sessionGuid = Guid.NewGuid();
-            if (userInfo != null && !string.IsNullOrEmpty(userInfo.Email) && !(string.IsNullOrEmpty(userInfo.GivenName) && string.IsNullOrEmpty(userInfo.FamilyName)))
-            {
-                var user = db.Users.Where(x => (x.email != null && x.email.ToLower() == userInfo.Email.ToLower())).FirstOrDefault();
-                if (user == null)
-                {
-                    user = new dtUser() { type = 1 };
-                }
-                user.email = userInfo.Email;
-                user.fName = userInfo.GivenName;
-                user.lName = userInfo.FamilyName;
-                user.lastLogin = DateTime.Now;
-                user.token = accessToken;
-                user.refreshToken = refreshToken;
-                user = db.Set(user);
-                login.Email = userInfo.Email;
-                login.FName = userInfo.GivenName;
-                login.LName = userInfo.FamilyName;
-
-                var session = db.Sessions.Where(x => (x.user == user.id && x.hostAddress == hostAddress)).FirstOrDefault();
-                if (session == null)
-                {
-                    session = new dtSession() { user = user.id, hostAddress = hostAddress};
-                }
-                session.session = sessionGuid.ToString();
-                session = db.Set(session);
-                login.Session = sessionGuid.ToString();
-            }
-            return login;
         }
     }
 }
