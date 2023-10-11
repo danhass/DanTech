@@ -27,7 +27,7 @@ namespace DanTech.Services
 
         public void SetConfig(IConfiguration config) { _config = config; }
  
-        public string AuthService(string returnDomain, string returnHandler, List<string> scopes)
+        public string AuthService(string returnDomain, string returnHandler, List<string> scopes, bool gmail = false)
         {
             if (_config == null) throw new Exception("Must set config file with Google Info.");
             if (scopes == null || scopes.Count == 0) throw new Exception("Must have at least one scope for Google Auth");
@@ -38,24 +38,25 @@ namespace DanTech.Services
                 if (i > 0) r += " ";
                 r += scopes[i];
             }
+            string clientId = gmail ? _config.GetValue<string>("Gmail:ClientId") : _config.GetValue<string>("Google:ClientId");
             r += "&state=google_signin" +
                 "&redirect_uri=https://" + returnDomain + (returnHandler.StartsWith('/') ? "" : "/") + returnHandler +
                 "&access_type=offline" +
                 "&response_type=code" +
-                "&client_id=" + _config.GetValue<string>("Google:ClientId");
+                "&client_id=" + clientId;
 
             return r;
         }
 
-        public string RefreshAuthToken(string refreshToken, List<string> scopes)
+        public string RefreshAuthToken(string refreshToken, List<string> scopes, bool gmail = false)
         {
             string tokenString = "";
             if (_config == null) throw new Exception("Must set config file with Google Info.");
 
             var clientSecrets = new ClientSecrets
             {
-                ClientId = _config.GetValue<string>("Google:ClientId"),
-                ClientSecret = _config.GetValue<string>("Google:ClientSecret")
+                ClientId = gmail ? _config.GetValue<string>("Gmail:ClientId") : _config.GetValue<string>("Google:ClientId"),
+                ClientSecret = gmail ? _config.GetValue<string>("Gmail:ClientSecret") : _config.GetValue<string>("Google:ClientSecret")
             };
             var credential = new GoogleAuthorizationCodeFlow(
                 new GoogleAuthorizationCodeFlow.Initializer
@@ -76,15 +77,15 @@ namespace DanTech.Services
             return tokenString;
         }
 
-        public Dictionary<string, string> AuthToken(string code, string domain, List<string> scopes, IConfiguration config, string endPoint = "")
+        public Dictionary<string, string> AuthToken(string code, string domain, List<string> scopes, IConfiguration config, string endPoint = "", bool gmail = false)
         {
             if (string.IsNullOrEmpty(endPoint)) endPoint = "/Home/GoogleSignin";
             if (!endPoint.StartsWith("/")) endPoint = "/" + endPoint;
             Dictionary<string, string> res = new Dictionary<string, string>();
             var clientSecrets = new ClientSecrets
             {
-                ClientId = config.GetValue<string>("Google:ClientId"),
-                ClientSecret = config.GetValue<string>("Google:ClientSecret")
+                ClientId = gmail ? _config.GetValue<string>("Gmail:ClientId") : _config.GetValue<string>("Google:ClientId"),
+                ClientSecret = gmail ? _config.GetValue<string>("Gmail:ClientSecret") : _config.GetValue<string>("Google:ClientSecret")
             };
 
             var credential = new GoogleAuthorizationCodeFlow(
@@ -116,7 +117,7 @@ namespace DanTech.Services
             return res;
         }
 
-        public Userinfo? GetUserInfo (string? token, string? refreshToken = "")
+        public Userinfo? GetUserInfo (string? token, string? refreshToken = "", bool gmail = false)
         {
             var cred = GoogleCredential.FromAccessToken(token, null);
             var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
@@ -134,8 +135,18 @@ namespace DanTech.Services
             }
             if ((userInfo == null || string.IsNullOrEmpty(userInfo.Email)) && !string.IsNullOrEmpty(refreshToken))
             {
-
-                cred = GoogleCredential.FromAccessToken(RefreshAuthToken(refreshToken, new List<string>() { GoogleUserInfoEmailScope, GoogleUserInfoProfileScope, GoogleCalendarScope }));
+                List<string> scopes = new List<string>() { GoogleUserInfoEmailScope, GoogleUserInfoProfileScope };
+                if (gmail)
+                {
+                    scopes.Add(GoogleMailScope);
+                    scopes.Add(GoogleGmailSendScope);
+                    scopes.Add(GoogleGmailModifyScope);
+                }
+                else
+                {
+                    scopes.Add(GoogleCalendarScope);
+                }
+                cred = GoogleCredential.FromAccessToken(RefreshAuthToken(refreshToken, scopes));
                 oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer() { HttpClientInitializer = cred });
                 try
                 {

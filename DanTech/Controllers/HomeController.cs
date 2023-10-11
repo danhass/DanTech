@@ -76,6 +76,29 @@ namespace DanTech.Controllers
 
         [ServiceFilter(typeof(DTAuthenticate))]
         [DisableCors]
+        public IActionResult GoogleGmailSignin(string code)
+        {
+            dtMisc testDatum = new dtMisc() { title = "Google GMail Signin Code", value = code };
+            _db.Log(testDatum);
+            string domain = Request.Scheme + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
+            var googleAuthService = new DTGoogleAuthService();
+            googleAuthService.SetConfig(_configuration);
+            var tokens = googleAuthService.AuthToken(code, domain, new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope }, _configuration, "Home/GoogleGmailSignin", true);
+            var cred = GoogleCredential.FromAccessToken(tokens["AccessToken"], null);
+            var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = cred
+            });
+            var userInfo = oauthSerivce.Userinfo.Get().Execute();
+            var login = _db.SetLogin(userInfo.Email, userInfo.GivenName, userInfo.FamilyName, domain, 1, tokens["AccessToken"], tokens["RefreshToken"]);
+            SetVM(login.Session);
+            Response.Cookies.Delete("dtSessionId");
+            Response.Cookies.Append("dtSessionId", login.Session);
+            return RedirectToAction("Index", "Home");
+        }
+
+        [ServiceFilter(typeof(DTAuthenticate))]
+        [DisableCors]
         public IActionResult SaveGoogleCode(string code)
         {
             dtMisc? testDatum = _db.Misces.Where(x => x.title == "Google Signin Code").FirstOrDefault();
@@ -200,6 +223,14 @@ namespace DanTech.Controllers
             return Redirect(google.AuthService(domain, "Home/SaveGoogleCode", new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope } ));
         }
 
+        [DisableCors]
+        public IActionResult SigninForGmail()
+        {
+            string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
+            var google = new DTGoogleAuthService();
+            google.SetConfig(_configuration);
+            return Redirect(google.AuthService(domain, "Home/GoogleGmailSignin", new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope, DTGoogleAuthService.GoogleMailScope, DTGoogleAuthService.GoogleGmailSendScope, DTGoogleAuthService.GoogleGmailModifyScope }, true));
+        }
         [DisableCors]
         public IActionResult Register(string email)
         {
