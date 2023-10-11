@@ -53,9 +53,7 @@ namespace DTGoogleAuthTests
         public void DTGoogleAuth_UserInfoTest()
         {
             //Arrange
-            var svc = new DTGoogleAuthService();
-            svc.SetConfig(DTTestOrganizer.GetConfiguration()!);
-
+            var svc = DTTestOrganizer.Service();
             //Act
             var userInfo = svc.GetUserInfo(DTTestConstants.TestGoogleAuth, DTTestConstants.TestGoogleRefresh);
 

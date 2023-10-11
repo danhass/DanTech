@@ -63,8 +63,21 @@ namespace DanTechGoogleAuthTests
         public static void SetTokens()
         {
             var tokens = _svc.AuthToken(DTTestConstants.TestGoogleCode!, DTTestConstants.TestReturnDomain, new List<string>() { DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleCalendarScope }, DTTestOrganizer.GetConfiguration(), DTTestConstants.TestReturnEndPoint);
-            if (tokens != null && !string.IsNullOrEmpty(tokens["AccessToken"])) DTTestConstants.TestGoogleAuth = tokens["AccessToken"];
-            if (tokens != null && !string.IsNullOrEmpty(tokens["RefreshToken"])) DTTestConstants.TestGoogleRefresh = tokens["RefreshToken"];
+            if (tokens != null && !string.IsNullOrEmpty(tokens["AccessToken"]))
+            {
+                DTTestConstants.TestGoogleAuth = tokens["AccessToken"];
+                if (DTTestConstants.TestKnownGoodUser != null) DTTestConstants.TestKnownGoodUser.token = tokens["AccessToken"];
+            }
+            if (tokens != null && !string.IsNullOrEmpty(tokens["RefreshToken"]))
+            {
+                DTTestConstants.TestGoogleRefresh = tokens["RefreshToken"];
+                if (DTTestConstants.TestKnownGoodUser != null) DTTestConstants.TestKnownGoodUser.refreshToken = tokens["RefreshToken"];
+            }
+            
+            if (DTTestConstants.TestKnownGoodUser != null)
+            {
+                DTTestConstants.TestKnownGoodUser = _db.Set(DTTestConstants.TestKnownGoodUser);
+            }
         }
 
         [AssemblyCleanup]

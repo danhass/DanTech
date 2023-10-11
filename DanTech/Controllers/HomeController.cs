@@ -82,6 +82,13 @@ namespace DanTech.Controllers
             if (testDatum == null) testDatum = new dtMisc() { title = "Google Signin Code", value = code };
             else testDatum.value = code;
             _db.Set(testDatum);
+            dtUser? testUser = _db.Users.Where(x => x.email == DTControllerConstants.EmailUsedForTesting).FirstOrDefault();
+            if (testUser != null)
+            {
+                testUser.token = "";
+                testUser.refreshToken = "";
+                _db.Set(testUser);
+            }
             return RedirectToAction("Index", "Home");
         }
 

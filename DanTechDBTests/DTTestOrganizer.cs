@@ -86,6 +86,8 @@ namespace DanTechDBTests
         [AssemblyCleanup]
         public static void Cleanup()
         {
+            _db.Delete(_db.PlanItems.Where(x => x.user == DTTestConstants.TestUser.id && x.title.StartsWith("DTDB Test") && x.parent != null).ToList());
+            _db.Delete(_db.PlanItems.Where(x => x.user == DTTestConstants.TestUser.id && x.title.StartsWith("DTDB Test") && x.parent == null).ToList());
             _db.Delete(DTTestConstants.TestPlanItem);
             _db.Delete(DTTestConstants.TestProject);
             _db.Delete(DTTestConstants.TestUser);

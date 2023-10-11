@@ -15,7 +15,7 @@ namespace DanTechDBTests
         public static string TestString2 = "Another DTDB Test String";
         public static string TestString3 = "Yet another DTDB Test String";
         public static string TestString4 = "Even another DTDB Test String";
-        public static string TestUserEmail = "test@test.com";
+        public static string TestUserEmail = "DTDBtester@test.com";
         public static string TestBadUserEmail = "x@x.com";
         public static dtPlanItem? TestPlanItem = null;
         public static dtProject? TestProject = null;
