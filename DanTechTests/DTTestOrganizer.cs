@@ -72,8 +72,8 @@ namespace DanTechTests
 
             _google = new Mock<IDTGoogleAuthService>();
 
-            _google.Setup(x => x.AuthToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>(), It.IsAny<IConfiguration>(), It.IsAny<string>())).Returns(BadGoogleTokens);
-            _google.Setup(x => x.AuthToken(DTTestConstants.TestGoogleCode, DTTestConstants.LocalHostDomain, It.IsAny<List<string>>(), It.IsAny<IConfiguration>(), It.IsAny<string>())).Returns(GoodGoogleTokens);
+            _google.Setup(x => x.AuthToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>(), It.IsAny<IConfiguration>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(BadGoogleTokens);
+            _google.Setup(x => x.AuthToken(DTTestConstants.TestGoogleCode, DTTestConstants.LocalHostDomain, It.IsAny<List<string>>(), It.IsAny<IConfiguration>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(GoodGoogleTokens);
             
             TestSession = goodUserSession;
         }

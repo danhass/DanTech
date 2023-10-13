@@ -336,7 +336,7 @@ namespace DanTech.Services
             if (!string.IsNullOrEmpty(session))
             {
                 var sessionRecord = (from x in _db.dtSessions where x.session == session select x).FirstOrDefault();
-                if (sessionRecord == null || sessionRecord.expires < DateTime.Now || sessionRecord.hostAddress != hostAddress)
+                if (sessionRecord == null || sessionRecord.expires < DateTime.Now)
                 {
                     if (sessionRecord != null)
                     {
@@ -917,7 +917,10 @@ namespace DanTech.Services
                 login.Session = session.session;
                 login.Email = user.email;
                 login.FName = user.fName;
-                login.LName = user.lName;                
+                login.LName = user.lName;
+                session.expires = DateTime.Now.AddDays(7);
+                session.hostAddress = hostAddress;
+                session = Set(session);
             }
             else
             {

@@ -18,9 +18,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DanTechDB", "DanTechDB\DanT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DanTechDBTests", "DanTechDBTests\DanTechDBTests.csproj", "{AE95EB6A-9C77-4DF4-9B41-ED83BFCA6510}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTGoogleAuth", "DTGoogleAuth\DTGoogleAuth.csproj", "{0ED54A3C-D764-4246-8C10-AC46175D6CBE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTGoogleAuth", "DTGoogleAuth\DTGoogleAuth.csproj", "{0ED54A3C-D764-4246-8C10-AC46175D6CBE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTGoogleAuthTests", "DTGoogleAuthTests\DTGoogleAuthTests.csproj", "{FB0ACFA2-DECF-41D9-A400-858A2D7A7915}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTGoogleAuthTests", "DTGoogleAuthTests\DTGoogleAuthTests.csproj", "{FB0ACFA2-DECF-41D9-A400-858A2D7A7915}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTGmail", "DTGmail\DTGmail.csproj", "{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +58,10 @@ Global
 		{FB0ACFA2-DECF-41D9-A400-858A2D7A7915}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB0ACFA2-DECF-41D9-A400-858A2D7A7915}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB0ACFA2-DECF-41D9-A400-858A2D7A7915}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -22,6 +22,8 @@ namespace DanTech.Controllers
             //The session id must be the first parameter on the query string. If not then it can be a cookie on the request,
             //  but CORS can prevent receiving request cookies.
             var hostAddress = context.HttpContext.Request.Host.Value;
+            var path = context.HttpContext.Request.Path;
+
             var session = context.HttpContext.Request.QueryString.Value.StartsWith("?sessionId=") ? 
                    context.HttpContext.Request.QueryString.Value.Split("&")[0].Split("=")[1] :
                    context.HttpContext.Request.Cookies["dtSessionId"];

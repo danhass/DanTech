@@ -15,6 +15,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Http;
+using EASendMail;
+using System.Threading.Tasks;
+using System;
 
 namespace DanTech.Controllers
 {
@@ -83,7 +86,7 @@ namespace DanTech.Controllers
             string domain = Request.Scheme + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
             var googleAuthService = new DTGoogleAuthService();
             googleAuthService.SetConfig(_configuration);
-            var tokens = googleAuthService.AuthToken(code, domain, new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope }, _configuration, "Home/GoogleGmailSignin", true);
+            var tokens = googleAuthService.AuthToken(code, domain, new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope, DTGoogleAuthService.GoogleMailScope, DTGoogleAuthService.GoogleGmailSendScope, DTGoogleAuthService.GoogleGmailModifyScope }, _configuration, "Home/GoogleGmailSignin", true);
             var cred = GoogleCredential.FromAccessToken(tokens["AccessToken"], null);
             var oauthSerivce = new Google.Apis.Oauth2.v2.Oauth2Service(new BaseClientService.Initializer()
             {
@@ -115,6 +118,35 @@ namespace DanTech.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [ServiceFilter(typeof(DTAuthenticate))]
+        [DisableCors]
+        public IActionResult TestGmail()
+        {
+            ViewBag.Message = "Sending test email";
+
+            ViewBag.Email = _configuration.GetValue<string>("Gmail:Email");
+
+            var User = _db.Users.Where(x => x.email == ViewBag.Email).FirstOrDefault();
+            ViewBag.Token = User != null ? User.token : "Not found";
+
+            string Result = "";
+            try
+            {
+                var gmailSvc = new DTGmailService();
+                gmailSvc.SetConfig(_configuration);
+                gmailSvc.SetAuthToken(User.token);
+                gmailSvc.SetMailMessage("TryIt", User.email, new List<string>() { "hass.dan@gmail.com" }, "Test email from DTGmailService", "", "<b>Test</b> body (html)", new List<string>() { @"C:\Users\hassd\Documents\AT&T.pdf", @"C:\Users\hassd\Documents\WF.0723.pdf" });
+                gmailSvc.Send();
+                Result = "Email was sent successfully!";
+            }
+            catch (Exception ep)
+            {
+                Result = String.Format("Failed to send email with the following error: {0}", ep.Message);
+            }
+            ViewBag.Result = Result;
+            var v = VM;
+            return View(VM);
+        }
         [Microsoft.AspNetCore.Mvc.Route("/google")]
         [DisableCors]
         public JsonResult EstablishSession(string code, bool useCaller, string domain)
@@ -125,10 +157,12 @@ namespace DanTech.Controllers
             {
                 domain = Request.Headers["protocol"] + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
             }
+            var hostAddress = this.HttpContext.Request.Host.Value;
+
             string sessionId = "None";
             var googleAuthService = _google == null ? new DTGoogleAuthService() : _google;
             googleAuthService.SetConfig(_configuration);
-            var tokens = googleAuthService.AuthToken(code, domain, new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope}, _configuration, "Home/GoogleSignin");
+            var tokens = googleAuthService.AuthToken(code, domain, new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope}, _configuration, "/google");
             if (!string.IsNullOrEmpty(tokens["AccessToken"]))
             {
                 var cred = GoogleCredential.FromAccessToken(tokens["AccessToken"], null);
@@ -137,10 +171,10 @@ namespace DanTech.Controllers
                     HttpClientInitializer = cred
                 });
                 var userInfo = oauthSerivce.Userinfo.Get().Execute();
-                login = _db.SetLogin(userInfo.Email, userInfo.GivenName, userInfo.FamilyName, domain, 1, tokens["AccessToken"], tokens["RefreshToken"]);
+                login = _db.SetLogin(userInfo.Email, userInfo.GivenName, userInfo.FamilyName, hostAddress, 1, tokens["AccessToken"], tokens["RefreshToken"]);
                 SetVM(login.Session);
                 Response.Cookies.Delete("dtSessionId");
-                Response.Cookies.Append("dtSessionId", sessionId);
+                Response.Cookies.Append("dtSessionId", login.Session);
             }
             var json = Json(login);
             return json;
