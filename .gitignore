@@ -370,3 +370,4 @@ FodyWeavers.xsd
 /DanTechDBTests/appsettings.json
 /DTGoogleAuth/appsettings.GoogleAuth.json
 /DTGoogleAuthTests/appsettings.GoogleAuth.json
+/DTGmail/appsetting.Gmail.json
