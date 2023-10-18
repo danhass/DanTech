@@ -30,8 +30,7 @@ namespace DanTechTests.Controllers
 
         public PlannerTests()
         {
-            _db = new DTDBDataService(_config.GetConnectionString("DG"));
-
+            _db = DTTestOrganizer.DataService();
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
                 .BuildServiceProvider();

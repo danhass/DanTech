@@ -20,7 +20,7 @@ namespace DanTechTests.Controllers
         public DTControllerTests()
         {
             _cfg = DTTestOrganizer.InitConfiguration();
-            _db = new DTDBDataService(_cfg.GetConnectionString("DG"));
+            _db = (DTTestOrganizer.DataService() as DTDBDataService);
             _goodUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             _goodSession = _db.Sessions.Where(x => x.user == _goodUser.id).FirstOrDefault();
             _knownGoodUser = _db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
@@ -32,7 +32,7 @@ namespace DanTechTests.Controllers
         {
             //Arrange
             var config = DTTestOrganizer.InitConfiguration();
-            var db = new DTDBDataService(config.GetConnectionString("DG"));
+            var db = DTTestOrganizer.DataService();
             var controller = DTTestOrganizer.InitializeDTController(db, true);           
 
             //Assert

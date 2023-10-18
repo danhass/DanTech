@@ -44,9 +44,9 @@ namespace DanTechTests
         [AssemblyInitialize()]
         public static void Init(TestContext context)
         {
-            var cfg = InitConfiguration();
-            Conn = cfg.GetConnectionString("DG");
-            _db = new DTDBDataService(Conn);
+            _config = InitConfiguration();
+            Conn = _config.GetConnectionString("DG");
+            _db = DataService();
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             if (testUser == null)
             {

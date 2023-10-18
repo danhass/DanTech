@@ -36,9 +36,8 @@ namespace DanTech.Controllers
             var host = context.HttpContext.Request.Host;
             controller.VM = new DTViewModel();
             controller.VM.TestEnvironment = host.ToString().StartsWith("localhost");
-            var dataService = new DTDBDataService(_configuration.GetConnectionString("dg"));
             controller.VM.IsTesting = (_db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault() != null);
-            controller.VM.User = dataService.UserModelForSession(session, hostAddress);            
+            controller.VM.User = _db.UserModelForSession(session, hostAddress);            
             if (controller.VM.User == null) context.HttpContext.Response.Cookies.Delete("dtSessionId");
 
             //Since we are validating with the session, we are fine with CORS here.

@@ -55,5 +55,9 @@
     <ProjectReference Include="..\DTGmail\DTGmail.csproj" />
     <ProjectReference Include="..\DTGoogleAuth\DTGoogleAuth.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
 
 </Project>

@@ -16,7 +16,7 @@ namespace DanTechTests.Controllers
 
         public AdminTests()
         {
-            if (_db == null) _db = new DTDBDataService(_config);
+            if (_db == null) _db = DTTestOrganizer.DataService();
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
                 .BuildServiceProvider();

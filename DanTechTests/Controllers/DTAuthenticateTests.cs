@@ -32,7 +32,7 @@ namespace DanTechTests
             if (_db == null)
             {
                 var cfg = DTTestOrganizer.InitConfiguration();
-                _db = new DTDBDataService(cfg.GetConnectionString("DG"));
+                _db = DTTestOrganizer.DataService();
             }
         }
         private IDTDBDataService GetDB()
@@ -41,7 +41,7 @@ namespace DanTechTests
             if (_db == null)
             {
                 var cfg = DTTestOrganizer.InitConfiguration();
-                _db = new DTDBDataService(cfg.GetConnectionString("DG"));
+                _db = DTTestOrganizer.DataService();
             }
             return _db;
         }
@@ -125,7 +125,7 @@ namespace DanTechTests
         {
             //Arrange
             var config = DTTestOrganizer.InitConfiguration();
-            var db = new DTDBDataService(config.GetConnectionString("DG"));
+            var db = _db;
             var controller = DTTestOrganizer.InitializeDTController(db, true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.LocalHostDomain);    
@@ -153,7 +153,7 @@ namespace DanTechTests
         {
             //Arrange 
             var config = DTTestOrganizer.InitConfiguration();
-            var db = new DTDBDataService(config.GetConnectionString("DG"));
+            var db = _db;
             var controller = DTTestOrganizer.InitializeDTController(db, true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.LocalHostDomain);
@@ -177,7 +177,7 @@ namespace DanTechTests
         {
             //Arrange
             var config = DTTestOrganizer.InitConfiguration();
-            var db = new DTDBDataService(config.GetConnectionString("DG"));
+            var db = _db;
             var controller = DTTestOrganizer.InitializeDTController(db, true, "");
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);

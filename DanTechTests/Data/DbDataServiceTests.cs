@@ -18,7 +18,7 @@ namespace DanTechTests
 
         public DbDataServiceTests()
         {
-            _db = new DTDBDataService(DTTestOrganizer.Conn);
+            _db = DTTestOrganizer.DataService() as DTDBDataService;
         }
 
         [TestMethod]

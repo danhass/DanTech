@@ -332,6 +332,7 @@ namespace DanTech.Services
         public dtUserModel UserModelForSession(string session, string hostAddress)
         {
             if (_db == null) _db = InstantiateDB() as dtdb;
+            //Log(new dtMisc() { title = "UserModelForSession data: ", value = "Session: " + session + "; hostAddress: " + hostAddress });
             dtUserModel mappedUser = new dtUserModel();
             if (!string.IsNullOrEmpty(session))
             {
@@ -348,10 +349,12 @@ namespace DanTech.Services
                     var user = (from x in _db.dtUsers where x.id == sessionRecord.user select x).FirstOrDefault();
                     if (user == null)
                     {
+                        Log(new dtMisc() { title = "UserModelForSession data: ", value = "User is null." });
                         _db.dtSessions.Remove(sessionRecord);
                     }
                     else
                     {
+                        Log(new dtMisc() { title = "UserModelForSession data: ", value = "User: " + user});
                         var config = dtUserModel.mapperConfiguration;
                         var mapper = new Mapper(config);
                         mappedUser = mapper.Map<dtUserModel>(user);

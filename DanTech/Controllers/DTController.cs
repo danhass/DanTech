@@ -37,7 +37,8 @@ namespace DanTech.Controllers
                 throw new Exception("Database is null");
             }
 
-            var emailer = new DTGmailClient(_configuration);
+            var emailer = new DTGmailService();
+            emailer.SetConfig(_configuration);
             if (!DTDBConstants.Initialized()) DTDBConstants.Init(rawDB);
         }
 
