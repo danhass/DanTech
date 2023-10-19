@@ -12,6 +12,7 @@ namespace DanTech.Services
         // Utility
         void ClearResetFlags();
         Idtdb Instantiate(IConfiguration cfg);
+        bool PendingChanges();
         void Save();
         void SetConnString(string conn);
         void SetUser(int userId);

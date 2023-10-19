@@ -48,6 +48,10 @@ namespace DanTech.Services
             if (!DTDBConstants.Initialized()) DTDBConstants.Init(_db!);
         }
 
+        public bool PendingChanges()
+        {
+            return (_db.ChangeTracker.Entries().ToList().Count > 0);
+        }
         private Idtdb InstantiateDB()
         {
             if (string.IsNullOrEmpty(_conn)) throw new Exception("Must set connection string to instantiate the data service");
@@ -93,7 +97,11 @@ namespace DanTech.Services
         }
         public void Save()
         {
-            _db.SaveChanges();
+            try
+            {
+                _db.SaveChanges();
+            }
+            catch (Exception ex) { }
         }
         public void ToggleTestFlag()
         {
@@ -366,7 +374,6 @@ namespace DanTech.Services
             return mappedUser!;
         }
         #endregion DTO Data Access
-
 
         #region Data Maniuplation
         public bool Adjust(int userId)

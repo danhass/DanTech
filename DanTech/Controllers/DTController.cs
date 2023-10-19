@@ -41,7 +41,10 @@ namespace DanTech.Controllers
             emailer.SetConfig(_configuration);
             if (!DTDBConstants.Initialized()) DTDBConstants.Init(rawDB);
         }
-
+        ~DTController()
+        {
+            if (_db.PendingChanges()) _db.Save();
+        }
         protected void SetVM(string sessionId)
         {
             VM = new DTViewModel();
