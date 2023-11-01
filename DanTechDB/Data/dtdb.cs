@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace DanTech.Data;
 
@@ -16,9 +17,10 @@ public partial class dtdb : DbContext, Idtdb
         _connection = connection;
     }
 
-    public dtdb(DbContextOptions<dtdb> options)
+    public dtdb(DbContextOptions<dtdb> options, IConfiguration cfg)
         : base(options)
     {
+        if (cfg != null) _connection = cfg.GetConnectionString("DG");
     }
 
     public virtual DbSet<dtAuthorization> dtAuthorizations { get; set; }

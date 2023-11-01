@@ -47,6 +47,7 @@ namespace DanTechGoogleAuthTests
 
             var allTestCodes = _db.Misces.Where(x => x.title == DTTestConstants.TestGoogleCodeKey).OrderByDescending(x => x.id).ToList();
             if (allTestCodes.Count > 0) DTTestConstants.TestGoogleCode = allTestCodes[0].value;
+            else DTTestConstants.NoTestGoogleCodes = true;
 
             _svc = new DTGoogleAuthService();
             _svc.SetConfig(_cfg);

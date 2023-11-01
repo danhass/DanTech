@@ -16,6 +16,8 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Primitives;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using DanTech.Services;
+using System.Threading.Tasks;
+using DanTech.Data;
 
 namespace DanTechTests
 {
@@ -47,7 +49,7 @@ namespace DanTechTests
         }
         private DTController ExecuteWithLoggedInUser(string host)
         {
-            var controller = DTTestOrganizer.InitializeDTController(_db, true);
+            var controller = DTTestOrganizer.InitializeDTController(true);
             var httpContext = DTTestOrganizer.InitializeContext(host, true);
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
@@ -63,14 +65,17 @@ namespace DanTechTests
 
         private void RemoveTestSession()
         {
+            /*
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             var testSession = _db.Sessions.Where(x => x.user == testUser.id).FirstOrDefault();
             _db.Delete(testSession);
+            */
         }
 
         [TestMethod]
-        public void ActionExecutingTest_SetTestEnv()
+        public async Task ActionExecutingTest_SetTestEnv()
         {
+            
             //Arrange
 
             //Act
@@ -80,12 +85,14 @@ namespace DanTechTests
             RemoveTestSession();
 
             //Assert
-            Assert.IsTrue(controller.VM.TestEnvironment, "path that begins with localhost should result in test env flag of true.");           
+            Assert.IsTrue(controller.VM.TestEnvironment, "path that begins with localhost should result in test env flag of true.");   
+            
         }
 
         [TestMethod]
-        public void ActionExecutingTest_SetNotTestEnv()
+        public async Task ActionExecutingTest_SetNotTestEnv()
         {
+            
             //Arrange
  
             //Act
@@ -98,12 +105,14 @@ namespace DanTechTests
             //Assert
             Assert.IsFalse(controller.VM.TestEnvironment, "path that does not begin with localhost should result in test env flag of false.");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+            
         }
 
 
         [TestMethod]
-        public void ActionExecutingTest_UserLoggedIn()
+        public async Task ActionExecutingTest_UserLoggedIn()
         {
+            
             //Arrange
             var db = DTDB.getDB();
 
@@ -118,15 +127,17 @@ namespace DanTechTests
             Assert.IsNotNull(controller.VM.User, "User not set on VM.");
             Assert.AreEqual(controller.VM.User.email, DTTestConstants.TestKnownGoodUserEmail, "User set incorrectly");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+            
         }
 
         [TestMethod]
-        public void ActionExecutingTest_SessionInPostData()
+        public async Task ActionExecutingTest_SessionInPostData()
         {
+            
             //Arrange
             var config = DTTestOrganizer.InitConfiguration();
             var db = _db;
-            var controller = DTTestOrganizer.InitializeDTController(db, true);
+            var controller = DTTestOrganizer.InitializeDTController(true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.LocalHostDomain);    
             httpContext.Request.Headers.Add(HeaderNames.ContentType, new StringValues("application/x-www-form-urlencoded"));
@@ -146,15 +157,17 @@ namespace DanTechTests
             //Assert
             Assert.IsNotNull(controller.VM.User, "Could not set user from post data.");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+            
         }
 
         [TestMethod]
-        public void ActionExecutingTest_SessionOnQueryString()
+        public async Task ActionExecutingTest_SessionOnQueryString()
         {
+            
             //Arrange 
             var config = DTTestOrganizer.InitConfiguration();
             var db = _db;
-            var controller = DTTestOrganizer.InitializeDTController(db, true);
+            var controller = DTTestOrganizer.InitializeDTController(true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.LocalHostDomain);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + DTTestOrganizer.TestSession.session);
@@ -170,15 +183,17 @@ namespace DanTechTests
             //Assert
             Assert.IsNotNull(controller.VM.User, "Coult not set user from query string");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+            
         }
 
         [TestMethod]
-        public void ActionExectutingTest_SessionQueryStringWithInvalid()
+        public async Task ActionExectutingTest_SessionQueryStringWithInvalid()
         {
+            
             //Arrange
             var config = DTTestOrganizer.InitConfiguration();
             var db = _db;
-            var controller = DTTestOrganizer.InitializeDTController(db, true, "");
+            var controller = DTTestOrganizer.InitializeDTController(true, null);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + Guid.Empty.ToString());
@@ -194,18 +209,18 @@ namespace DanTechTests
             //Assert
             Assert.AreEqual(0,controller.VM.User.id, "Invalid user from query string.");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+            
         }
 
         [TestMethod]
-        public void ActionExecutingTest_UserNotLoggedIn()
+        public async Task ActionExecutingTest_UserNotLoggedIn()
         {
-            //Arrange
-
-            //Set up db
-            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault(); ;
+            
+            //Arrange            
+            var testUser = DTTestOrganizer.TestUser;
 
             //Remove any session for this user
-            var testSession = _db.Sessions.Where(x => x.user == testUser.id).FirstOrDefault();
+            var testSession = DTTestOrganizer.TestUserSession;
             
             //Set up context
             var httpContext = new DefaultHttpContext();
@@ -222,7 +237,9 @@ namespace DanTechTests
             //Set up controller
             var config = DTTestOrganizer.InitConfiguration();
             var logger = DTTestOrganizer.InitLogger();
-            var controller = new DTController(config, logger, _db);
+            var dbctx = new dtdb(config.GetConnectionString("DG"));
+            var db = new DTDBDataService(config, dbctx);
+            var controller = new DTController(config, logger, db, dbctx);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
@@ -236,6 +253,7 @@ namespace DanTechTests
             Assert.IsNotNull(controller.VM, "Controller's VM not set.");
             Assert.AreEqual(0,controller.VM.User.id, "User should be null.");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");
+            
         }
     }
 }

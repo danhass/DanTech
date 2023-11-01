@@ -15,42 +15,43 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using DanTech.Services;
+using System.Threading.Tasks;
+using System.Drawing.Text;
+using System.Threading;
 
 namespace DanTechTests.Controllers
 {
     [TestClass]
     public class PlannerTests
     {
-        private static IDTDBDataService _db = null;
         private IConfiguration _config = DTTestOrganizer.InitConfiguration();
         private PlannerController _controller = null;
-        private dtUser _testUser = null;
+        private static dtUser _testUser = null;
         // Valid values for tests
         private int _numberOfPlanItems = 4;
+        private List<dtColorCode> _colorCodes = null;
 
         public PlannerTests()
         {
-            _db = DTTestOrganizer.DataService();
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));
+            var db = new DTDBDataService(_config, dbctx);
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
                 .BuildServiceProvider();
 
             var factory = serviceProvider.GetService<ILoggerFactory>();
-
             var logger = factory.CreateLogger<PlannerController>();
-            _controller = new PlannerController(_config, logger, _db);
-            _testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
-            var testSession = _db.Sessions.Where(x => x.user == _testUser.id).FirstOrDefault();
-            if (testSession == null)
+            _testUser = DTTestOrganizer.TestUser;
+            if (_controller == null)
             {
-                testSession = new dtSession() { user = _testUser.id, hostAddress = DTTestConstants.TestRemoteHostAddress };
-                testSession.expires = DateTime.Now.AddDays(1);
-                testSession.session = DTTestOrganizer.TestSession.session;
-                testSession = _db.Set(testSession);
-            }
-            _controller.VM = new DanTech.Data.Models.DTViewModel();
-            _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(_testUser);
+                _controller = new PlannerController(_config, logger, db, dbctx);
+                var testSession = DTTestOrganizer.TestUserSession;
+                _controller.VM = new DanTech.Data.Models.DTViewModel();
+                _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(_testUser);
+            }  
+            
         }
+
         private void SetControllerQueryString(string sessionId = "")
         {
             if (string.IsNullOrEmpty(sessionId)) sessionId = DTTestOrganizer.TestSession.session;
@@ -62,10 +63,13 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public void ColorCodes()
+        public async Task ColorCodes()
         {
+
             //Arrange
-            int numberColorCodes = _db.ColorCodes.Count;
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
+            int numberColorCodes = db.ColorCodes.Count;
             SetControllerQueryString();
 
             //Act
@@ -73,22 +77,27 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.AreEqual(((List<dtColorCodeModel>)res.Value).Count, numberColorCodes, "Color codes numbers don't match.");
+            
         }
 
         [TestMethod]
-        public void ControllerInitialized()
+        public async Task ControllerInitialized()
         {
+            
             Assert.IsNotNull(_controller, "Planner controller not correctly initialized.");
+            
         }
 
         [TestMethod]
-        public void PlanItem_Adjust()
+        public async Task PlanItem_Adjust()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             SetControllerQueryString();
             var projKey = DTTestConstants.TestValue + " Adjust Project";
             _controller.SetProject(DTTestOrganizer.TestSession.session, projKey, "TADJ", (int)DtStatus.Active);
-            var proj = _db.Projects.Where(x => x.title == projKey && x.user == _testUser.id).FirstOrDefault();
+            var proj = db.Projects.Where(x => x.title == projKey && x.user == _testUser.id).FirstOrDefault();
             //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
             //These should adjust so that the third is after the first, and the 2nd doesn't change.
             var key1 = DTTestConstants.TestValue + " Adjust #1";
@@ -107,18 +116,18 @@ namespace DanTechTests.Controllers
             _controller.Adjust(DTTestOrganizer.TestSession.session);
 
             //Assert
-            var item1 = _db.PlanItems.Where(x => x.title == key1).FirstOrDefault();
-            var item2 = _db.PlanItems.Where(x => x.title == key2).FirstOrDefault();
-            var item3 = _db.PlanItems.Where(x => x.title == key3).FirstOrDefault();
+            var item1 = db.PlanItems.Where(x => x.title == key1).FirstOrDefault();
+            var item2 = db.PlanItems.Where(x => x.title == key2).FirstOrDefault();
+            var item3 = db.PlanItems.Where(x => x.title == key3).FirstOrDefault();
             Assert.IsTrue(item1.start.Value.AddMinutes(60) <= item2.start.Value, "Item 2 conflicts with item 1.");
 
             //Antiseptic
-            _db.Delete(new List<dtPlanItem>() { item1, item2, item3 });
-            _db.Delete(proj);
+            db.Delete(new List<dtPlanItem>() { item1, item2, item3 });
+            db.Delete(proj);   
         }
 
         [TestMethod]
-        public void PlanItem_Adjust_PriorityFocused()
+        public async Task PlanItem_Adjust_PriorityFocused()
         {
             // Going to have five items.
             // #1 Starts at a fixed time 10 minutes with a 60 minute duration from now.
@@ -133,11 +142,14 @@ namespace DanTechTests.Controllers
             // #4 -> start in 130 minutes
             // #3 -> start in 160 minutes
 
+
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             SetControllerQueryString();
             var projKey = DTTestConstants.TestValue + " Adjust With Priority Project";
             _controller.SetProject(DTTestOrganizer.TestSession.session, projKey, "TAP", (int)DtStatus.Active);
-            var proj = _db.Projects.Where(x => x.title == projKey && x.user == _testUser.id).FirstOrDefault();
+            var proj = db.Projects.Where(x => x.title == projKey && x.user == _testUser.id).FirstOrDefault();
             //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
             //These should adjust so that the third is after the first, and the 2nd doesn't change.
             var now = DateTime.Now;
@@ -165,19 +177,19 @@ namespace DanTechTests.Controllers
             _controller.Adjust(DTTestOrganizer.TestSession.session);
 
             //Assert
-            Assert.AreEqual(_db.PlanItems.Where(x => x.title == key1 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(10).ToString("HH:mm"), "Item #1 start time is wrong.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.title == key2 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(15).ToString("HH:mm"), "Item #2 start time is wrong.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.title == key3 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(160).ToString("HH:mm"), "Item #3 start time is wrong.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.title == key4 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(130).ToString("HH:mm"), "Item #4 start time is wrong.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.title == key5 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(70).ToString("HH:mm"), "Item #5 start time is wrong.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.title == key1 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(10).ToString("HH:mm"), "Item #1 start time is wrong.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.title == key2 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(15).ToString("HH:mm"), "Item #2 start time is wrong.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.title == key3 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(160).ToString("HH:mm"), "Item #3 start time is wrong.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.title == key4 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(130).ToString("HH:mm"), "Item #4 start time is wrong.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.title == key5 && x.project == proj.id).FirstOrDefault().start.Value.ToString("HH:mm"), now.AddMinutes(70).ToString("HH:mm"), "Item #5 start time is wrong.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.project == proj.id).ToList());
-            _db.Delete(proj);
+            db.Delete(db.PlanItems.Where(x => x.project == proj.id).ToList());
+            db.Delete(proj);            
         }
 
         [TestMethod]
-        public void PlanItem_Adjust_With_Fixed()
+        public async Task PlanItem_Adjust_With_Fixed()
         {
             // Going to have four items.
             // #1: Starting in 5 minutes and lasting an hour.
@@ -185,11 +197,14 @@ namespace DanTechTests.Controllers
             // #3: starts in 25 minutes with no duration -- so it is contained.
             // #4: starts in 30 minutes and lasts 30 minutes.
             // After adjustment, they should be lined up: #2->#3->#1->#4
+
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             SetControllerQueryString();
             var projKey = DTTestConstants.TestValue + " Adjust Project";
             _controller.SetProject(DTTestOrganizer.TestSession.session, projKey, "TADJ", (int)DtStatus.Active);
-            var proj = _db.Projects.Where(x => x.title == projKey && x.user == _testUser.id).FirstOrDefault();
+            var proj = db.Projects.Where(x => x.title == projKey && x.user == _testUser.id).FirstOrDefault();
             //Three items. Each with 2 with one hour duration with a conflict. The their has no duration, so it has no conflict.
             //These should adjust so that the third is after the first, and the 2nd doesn't change.
             var key1 = DTTestConstants.TestValue + " Adjust With Fixed #1";
@@ -213,10 +228,10 @@ namespace DanTechTests.Controllers
 
             //Act
             _controller.Adjust(DTTestOrganizer.TestSession.session);
-            var item1 = _db.PlanItems.Where(x => x.title == key1).FirstOrDefault();
-            var item2 = _db.PlanItems.Where(x => x.title == key2).FirstOrDefault();
-            var item3 = _db.PlanItems.Where(x => x.title == key3).FirstOrDefault();
-            var item4 = _db.PlanItems.Where(x => x.title == key4).FirstOrDefault();
+            var item1 = db.PlanItems.Where(x => x.title == key1).FirstOrDefault();
+            var item2 = db.PlanItems.Where(x => x.title == key2).FirstOrDefault();
+            var item3 = db.PlanItems.Where(x => x.title == key3).FirstOrDefault();
+            var item4 = db.PlanItems.Where(x => x.title == key4).FirstOrDefault();
 
             //Assert
             Assert.AreEqual(item2.start.Value.ToString("HH:mm"), start2Adj.ToString("HH:mm"), "Fixed value not set correctly.");
@@ -225,11 +240,12 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(item4.start.Value.ToString("HH:mm"), start2Adj.AddMinutes(90).ToString("HH:mm"), "Adjustment did not set item 4 correctly.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.project == proj.id).ToList());
-            _db.Delete(proj);
+            db.Delete(db.PlanItems.Where(x => x.project == proj.id).ToList());
+            db.Delete(proj);
+            
         }
         [TestMethod]
-        public void PlanItem_AllRecurrences()
+        public async Task PlanItem_AllRecurrences()
         {
             // This tests the ability to retrieve recurrences through the api
             // We are going to set four recurrences.
@@ -242,9 +258,12 @@ namespace DanTechTests.Controllers
             // We then get the plan items.
             // The we get the recurrence items.
 
+
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && x.recurrence.HasValue && x.recurrence.Value > 0).ToList().Count;
+            var numberOfPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && x.recurrence.HasValue && x.recurrence.Value > 0).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " for Getting Recurrences ";
             string key1 = planItemKey + " #1";
             string key2 = planItemKey + " #2";
@@ -267,19 +286,23 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(numberOfPlanItems + 4, recurrenceList.Count, "Did not get the expected recurrence list.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => (x.title == key1 || x.title == key2 || x.title == key3 || x.title == key4) && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => (x.title == key1 || x.title == key2 || x.title == key3 || x.title == key4) && x.recurrence.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => (x.title == key1 || x.title == key2 || x.title == key3 || x.title == key4) && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => (x.title == key1 || x.title == key2 || x.title == key3 || x.title == key4) && x.recurrence.HasValue).ToList());
+            
         }
 
         [TestMethod]
-        public void PlanItem_ColorStatus_Complete()
+        public async Task PlanItem_ColorStatus_Complete()
         {
+
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string key = DTTestConstants.TestValue + " Color: complete";
-            var completeStatus = _db.Stati.Where(x => x.id == (int)(DtStatus.Complete)).FirstOrDefault();
+            var completeStatus = db.Stati.Where(x => x.id == (int)(DtStatus.Complete)).FirstOrDefault();
             var colorId = completeStatus.colorCode == null ? null : completeStatus.colorCode;
-            var color = _db.ColorCodes.Where(x => x.id == colorId).FirstOrDefault();
+            var color = db.ColorCodes.Where(x => x.id == colorId).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -292,17 +315,20 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());
+            
         }
 
         [TestMethod]
-        public void PlanItem_ColorStatus_Conflict()
+        public async Task PlanItem_ColorStatus_Conflict()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string key = DTTestConstants.TestValue + " Color: conflict";
-            var conflictStatus = _db.Stati.Where(x => x.id == (int)(DtStatus.Conflict)).FirstOrDefault();
-            var color = _db.ColorCodes.Where(x => x.id == conflictStatus.colorCode).FirstOrDefault();
+            var conflictStatus = db.Stati.Where(x => x.id == (int)(DtStatus.Conflict)).FirstOrDefault();
+            var color = db.ColorCodes.Where(x => x.id == conflictStatus.colorCode).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -316,17 +342,19 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key || x.title == (key + " Pre")).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key || x.title == (key + " Pre")).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_ColorStatus_Current()
-        {            
+        public async Task PlanItem_ColorStatus_Current()
+        {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string key = DTTestConstants.TestValue + " Color: current";
-            var currentStatus = _db.Stati.Where(x => x.id == (int)(DtStatus.Current)).FirstOrDefault();
-            var color = _db.ColorCodes.Where(x => x.id == currentStatus.colorCode).FirstOrDefault();
+            var currentStatus = db.Stati.Where(x => x.id == (int)(DtStatus.Current)).FirstOrDefault();
+            var color = db.ColorCodes.Where(x => x.id == currentStatus.colorCode).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -339,17 +367,19 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());           
         }
 
         [TestMethod]
-        public void PlanItem_ColorStatus_Future()
+        public async Task PlanItem_ColorStatus_Future()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string key = DTTestConstants.TestValue + " Color: future";
-            var futureStatus = _db.Stati.Where(x => x.id == (int)(DtStatus.Future)).FirstOrDefault();
-            var futureColor = _db.ColorCodes.Where(x => x.id == futureStatus.colorCode).FirstOrDefault();
+            var futureStatus = db.Stati.Where(x => x.id == (int)(DtStatus.Future)).FirstOrDefault();
+            var futureColor = db.ColorCodes.Where(x => x.id == futureStatus.colorCode).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -362,17 +392,19 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(item.statusColor, futureColor.title, "Status color not properly set");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_ColorStatus_OutOfDate()
+        public async Task PlanItem_ColorStatus_OutOfDate()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string key = DTTestConstants.TestValue + " Color: Out of date";
-            var outOfDateStatus = _db.Stati.Where(x => x.id == (int)(DtStatus.Out_of_date)).FirstOrDefault();
-            var outOfDateColor = _db.ColorCodes.Where(x => x.id == outOfDateStatus.colorCode).FirstOrDefault();
+            var outOfDateStatus = db.Stati.Where(x => x.id == (int)(DtStatus.Out_of_date)).FirstOrDefault();
+            var outOfDateColor = db.ColorCodes.Where(x => x.id == outOfDateStatus.colorCode).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -385,19 +417,21 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(item.statusColor, outOfDateColor.title, "Status color not properly set");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_ColorStatus_Pastdue()
+        public async Task PlanItem_ColorStatus_Pastdue()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var pastStart = DateTime.Now.AddMinutes(-200).ToString("HH:mm");
             var pastEnd = DateTime.Now.AddMinutes(-140).ToString("HH:mm");
             string key = DTTestConstants.TestValue + " Color: pastdue";
-            var colorStatus = _db.Stati.Where(x => x.id == (int)(DtStatus.Pastdue)).FirstOrDefault();
-            var color = _db.ColorCodes.Where(x => x.id == colorStatus.colorCode).FirstOrDefault();
+            var colorStatus = db.Stati.Where(x => x.id == (int)(DtStatus.Pastdue)).FirstOrDefault();
+            var color = db.ColorCodes.Where(x => x.id == colorStatus.colorCode).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -410,19 +444,21 @@ namespace DanTechTests.Controllers
             if (DateTime.Now.AddMinutes(-200).ToShortDateString() == DateTime.Now.ToShortDateString()) Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_ColorStatus_Subitem()
+        public async Task PlanItem_ColorStatus_Subitem()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string key = DTTestConstants.TestValue + " Color: subitem";
-            var colorStatus = _db.Stati.Where(x => x.id == (int)(DtStatus.Subitem)).FirstOrDefault();
-            var color = _db.ColorCodes.Where(x => x.id == colorStatus.colorCode).FirstOrDefault();
-            var color2Status = _db.Stati.Where(x => x.id == (int)(DtStatus.Current)).FirstOrDefault();
-            var color2 = _db.ColorCodes.Where(x => x.id == colorStatus.colorCode).FirstOrDefault();
+            var colorStatus = db.Stati.Where(x => x.id == (int)(DtStatus.Subitem)).FirstOrDefault();
+            var color = db.ColorCodes.Where(x => x.id == colorStatus.colorCode).FirstOrDefault();
+            var color2Status = db.Stati.Where(x => x.id == (int)(DtStatus.Current)).FirstOrDefault();
+            var color2 = db.ColorCodes.Where(x => x.id == colorStatus.colorCode).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -436,19 +472,21 @@ namespace DanTechTests.Controllers
             Assert.IsTrue((item.statusColor == color.title), "Status color not properly set. It is " + item.statusColor);
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key || x.title == (key + " Pre")).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key || x.title == (key + " Pre")).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_ColorStatus_Working()
+        public async Task PlanItem_ColorStatus_Working()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var tenMinsAgo = DateTime.Now.AddMinutes(-10).ToString("HH:mm");
             var fiftyMinsFromNow = DateTime.Now.AddMinutes(50).ToString("HH:mm");
             string key = DTTestConstants.TestValue + " Color: working";
-            var colorStatus = _db.Stati.Where(x => x.id == (int)(DtStatus.Working)).FirstOrDefault();
-            var color = _db.ColorCodes.Where(x => x.id == colorStatus.colorCode).FirstOrDefault();
+            var colorStatus = db.Stati.Where(x => x.id == (int)(DtStatus.Working)).FirstOrDefault();
+            var color = db.ColorCodes.Where(x => x.id == colorStatus.colorCode).FirstOrDefault();
             SetControllerQueryString();
 
             //Act
@@ -461,17 +499,19 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(item.statusColor, color.title, "Status color not properly set");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_Get()
+        public async Task PlanItem_Get()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var totalPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id).ToList();
-            var totalPlanItemsCurrent = _db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList();
-            var numberOfNotCompletedPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && x.completed == null && (x.recurrence == null || x.day >= today)).ToList();
+            var totalPlanItems = db.PlanItems.Where(x => x.user == _testUser.id).ToList();
+            var totalPlanItemsCurrent = db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList();
+            var numberOfNotCompletedPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && x.completed == null && (x.recurrence == null || x.day >= today)).ToList();
             SetControllerQueryString();
 
             // Act
@@ -490,18 +530,20 @@ namespace DanTechTests.Controllers
 
             // Assert
             Assert.AreEqual(getResults.Count, numberOfNotCompletedPlanItems.Count, "Did not retrieve plan items correctly.");
-            Assert.AreEqual(getWithCompleted.Count, totalPlanItemsCurrent.Count, "Did not retrieve completed plan items correctly.");
+            Assert.AreEqual(getWithCompleted.Count, totalPlanItemsCurrent.Count, "Did not retrieve completed plan items correctly.");            
         }
 
         [TestMethod]
         public void PlanItemSet()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var key = DTTestConstants.TestValue + " for Set Test";
-            var totalPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id).ToList();
-            var totalPlanItemsCurrent = _db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList();
-            var numberOfNotCompletedPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && ((x.completed.HasValue == false || x.completed.Value == false) || x.day >= today)).ToList();
+            var totalPlanItems = db.PlanItems.Where(x => x.user == _testUser.id).ToList();
+            var totalPlanItemsCurrent = db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList();
+            var numberOfNotCompletedPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && ((x.completed.HasValue == false || x.completed.Value == false) || x.day >= today)).ToList();
             SetControllerQueryString();
 
             // Act
@@ -520,105 +562,114 @@ namespace DanTechTests.Controllers
             Assert.IsTrue(completedTestItem.completed.Value);
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());            
         }
 
         [TestMethod]
-        public void PlanItemSet_FixedStart()
+        public async Task PlanItemSet_FixedStart()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             string key = DTTestConstants.TestValue + " - Fixed Start";
             string projKey = DTTestConstants.TestValue + " - Fixed Start Proj";
             SetControllerQueryString();
             _controller.SetProject(DTTestOrganizer.TestSession.session, projKey, "FSP", (int)DtStatus.Active, 92, null, null, null, null);
-            var proj = _db.Projects.Where(x => x.title == projKey).FirstOrDefault();
+            var proj = db.Projects.Where(x => x.title == projKey).FirstOrDefault();
 
             //Act
             var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, DateTime.Now.AddDays(1).ToShortDateString(), "13:00", null, "14:00", null, null, null, null, proj.id, null, null, null, null, null, null, null, true);
-            var item = _db.PlanItems.Where(x => x.title == key).FirstOrDefault();
+            var item = db.PlanItems.Where(x => x.title == key).FirstOrDefault();
 
             //Assert
             Assert.IsNotNull(item);
             Assert.IsTrue(item.fixedStart.HasValue && item.fixedStart.Value);
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
-
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_Delete()
+        public async Task PlanItem_Delete()
         {
             //Arrange
-            _numberOfPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id).ToList().Count + 1;
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
+            _numberOfPlanItems = db.PlanItems.Where(x => x.user == _testUser.id).ToList().Count + 1;
             SetControllerQueryString();
             string key = DTTestConstants.TestValue + " Delete Test";
 
             // Act
             var jsonRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-            var itemSetCt = _db.PlanItems.Where(x => x.title == key).ToList().Count;
-            var setItem = _db.PlanItems.Where(x => x.title == key).FirstOrDefault();
+            var itemSetCt = db.PlanItems.Where(x => x.title == key).ToList().Count;
+            var setItem = db.PlanItems.Where(x => x.title == key).FirstOrDefault();
             var delRes = _controller.DeletePlanItem(DTTestOrganizer.TestSession.session, setItem.id);
-            var delItemCt = _db.PlanItems.Where(x => x.title == key).ToList().Count;
+            var delItemCt = db.PlanItems.Where(x => x.title == key).ToList().Count;
 
             //Assert
             Assert.AreEqual(itemSetCt, delItemCt + 1, "When set, there should be one more item counts than once deleted.");
-            Assert.IsTrue((bool)delRes.Value, "Controller should have confirmed delete.");
+            Assert.IsTrue((bool)delRes.Value, "Controller should have confirmed delete.");            
         }
 
         [TestMethod]
-        public void PlanItem_Delete_KeepChildren()
+        public async Task PlanItem_Delete_KeepChildren()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             SetControllerQueryString();
             string key = DTTestConstants.TestValue + " - Delete Rec./Keep Children";
             var jsonRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             // Should have 30 children + the recurrence.
-            int totalItemsBeforeDelete = _db.PlanItems.Where(x => x.title == key).ToList().Count;
-            var recurrence = _db.PlanItems.Where(x => x.title == key && x.recurrence.HasValue).FirstOrDefault();
+            int totalItemsBeforeDelete = db.PlanItems.Where(x => x.title == key).ToList().Count;
+            var recurrence = db.PlanItems.Where(x => x.title == key && x.recurrence.HasValue).FirstOrDefault();
 
             //Act
             var delResult = _controller.DeletePlanItem(DTTestOrganizer.TestSession.session, recurrence.id);
 
             //Assert
             Assert.AreEqual(totalItemsBeforeDelete, 31, "Recurrence and children not set correctly.");
-            Assert.IsNull(_db.PlanItems.Where(x => x.title == key && x.recurrence.HasValue).FirstOrDefault(), "Recurrence not deleted.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.title==key).ToList().Count, 30, "Children not properly handled");
+            Assert.IsNull(db.PlanItems.Where(x => x.title == key && x.recurrence.HasValue).FirstOrDefault(), "Recurrence not deleted.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.title==key).ToList().Count, 30, "Children not properly handled");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == key).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == key).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_Delete_RecurrenceAndChildren()
+        public async Task PlanItem_Delete_RecurrenceAndChildren()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             SetControllerQueryString();
             string key = DTTestConstants.TestValue + " - Delete Rec & Children";
             var jsonRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, key, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
             // Should have 30 children + the recurrence.
-            int totalItemsBeforeDelete = _db.PlanItems.Where(x => x.title == key).ToList().Count;
-            var recurrence = _db.PlanItems.Where(x => x.title == key && x.recurrence.HasValue).FirstOrDefault();
+            int totalItemsBeforeDelete = db.PlanItems.Where(x => x.title == key).ToList().Count;
+            var recurrence = db.PlanItems.Where(x => x.title == key && x.recurrence.HasValue).FirstOrDefault();
 
             //Act
             var delResult = _controller.DeletePlanItem(DTTestOrganizer.TestSession.session, recurrence.id, true);
 
             //Assert
             Assert.AreEqual(totalItemsBeforeDelete, 31, "Recurrence and children not set correctly.");
-            Assert.IsNull(_db.PlanItems.Where(x => x.title == key && x.recurrence.HasValue).FirstOrDefault(), "Recurrence not deleted.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.title == key).ToList().Count, 0, "Children not properly handled");
+            Assert.IsNull(db.PlanItems.Where(x => x.title == key && x.recurrence.HasValue).FirstOrDefault(), "Recurrence not deleted.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.title == key).ToList().Count, 0, "Children not properly handled");            
         }
 
         [TestMethod]
-        public void PlanItem_RecurrenceNotCurrent()
+        public async Task PlanItem_RecurrenceNotCurrent()
         {
             // If a recurrence is set for a previous date, when the plan items are retrieved, there should be items populated for the next 30 days.
 
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList().Count;
+            var numberOfPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " for  Out of Date Recurrence Test";
-            var testProj = _db.Projects.Where(x => x.user == _testUser.id).FirstOrDefault();
+            var testProj = db.Projects.Where(x => x.user == _testUser.id).FirstOrDefault();
             var targDate = DateTime.Now.AddDays(-50);
             DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
             int numberOfChildrenExpected = weekdayToday >= DayOfWeek.Monday && weekdayToday <= DayOfWeek.Thursday ? 9 : 8;
@@ -633,16 +684,18 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(itemList.Count, numberOfPlanItems + numberOfChildrenExpected, "When getting the plan items, it should have populated up the number of items to include the expected number of children plus 1 for the recurrence.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey).ToList());            
         }
 
         [TestMethod]
-        public void PlanItemSet_DailyRecurrence_TTh_Filter()
+        public async Task PlanItemSet_DailyRecurrence_TTh_Filter()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList().Count;
+            var numberOfPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " set item through API with TTh Recurrence";
             //Most of the time we expect 30 days ahead to generate 8 T-Th unless we are M, T, W, or Th, then the extra 2 days will add a T-Th
             DayOfWeek weekdayToday = DateTime.Now.DayOfWeek;
@@ -657,23 +710,25 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(returnedList.Count, numberOfPlanItems + numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children..");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey).ToList());            
         }
 
         [TestMethod]
-        public void PlanItemSet_Monthly_nth_Monday_past()
+        public async Task PlanItemSet_Monthly_nth_Monday_past()
         {
             // Setting a recurrence of 3rd M & F in a month => 3:-*---*-. We are setting the start date equal to 14 days previous to today.
 
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var nextToEndDay = today.AddDays(28);
             var endDay = today.AddDays(29);
             var start = DateTime.Now.ToString("HH:mm");
             var end = DateTime.Now.AddMinutes(20).ToString("HH:mm");
 
-            var numberOfPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && x.day >= today).ToList().Count;
+            var numberOfPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && x.day >= today).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " past recurrence with 3rd Monday & Wednesday of month Recurrence";
             //We expect 30 days ahead to generate 2 M-F items.            
             int expectedChildren = 0;
@@ -695,12 +750,13 @@ namespace DanTechTests.Controllers
                           expectedChildren++;
                       }
             */
+            
             SetControllerQueryString();
 
             //Act
             var setRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, today.AddDays(-14).ToShortDateString(), start, null, end, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Monthly_nth_day, "3:-*-*---");
-            var recurrence = _db.PlanItems.Where(x => x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Monthly_nth_day).FirstOrDefault();
-            var children = _db.PlanItems.Where(x => x.user == _testUser.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
+            var recurrence = db.PlanItems.Where(x => x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Monthly_nth_day).FirstOrDefault();
+            var children = db.PlanItems.Where(x => x.user == _testUser.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
 
             //Assert
             Assert.IsNotNull(recurrence, "Recurrence not set.");
@@ -709,16 +765,18 @@ namespace DanTechTests.Controllers
 
 
             //Antiseptic
-            _db.Delete(children);
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey && !x.parent.HasValue).ToList());
+            db.Delete(children);
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey && !x.parent.HasValue).ToList());            
         }
 
         [TestMethod]
-        public void PlanItemSet_MonthlyRecurrence()
+        public async Task PlanItemSet_MonthlyRecurrence()
         {
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList().Count;
+            var numberOfPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " set item through API with 1st & 15th Recurrence";
             string dayOfMonthTargets = "1,15";
             //Generally, we expect to generate 2 children.
@@ -745,33 +803,35 @@ namespace DanTechTests.Controllers
             //Act
             var jsonSetRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int) DtRecurrence.Monthly, dayOfMonthTargets);
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
-            var setItem = _db.PlanItems.Where(x => x.title == planItemKey && x.recurrence == (int)DtRecurrence.Monthly).FirstOrDefault();
+            var setItem = db.PlanItems.Where(x => x.title == planItemKey && x.recurrence == (int)DtRecurrence.Monthly).FirstOrDefault();
             var childItemFor1st = returnedList.Where(x => x.day.Day == 1 && x.parent.HasValue && x.parent.Value == setItem.id).FirstOrDefault();
             var childItemFor15th = returnedList.Where(x => x.day.Day == 15 && x.parent.HasValue && x.parent.Value == setItem.id).FirstOrDefault();
 
             //Assert
             Assert.IsNotNull(setItem, "Did not set the recurrance.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.title == planItemKey).ToList().Count, numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children.."); ;
+            Assert.AreEqual(db.PlanItems.Where(x => x.title == planItemKey).ToList().Count, numberOfChildrenExpected + 1, "Setting the recurring plan item should have increased number of plan items by 1 and the expected number of children.."); ;
             if (!no1st) Assert.IsNotNull(childItemFor1st, "No item set for 1st.");
             if (!no15th) Assert.IsNotNull(childItemFor15th, "No item set for 15th.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey && !x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey && !x.parent.HasValue).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_SemiMonthlyRecurrence()
-        {
+        public async Task PlanItem_SemiMonthlyRecurrence()
+        {            
             // Setting a recurrence with a 3 week cycle on M & F => 3:-*---*-. We are setting the start date equal to 14 days previous to today.
             // This means that we are beginning the 3rd week, and we expect to see entries on the next Monday and Friday, and then again in 3 weeks.
 
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var start = DateTime.Now.ToString("HH:mm");
             var end = DateTime.Now.AddMinutes(20).ToString("HH:mm");
 
-            var numberOfPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && x.day >= today).ToList().Count;
+            var numberOfPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && x.day >= today).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " recurrence with 3 weeks MF Recurrence";
             //Most of the time we expect 30 days ahead to generate 3 M-F items. The exception is if today is a Tuesday.
             int expectedChildren = (DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Monday || DateTime.Now.DayOfWeek==DayOfWeek.Thursday || DateTime.Now.DayOfWeek==DayOfWeek.Friday) ? 3 : 2;
@@ -779,29 +839,31 @@ namespace DanTechTests.Controllers
 
             //Act
             var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, today.AddDays(-14).ToShortDateString(), start, null, end, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
-            var recurrence = _db.PlanItems.Where(x => x.user == _testUser.id && x.recurrence.HasValue && x.title == planItemKey).FirstOrDefault();
-            var children = _db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
+            var recurrence = db.PlanItems.Where(x => x.user == _testUser.id && x.recurrence.HasValue && x.title == planItemKey).FirstOrDefault();
+            var children = db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
 
             //Assert
             Assert.IsNotNull(res, "Recurrence not saved.");
             Assert.AreEqual(children.Count, expectedChildren, "Unexpected number of children.");
 
             //Antiseptic
-            _db.Delete(children);
-            _db.Delete(recurrence);           
+            db.Delete(children);
+            db.Delete(recurrence);              
         }
 
         [TestMethod]
-        public void PlanItem_SemiMonthlyRecurrence_Future()
-        {
+        public async Task PlanItem_SemiMonthlyRecurrence_Future()
+        {            
             // Setting a recurrence with a 3 week cycle on M & F => 3:-*---*-. We are setting the start date equal to 14 days in the future.
             // This means that it is 2 weeks until the beginning the 3rd week, and we expect to see entries on the next Monday and Friday after,
             // but the next cycle is 35 days aways, so there should be only these two.
 
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             var startTime = DateTime.Now.AddHours(1).ToString("HH:mm");
-            var numberOfPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && x.day >= today).ToList().Count;
+            var numberOfPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && x.day >= today).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " future recurrence with 3 weeks MF Recurrence";
             //For this test we always expect 2 children to be populated. By setting the start date 14 days ahead, the next M & F including the
             // possible start should be in the 30 day range that is populated, but  the next cycle would be at day 35-41.
@@ -811,8 +873,8 @@ namespace DanTechTests.Controllers
 
             //Act
             var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, today.AddDays(14).ToShortDateString(), startTime, null, null, null, null, null, null, null, null, null, null, null, null, (int)DtRecurrence.Semi_monthly, "3:-*---*-");
-            var recurrence = _db.PlanItems.Where(x => x.user == _testUser.id && x.recurrence.HasValue && x.title == planItemKey).FirstOrDefault();
-            var children = _db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
+            var recurrence = db.PlanItems.Where(x => x.user == _testUser.id && x.recurrence.HasValue && x.title == planItemKey).FirstOrDefault();
+            var children = db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
 
             //Assert
             Assert.IsNotNull(res, "Recurrence not saved.");
@@ -820,16 +882,18 @@ namespace DanTechTests.Controllers
             Assert.IsTrue(children[0].start.Value >= recurrence.start.Value, "Child should not start before the recurrence.");
 
             //Anticeptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey).ToList());            
         }
 
         [TestMethod]
-        public void PlanItem_SetWithDailyRecurrence()
-        {
+        public async Task PlanItem_SetWithDailyRecurrence()
+        {            
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
-            var numberOfNotCompletedPlanItems = _db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList().Count;
+            var numberOfNotCompletedPlanItems = db.PlanItems.Where(x => x.user == _testUser.id && (x.day >= today || (x.recurrence == null && x.completed == null))).ToList().Count;
             string planItemKey = DTTestConstants.TestValue + " set with Recurrence";
             SetControllerQueryString();
 
@@ -838,22 +902,24 @@ namespace DanTechTests.Controllers
             var returnedList = (List<dtPlanItemModel>)jsonSetRes.Value;
 
             //Assert
-            Assert.AreEqual(returnedList.Count, numberOfNotCompletedPlanItems + 31, "Setting the recurring plan item should have increased number of plan items by 1 and one for each of the next 30 days.");
+            Assert.AreEqual(returnedList.Count, numberOfNotCompletedPlanItems + 31, "Setting the recurring plan item should have increased number of plan items by 1 and one for each of the next 30 days.");            
         }
 
         [TestMethod]
-        public void Project_Delete_DeleteItemsToo()
-        {
+        public async Task Project_Delete_DeleteItemsToo()
+        {            
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             string projectKey = DTTestConstants.TestValue + " project for proj del test";
             string projShortCode = "PDT";
             string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test";
             SetControllerQueryString();
             _controller.SetProject(DTTestOrganizer.TestSession.session, projectKey, projShortCode, (int)DtStatus.Active);
-            var project = _db.Projects.Where(x => x.title == projectKey).FirstOrDefault();
+            var project = db.Projects.Where(x => x.title == projectKey).FirstOrDefault();
             _controller.SetPlanItem(DTTestOrganizer.TestSession.session, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
-            var recurrence = _db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault();
-            var projItems = _db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
+            var recurrence = db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault();
+            var projItems = db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
 
             //Act
             _controller.DeleteProject(DTTestOrganizer.TestSession.session, project.id);
@@ -862,24 +928,26 @@ namespace DanTechTests.Controllers
             Assert.IsNotNull(project, "Project not initially created.");
             Assert.IsNotNull(recurrence, "Project recurrence not successfully created.");
             Assert.AreEqual(projItems.Count, 30, "Project recurrence not correctly propagated.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, 0, "All propagated items not deleted.");
-            Assert.IsNull(_db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault(), "Recurrence not deleted properly.");
-            Assert.IsNull(_db.Projects.Where(x => x.title == projectKey).FirstOrDefault(), "Project not deleted.") ;
+            Assert.AreEqual(db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, 0, "All propagated items not deleted.");
+            Assert.IsNull(db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault(), "Recurrence not deleted properly.");
+            Assert.IsNull(db.Projects.Where(x => x.title == projectKey).FirstOrDefault(), "Project not deleted.") ;            
         }
 
         [TestMethod]
-        public void Project_Delete_KeepItems()
-        {
+        public async Task Project_Delete_KeepItems()
+        {            
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             string projectKey = DTTestConstants.TestValue + " project for proj del test (keep items)";
             string projShortCode = "PKT"; // Project Keep Test
             string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test (keep items)";
             SetControllerQueryString();
             _controller.SetProject(DTTestOrganizer.TestSession.session, projectKey, projShortCode, (int)DtStatus.Active);
-            var project = _db.Projects.Where(x => x.title == projectKey).FirstOrDefault();
+            var project = db.Projects.Where(x => x.title == projectKey).FirstOrDefault();
             _controller.SetPlanItem(DTTestOrganizer.TestSession.session, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
-            var recurrence = _db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault();
-            var projItems = _db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
+            var recurrence = db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault();
+            var projItems = db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
 
             //Act
             _controller.DeleteProject(DTTestOrganizer.TestSession.session, project.id, false);
@@ -888,19 +956,20 @@ namespace DanTechTests.Controllers
             Assert.IsNotNull(project, "Project not initially created.");
             Assert.IsNotNull(recurrence, "Project recurrence not successfully created.");
             Assert.AreEqual(projItems.Count, 30, "Project recurrence not correctly propagated.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, 30, "Propagated items deleted.");
-            Assert.IsNotNull(_db.PlanItems.Where(x => x.id == recurrence.id && x.recurrence.HasValue).FirstOrDefault(), "Recurrence deleted.");
-            Assert.IsNull(_db.Projects.Where(x => x.title == projectKey).FirstOrDefault(), "Project not deleted.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, 30, "Propagated items deleted.");
+            Assert.IsNotNull(db.PlanItems.Where(x => x.id == recurrence.id && x.recurrence.HasValue).FirstOrDefault(), "Recurrence deleted.");
+            Assert.IsNull(db.Projects.Where(x => x.title == projectKey).FirstOrDefault(), "Project not deleted.");
             
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == recurrenceKey && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == recurrenceKey).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == recurrenceKey && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == recurrenceKey).ToList());            
         }
 
         [TestMethod]
-        public void Project_Delete_XferItems()
-        {
+        public async Task Project_Delete_XferItems()
+        {            
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
             string projectKey = DTTestConstants.TestValue + " project for proj del test (xfer items)";
             string projectXferKey = DTTestConstants.TestValue + " target project for tranfer";
             string projShortCode = "PXT"; // Project Xfer Test
@@ -908,55 +977,62 @@ namespace DanTechTests.Controllers
             string recurrenceKey = DTTestConstants.TestValue + " recurrence for proj del test (xfer items)";
             SetControllerQueryString();
             _controller.SetProject(DTTestOrganizer.TestSession.session, projectKey, projShortCode, (int)DtStatus.Active);
-            var project = _db.Projects.Where(x => x.title == projectKey).FirstOrDefault();
+            var project = (from x in dbctx.dtProjects where x.title == projectKey select x).FirstOrDefault();
             _controller.SetProject(DTTestOrganizer.TestSession.session, projectXferKey, projXferShortCode, (int)DtStatus.Active);
-            var xferProject = _db.Projects.Where(x => x.title == projectXferKey).FirstOrDefault();
+            var xferProject = (from x in dbctx.dtProjects where x.title == projectXferKey select x).FirstOrDefault();
             _controller.SetPlanItem(DTTestOrganizer.TestSession.session, recurrenceKey, null, null, null, null, null, null, null, null, null, project.id, null, null, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
-            var recurrence = _db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault();
-            var projItems = _db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList();
+            var recurrence = (from x in dbctx.dtPlanItems where x.project == project.id && x.recurrence.HasValue select x).FirstOrDefault();
+            var projItems = (from x in dbctx.dtPlanItems where x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id select x).ToList();
 
             //Act
             _controller.DeleteProject(DTTestOrganizer.TestSession.session, project.id, false, xferProject.id);
 
             //Assert
+            dbctx.Dispose(); // We want to refresh all the tables for the asserts
+            dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             Assert.IsNotNull(project, "Project not initially created.");
             Assert.IsNotNull(xferProject, "Transfer project not initially created.");
             Assert.IsNotNull(recurrence, "Project recurrence not successfully created.");
             Assert.AreEqual(projItems.Count, 30, "Project recurrence not correctly propagated.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, 0, "Propagated items still attached to project.");
-            Assert.AreEqual(_db.PlanItems.Where(x => x.project == xferProject.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, 30, "Propagated items deleted.");
-            Assert.IsNull(_db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault(), "Recurrence not transferred.");
-            Assert.IsNotNull(_db.PlanItems.Where(x => x.project == xferProject.id && x.recurrence.HasValue).FirstOrDefault(), "Recurrence deleted.");
-            Assert.IsNull(_db.Projects.Where(x => x.title == projectKey).FirstOrDefault(), "Project not deleted.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.project == project.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, 0, "Propagated items still attached to project.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.project == xferProject.id && x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, 30, "Propagated items deleted.");
+            Assert.IsNull(db.PlanItems.Where(x => x.project == project.id && x.recurrence.HasValue).FirstOrDefault(), "Recurrence not transferred.");
+            Assert.IsNotNull(db.PlanItems.Where(x => x.project == xferProject.id && x.recurrence.HasValue).FirstOrDefault(), "Recurrence deleted.");
+            Assert.IsNull(db.Projects.Where(x => x.title == projectKey).FirstOrDefault(), "Project not deleted.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == recurrenceKey && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == recurrenceKey).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == recurrenceKey && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == recurrenceKey).ToList());            
         }
 
         [TestMethod]
-        public void Propagate_FromChild()
-        {
+        public async Task Propagate_FromChild()
+        {            
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string planItemKey = DTTestConstants.TestValue + " for propagate_fromchild";
             SetControllerQueryString();
 
             //Act
             var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
-            var recurrenceItem = _db.PlanItems.Where(x => x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly).FirstOrDefault();
+            var recurrenceItem = (from x in dbctx.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
             string recurrenceItemTitle = recurrenceItem.title;
             string recurrenceItemNote = recurrenceItem.note;
-            var children = _db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrenceItem.id).ToList();
+            var children = (from x in dbctx.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
             string childrenTitle = children[0].title;
             string childrenNote = children[0].note;
             // Change note, and propagate.
             var changeRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey + " changed.", "Note set", null, null, null, null, null, null, null, null, null, null, true, null, null, children[0].id, null, null);
             var propRes = _controller.Propagate(DTTestOrganizer.TestSession.session, children[0].id);
-            recurrenceItem = _db.PlanItems.Where(x => x.user == _testUser.id && x.title == (planItemKey + " changed.") && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly).FirstOrDefault();
-            children = _db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrenceItem.id).ToList();
+            recurrenceItem = (from x in dbctx.dtPlanItems where x.user == _testUser.id && x.title == (planItemKey + " changed.") && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
+            children = (from x in dbctx.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
 
             //Assert
+            dbctx.Entry(recurrenceItem).Reload();
+            foreach (var c in children) dbctx.Entry(c).Reload();
             Assert.AreEqual(recurrenceItemTitle, planItemKey, "Recurrence item not correctly set.");
             Assert.AreEqual(children.Count, 30, "Should have been 30 children.");
             Assert.AreEqual(childrenTitle, planItemKey, "Child items not correctly set.");
@@ -968,36 +1044,39 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(children[29].note, "Note set", "Last child item note not updated correctly.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey).ToList());            
         }
 
         [TestMethod]
-        public void Propagate_Recurrence()
-        {
+        public async Task Propagate_Recurrence()
+        {            
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
             string planItemKey = DTTestConstants.TestValue + " for propagate_recurrence";
             SetControllerQueryString();
 
             //Act
             var res = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, (int)DtRecurrence.Daily_Weekly, null);
-            var recurrenceItem = _db.PlanItems.Where(x => x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly).FirstOrDefault();
+            var recurrenceItem = (from x in dbctx.dtPlanItems where x.user == _testUser.id && x.title == planItemKey && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly select x).FirstOrDefault();
             string recurrenceItemTitle = recurrenceItem.title;
             string recurrenceItemNote = recurrenceItem.note;
-            var children = _db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrenceItem.id).ToList();
+            var children =(from x in dbctx.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
             string childrenTitle = children[0].title;
             string childrenNote = children[0].note;
             // Change note, and propagate.
             var changeRes = _controller.SetPlanItem(DTTestOrganizer.TestSession.session, planItemKey + " changed.", "Note set", null, null, null, null, null, null, null, null, null, null, true, null, null, recurrenceItem.id, (int)DtRecurrence.Daily_Weekly, null);
             var propRes = _controller.Propagate(DTTestOrganizer.TestSession.session, recurrenceItem.id);
-            recurrenceItem = _db.PlanItems.Where(x => x.user == _testUser.id && x.title == (planItemKey + " changed.") && x.recurrence.HasValue && x.recurrence.Value == (int)DtRecurrence.Daily_Weekly).FirstOrDefault();
-            children = _db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrenceItem.id).ToList();
+            var recurrenceItemChanged = (from x in dbctx.dtPlanItems where x.id == recurrenceItem.id select x).FirstOrDefault();
+            dbctx.Entry(recurrenceItemChanged).Reload();
+            children = recurrenceItem == null ? new List<dtPlanItem>() : (from x in dbctx.dtPlanItems where x.parent.HasValue && x.parent.Value == recurrenceItem.id select x).ToList();
+            foreach (var c in children) dbctx.Entry(c).Reload();
 
             //Assert
             Assert.AreEqual(recurrenceItemTitle, planItemKey, "Recurrence item not correctly set.");
             Assert.AreEqual(children.Count, 30, "Should have been 30 children.");
             Assert.AreEqual(childrenTitle, planItemKey, "Child items not correctly set.");
-            Assert.AreEqual(recurrenceItem.title, planItemKey + " changed.", "Recurrence item not updated correctly.");
+            Assert.AreEqual(recurrenceItemChanged.title, planItemKey + " changed.", "Recurrence item not updated correctly.");
             Assert.AreEqual(recurrenceItem.note, "Note set", "Recurrence item note not updated correctly.");
             Assert.AreEqual(children[0].title, planItemKey + " changed.", "Child item not updated correctly.");
             Assert.AreEqual(children[0].note, "Note set", "Child item note not updated correctly.");
@@ -1005,34 +1084,39 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(children[29].note, "Note set", "Last child item note not updated correctly.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == planItemKey).ToList());
+            var db = new DTDBDataService(_config, dbctx);
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == planItemKey).ToList());            
         }
 
         [TestMethod]
-        public void Recurrences()
-        {
+        public async Task Recurrences()
+        {            
             //Arrange
-            int numberRecurrences = _db.RecurrenceDTOs().Count;
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
+            int numberRecurrences = db.RecurrenceDTOs().Count;
             SetControllerQueryString();
 
             //Act
             var res = _controller.Recurrences(DTTestOrganizer.TestSession.session);
             var firstRecurrence = ((List<dtRecurrenceModel>)res.Value)[0];
-            var fisttRecurrenceInDB = _db.RecurrenceDTOs().Where(x => x.id == firstRecurrence.id).FirstOrDefault();
+            var fisttRecurrenceInDB = db.RecurrenceDTOs().Where(x => x.id == firstRecurrence.id).FirstOrDefault();
 
             //Assert
             Assert.AreEqual(((List<dtRecurrenceModel>)res.Value).Count, numberRecurrences, "Recurrence numbers don't match.");
-            Assert.IsNotNull(fisttRecurrenceInDB, "Did not retrieve any recurrences.");
+            Assert.IsNotNull(fisttRecurrenceInDB, "Did not retrieve any recurrences.");            
         }
 
         [TestMethod]
-        public void SetProject()
-        {
+        public async Task SetProject()
+        {            
             //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
             int numProjects = DTTestOrganizer._numberOfProjects;
-            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
-            var testStatus = _db.Stati.Where(x => x.title == DTTestConstants.TestStatus).FirstOrDefault();
+            var testUser = db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var testStatus = db.Stati.Where(x => x.title == DTTestConstants.TestStatus).FirstOrDefault();
             string projTitle = DTTestConstants.TestProjectTitlePrefix + "_For_SetProject_Test";
             string projTitleUpdated = projTitle + "_Updated";
             var newProj = new dtProject()
@@ -1050,32 +1134,36 @@ namespace DanTechTests.Controllers
             var projectsWithUpdatedItem = _controller.SetProject(DTTestOrganizer.TestSession.session, projTitleUpdated, newProj.shortCode, newProj.status, newProj.colorCode ?? 0, newProj.priority, newProj.sortOrder, newProj.notes + "_Updated");
 
             //Assert
-            Assert.AreEqual(1, _db.Projects.Where(x => x.title == projTitle).ToList().Count, "Should be one new project with the title showing it was created here.");
-            Assert.AreEqual(1, _db.Projects.Where(x => x.title == projTitleUpdated).ToList().Count, "Should be exactly one projected updated through this.");
+            Assert.AreEqual(1, db.Projects.Where(x => x.title == projTitle).ToList().Count, "Should be one new project with the title showing it was created here.");
+            Assert.AreEqual(1, db.Projects.Where(x => x.title == projTitleUpdated).ToList().Count, "Should be exactly one projected updated through this.");
 
             //Antiseptic
-            _db.Delete(_db.Projects.Where(x => x.title == newProj.title).ToList());
+            db.Delete(db.Projects.Where(x => x.title == newProj.title).ToList());            
         }
 
         [TestMethod]
-        public void Stati()
-        {
+        public async Task Stati()
+        {            
             //Arrange
-            int numberStati = _db.Stati.Count;
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
+            int numberStati = db.Stati.Count;
             SetControllerQueryString();
 
             //Act
             var res = _controller.Stati(DTTestOrganizer.TestSession.session);
 
             //Assert
-            Assert.AreEqual(((List<dtStatusModel>)res.Value).Count, numberStati, "Stati numbers don't match.");
+            Assert.AreEqual(((List<dtStatusModel>)res.Value).Count, numberStati, "Stati numbers don't match.");            
         }
 
         [TestMethod]
-        public void UpdateRecurrence_PopulatesMissing()
-        {
+        public async Task UpdateRecurrence_PopulatesMissing()
+        {            
             //Arrange
-            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
+            var testUser = db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             SetControllerQueryString();
             //Need to have a recurrence that has not populated the childrenn yet. Placing it directly into the database.
             dtProject proj = new dtProject()
@@ -1086,7 +1174,7 @@ namespace DanTechTests.Controllers
                 status = (int)DtStatus.Active, 
                 colorCode = 4 
             };
-            proj = _db.Set(proj);
+            proj = db.Set(proj);
             // Placing a recurrence that is a M/F every 4 weeks, and setting the start of 3 weeks previous to current day.
             dtPlanItem recurrence = new dtPlanItem()
             {
@@ -1099,28 +1187,30 @@ namespace DanTechTests.Controllers
                 recurrence = (int)DtRecurrence.Semi_monthly,
                 recurrenceData = "4:-*---*-"
             };
-            recurrence = _db.Set(recurrence);
+            recurrence = db.Set(recurrence);
             int expectedNumberOfChildren = 2;
 
             //Act
-            int startingChildren = _db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count;
+            int startingChildren = db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count;
             var result = (int)(_controller.PopulateRecurrences(DTTestOrganizer.TestSession.session, null, true).Value);
 
 
             //Assert
-            Assert.AreEqual(_db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Children in database are incorrect.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Children in database are incorrect.");
   
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == recurrence.title && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == recurrence.title).ToList());
-            _db.Delete(_db.Projects.Where(x => x.id == proj.id).FirstOrDefault());
+            db.Delete(db.PlanItems.Where(x => x.title == recurrence.title && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == recurrence.title).ToList());
+            db.Delete(db.Projects.Where(x => x.id == proj.id).FirstOrDefault());            
         }
 
         [TestMethod]
-        public void UpdateRecurrence_PopulatesMissingUsingMFMask()
-        {
+        public async Task UpdateRecurrence_PopulatesMissingUsingMFMask()
+        {            
             //Arrange
-            var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
+            var testUser = db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
             SetControllerQueryString();
             //Need to have a recurrence that has not populated the childrenn yet. Placing it directly into the database.
             dtProject proj = new dtProject()
@@ -1131,7 +1221,7 @@ namespace DanTechTests.Controllers
                 status = (int)DtStatus.Active,
                 colorCode = 4
             };
-            proj = _db.Set(proj);
+            proj = db.Set(proj);
             // Placing a recurrence that is a M/F every 4 weeks, and setting the start of 3 weeks previous to current day.
             dtPlanItem recurrence = new dtPlanItem()
             {
@@ -1144,29 +1234,29 @@ namespace DanTechTests.Controllers
                 recurrence = (int)DtRecurrence.Semi_monthly,
                 recurrenceData = "4:-M---F-"
             };
-            recurrence = _db.Set(recurrence);
+            recurrence = db.Set(recurrence);
             int expectedNumberOfChildren = 2;
 
             //Act
-            int startingChildren = _db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count;
+            int startingChildren = db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count;
             var result = (int)(_controller.PopulateRecurrences(DTTestOrganizer.TestSession.session, null, true).Value);
 
 
             //Assert
-            Assert.AreEqual(_db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Children in database are incorrect.");
+            Assert.AreEqual(db.PlanItems.Where(x => x.parent.HasValue && x.parent.Value == recurrence.id).ToList().Count, expectedNumberOfChildren, "Children in database are incorrect.");
 
             //Antiseptic
-            _db.Delete(_db.PlanItems.Where(x => x.title == recurrence.title && x.parent.HasValue).ToList());
-            _db.Delete(_db.PlanItems.Where(x => x.title == recurrence.title).ToList());
-            _db.Delete(_db.Projects.Where(x => x.id == proj.id).FirstOrDefault());
+            db.Delete(db.PlanItems.Where(x => x.title == recurrence.title && x.parent.HasValue).ToList());
+            db.Delete(db.PlanItems.Where(x => x.title == recurrence.title).ToList());
+            db.Delete(db.Projects.Where(x => x.id == proj.id).FirstOrDefault());            
         }
 
         /*
         [TestMethod]
-        public void BadProp()
+        public async Task BadProp()
         {
             SetControllerQueryString("8a5815c2-7497-42f6-b691-06578c9467f5");
-            var user = (from x in _db.dtUsers where x.id == 2 select x).FirstOrDefault();
+            var user = (from x in db.dtUsers where x.id == 2 select x).FirstOrDefault();
             _controller.VM.User = new Mapper(new MapperConfiguration(cfg => { cfg.CreateMap<dtUser, dtUserModel>(); })).Map<dtUserModel>(user);
 
             var result = _controller.PopulateRecurrences("8a5815c2-7497-42f6-b691-06578c9467f5", 0, true);

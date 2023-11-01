@@ -24,23 +24,21 @@ namespace DanTech.Controllers
             _db.Log(new dtMisc() { title = key, value = entry });
         }
 
-        public DTController(IConfiguration configuration, ILogger<DTController> logger, IDTDBDataService data)
+        public DTController(IConfiguration configuration, ILogger<DTController> logger, IDTDBDataService data, dtdb dbctx)
         {            
             _logger = logger;
             _configuration = configuration;
             var dgCon = _configuration.GetConnectionString("DG");
 
             _db = data;
-            var rawDB = data.Instantiate(configuration);
-            if (_db == null || rawDB == null)
+            if (_db == null || dbctx == null)
             {
                 throw new Exception("Database is null");
             }
 
             var emailer = new DTGmailService();
             emailer.SetConfig(_configuration);
-            if (!DTDBConstants.Initialized()) DTDBConstants.Init(rawDB);
-        }
+         }
         ~DTController()
         {
             if (_db.PendingChanges()) _db.Save();

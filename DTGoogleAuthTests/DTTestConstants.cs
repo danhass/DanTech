@@ -23,6 +23,7 @@ namespace DanTechGoogleAuthTests
         public static string? TestGoogleCode = null;
         public static string? TestGoogleAuth = null;
         public static string? TestGoogleRefresh = null;
+        public static bool NoTestGoogleCodes = false;
         public static readonly string TestGoogleCodeKey = "Google Signin Code";
 
         public static Guid TestGuid() { if (_testGuid == Guid.Empty) _testGuid = Guid.NewGuid(); return _testGuid; }

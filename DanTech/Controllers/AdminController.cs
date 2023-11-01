@@ -2,13 +2,14 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using DanTech.Services;
+using DanTech.Data;
 
 namespace DanTech.Controllers
 {
     public class AdminController : DTController
     {
-        public AdminController(IConfiguration configuration, ILogger<AdminController> logger, IDTDBDataService data) :
-        base(configuration, logger, data)
+        public AdminController(IConfiguration configuration, ILogger<AdminController> logger, IDTDBDataService data, dtdb dbctx) :
+        base(configuration, logger, data, dbctx)
         {
         }
 

@@ -8,6 +8,8 @@ using Microsoft.Extensions.Hosting;
 using System.Linq;
 using DanTech.Controllers;
 using DanTech.Services;
+using DanTech.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace DanTech
 {
@@ -23,9 +25,12 @@ namespace DanTech
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IConfiguration>(Configuration);
+            var connStr = Configuration.GetConnectionString("DG");
+            services.AddDbContext<dtdb>(options => options.UseMySQL(connStr));
             services.AddControllersWithViews();
             services.AddSingleton<IConfiguration>(Configuration);
-            services.AddSingleton<IDTDBDataService, DTDBDataService>();
+            services.AddScoped<IDTDBDataService, DTDBDataService>();
             services.AddScoped<DTAuthenticate>();
 
             services.AddCors(options =>

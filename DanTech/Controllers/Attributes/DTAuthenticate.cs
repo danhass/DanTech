@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using DanTech.Data.Models;
 using DanTech.Services;
+using System;
+using System.Threading;
 
 namespace DanTech.Controllers
 {
@@ -24,7 +26,7 @@ namespace DanTech.Controllers
             var hostAddress = context.HttpContext.Request.Host.Value;
             var path = context.HttpContext.Request.Path;
 
-            var session = context.HttpContext.Request.QueryString.Value.StartsWith("?sessionId=") ? 
+            var session = context.HttpContext.Request.QueryString.Value.StartsWith("?sessionId=") ?
                    context.HttpContext.Request.QueryString.Value.Split("&")[0].Split("=")[1] :
                    context.HttpContext.Request.Cookies["dtSessionId"];
             if (string.IsNullOrEmpty(session) && context.ActionArguments != null && context.ActionArguments.ContainsKey("sessionId"))
@@ -36,12 +38,14 @@ namespace DanTech.Controllers
             var host = context.HttpContext.Request.Host;
             controller.VM = new DTViewModel();
             controller.VM.TestEnvironment = host.ToString().StartsWith("localhost");
-            controller.VM.IsTesting = (_db.TestData.Where(x => x.title == _testFlagKey).FirstOrDefault() != null);
-            controller.VM.User = _db.UserModelForSession(session, hostAddress);            
+            dtUserModel userModel = null;
+            userModel = _db.UserModelForSession(session, hostAddress);
+            controller.VM.User = userModel;
             if (controller.VM.User == null) context.HttpContext.Response.Cookies.Delete("dtSessionId");
 
+
             //Since we are validating with the session, we are fine with CORS here.
-            if (!context.HttpContext.Response.Headers.Keys.Contains("Access-Control-Allow-Origin")) 
+            if (!context.HttpContext.Response.Headers.Keys.Contains("Access-Control-Allow-Origin"))
                 context.HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "*");
             base.OnActionExecuting(context);
         }

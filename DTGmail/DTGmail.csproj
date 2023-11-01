@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DTGmailService.cs" />
+    <Compile Remove="IDTGmailService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="EASendMail" Version="7.9.1.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />

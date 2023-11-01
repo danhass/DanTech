@@ -8,7 +8,7 @@ namespace DTGoogleAuthTests
     public class DTGoogleAuthTests
     {
         [TestMethod]
-        public void DTGoogleAuth_SetConfigTest()
+        public async Task DTGoogleAuth_SetConfigTest()
         {
             //Arrange
             var svc = new DTGoogleAuthService();
@@ -21,7 +21,7 @@ namespace DTGoogleAuthTests
         }
 
         [TestMethod]
-        public void DTGoogleAuth_AuthServiceTest()
+        public async Task DTGoogleAuth_AuthServiceTest()
         {
             //Arrange 
             var svc = new DTGoogleAuthService();
@@ -37,8 +37,9 @@ namespace DTGoogleAuthTests
         }
 
         [TestMethod]
-        public void DTGoogleAuth_AuthTokenTest()
+        public async Task DTGoogleAuth_AuthTokenTest()
         {
+            if (DTTestConstants.NoTestGoogleCodes) Assert.Inconclusive("Test Google Tokens not set");
             //Arrange
             var svc = DTTestOrganizer.Service();
 
@@ -50,8 +51,9 @@ namespace DTGoogleAuthTests
         }
 
         [TestMethod]
-        public void DTGoogleAuth_UserInfoTest()
+        public async Task DTGoogleAuth_UserInfoTest()
         {
+            if (DTTestConstants.NoTestGoogleCodes) Assert.Inconclusive("Test Google Tokens not set");
             //Arrange
             var svc = DTTestOrganizer.Service();
             //Act
@@ -63,8 +65,9 @@ namespace DTGoogleAuthTests
         }
 
         [TestMethod]
-        public void DTGoogleAuth_RefreshAuthTest()
+        public async Task DTGoogleAuth_RefreshAuthTest()
         {
+            if (DTTestConstants.NoTestGoogleCodes) Assert.Inconclusive("Test Google Tokens not set");
             //Arrange
             var svc = DTTestOrganizer.Service();  
 

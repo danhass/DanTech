@@ -4,16 +4,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using DanTech.Data.Models;
+using System.Collections.Generic;
+using System;
+using System.Threading;
 
 namespace DanTech.Controllers
 {
 #nullable enable
     public class PlannerController : DTController
     {
-        public PlannerController(IConfiguration configuration, ILogger<PlannerController> logger, IDTDBDataService data) : base(configuration, logger, data)
+        public PlannerController(IConfiguration configuration, ILogger<PlannerController> logger, IDTDBDataService data, dtdb dbctx) : base(configuration, logger, data, dbctx)
         {
         }
-
+        private List<dtPlanItemModel> GetPlanItemDTOs(int user, int daysback, bool includeCompleted, bool getAll, int onlyProject)
+        {
+            List<dtPlanItemModel> list = null;
+            list = _db.PlanItemDTOs(user, daysback, includeCompleted, getAll, onlyProject);
+            return list;
+        }
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Adjust(string sessionId)
         {
@@ -151,7 +159,7 @@ namespace DanTech.Controllers
             _db.Set(pi);
             int uid = 0;
             if (VM != null) if (VM.User != null) uid = VM.User.id;
-            var items = _db.PlanItemDTOs(VM.User.id,
+            var items = GetPlanItemDTOs(VM.User.id,
                                         daysBack ?? 1,
                                         includeCompleted ?? false,
                                         getAll ?? false,

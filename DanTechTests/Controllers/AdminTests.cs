@@ -4,19 +4,19 @@ using DanTech.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using DanTech.Services;
+using System.Threading.Tasks;
+using DanTech.Data;
 
 namespace DanTechTests.Controllers
 {
     [TestClass]
     public class AdminTests
     {
-        private static IDTDBDataService _db = null;
         private IConfiguration _config = DTTestOrganizer.InitConfiguration();
         private AdminController _controller = null;
 
         public AdminTests()
-        {
-            if (_db == null) _db = DTTestOrganizer.DataService();
+        {            
             var serviceProvider = new ServiceCollection()
                 .AddLogging()
                 .BuildServiceProvider();
@@ -24,18 +24,19 @@ namespace DanTechTests.Controllers
             var factory = serviceProvider.GetService<ILoggerFactory>();
 
             var logger = factory.CreateLogger<AdminController>();
-
-            _controller = new AdminController(_config, logger, _db);
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));
+            var db = new DTDBDataService(_config, dbctx);
+            _controller = new AdminController(_config, logger, db, dbctx);
         }
 
         [TestMethod]
-        public void AdminController_InstantiateDefault()
+        public async Task AdminController_InstantiateDefault()
         {
             Assert.IsNotNull(_controller, "Did not instantiate admin controller.");
         }
 
         [TestMethod]
-        public void AdminController_Index()
+        public async Task AdminController_Index()
         {
             //Act
             var res = _controller.Index();
@@ -46,7 +47,7 @@ namespace DanTechTests.Controllers
 
         /*
         [TestMethod]
-        public void AdminController_SetPW()
+        public async Task AdminController_SetPW()
         {
             //Arrange
             if (_db == null) _db = DTDB.getDB();

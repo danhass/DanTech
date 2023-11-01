@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using DanTech.Services;
 using System.Diagnostics.CodeAnalysis;
+using ZstdSharp.Unsafe;
+using System.Diagnostics;
+using System.Linq.Expressions;
 
 namespace DanTech.Services
 {
@@ -15,9 +18,9 @@ namespace DanTech.Services
     public class DTDBDataService : IDTDBDataService
     {
         [AllowNull]
-        private static Idtdb _dbi = null;
+        private Idtdb _dbi = null;
         [AllowNull]
-        private static dtdb _db = null;
+        private dtdb _db = null;
         [AllowNull]
         private static dtUser _currentUser = null;
         private static int _userId = -1;
@@ -26,18 +29,11 @@ namespace DanTech.Services
         private static string _conn = string.Empty;
         private const string _testFlagKey = "Testing in progress";
 
-        public DTDBDataService(IConfiguration cfg)
+        public DTDBDataService(IConfiguration cfg, dtdb dbctx)
         {
             _conn = cfg.GetConnectionString("DG").ToString();
-            InstantiateDB();
-        }
-
-        public DTDBDataService(Idtdb db, string conn)
-        {
-            _conn = conn;
-            _dbi = db;
-            _db = db as dtdb;
-            if (!DTDBConstants.Initialized()) DTDBConstants.Init(_db!);
+            _dbi = dbctx;
+            _db = dbctx;
         }
 
         public DTDBDataService(string conn)
@@ -185,6 +181,15 @@ namespace DanTech.Services
                 return (from x in _db.dtTypes select x).ToList();
             }
         }
+        public Task<List<dtUser>> UsersAsync
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return Task.Run(() => (from x in _db.dtUsers select x).ToList());
+            }
+        }
+
         public List<dtUser> Users
         {
             get
@@ -340,7 +345,6 @@ namespace DanTech.Services
         public dtUserModel UserModelForSession(string session, string hostAddress)
         {
             if (_db == null) _db = InstantiateDB() as dtdb;
-            //Log(new dtMisc() { title = "UserModelForSession data: ", value = "Session: " + session + "; hostAddress: " + hostAddress });
             dtUserModel mappedUser = new dtUserModel();
             if (!string.IsNullOrEmpty(session))
             {
@@ -362,7 +366,6 @@ namespace DanTech.Services
                     }
                     else
                     {
-                        Log(new dtMisc() { title = "UserModelForSession data: ", value = "User: " + user});
                         var config = dtUserModel.mapperConfiguration;
                         var mapper = new Mapper(config);
                         mappedUser = mapper.Map<dtUserModel>(user);
@@ -538,6 +541,7 @@ namespace DanTech.Services
             }
             _db.dtPlanItems.Remove(item);
             Save();
+
             return true;
         }
         public bool DeleteProject(int projectId, int userId, bool deleteProjItems = true, int transferProject = 0)
@@ -580,7 +584,7 @@ namespace DanTech.Services
             Save();
             return aLogEntry;
         }
-        private static List<dtPlanItem> PopulateRecurrences(dtdb db)
+        private List<dtPlanItem> PopulateRecurrences()
         {
             List<dtPlanItem> items = new List<dtPlanItem>();
             try
@@ -588,7 +592,8 @@ namespace DanTech.Services
                 //Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
                 // or Trace.Listeners.Add(new ConsoleTraceListener());
                 //Trace.WriteLine("Hello World");              
-                if (db == null) return items;
+                if (_db == null) return items;
+                var db = _db;
                 if (_recurringItem == null) return items;
 
                 var config = new MapperConfiguration(cfg => { cfg.CreateMap<dtPlanItem, dtPlanItem>(); });
@@ -839,7 +844,7 @@ namespace DanTech.Services
             if (item.recurrence.HasValue)
             {
                 _recurringItem = item;
-                var rItems = PopulateRecurrences(_db!);
+                var rItems = PopulateRecurrences();
             }
 
             return item;
@@ -888,7 +893,7 @@ namespace DanTech.Services
         {
             _conn = conn;
         }
-        public static bool SetIfTesting(string key, string value)
+        public bool SetIfTesting(string key, string value)
         {
             if (_db == null) throw new Exception("DB not set");
             var TestingFlag = (from x in _db.dtTestData where x.title == "Testing in progress" select x).FirstOrDefault();
@@ -997,7 +1002,7 @@ namespace DanTech.Services
             foreach (var r in recurrences)
             {
                 _recurringItem = r;
-                itemCt += PopulateRecurrences(_db).Count;
+                itemCt += PopulateRecurrences().Count;
             }
             return itemCt;
         }

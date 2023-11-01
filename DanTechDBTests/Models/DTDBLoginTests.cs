@@ -9,7 +9,7 @@ namespace DanTechDBTests.Models
     public class DTDBLoginTests
     {
         [TestMethod]
-        public void DTDBLogin_SetData()
+        public async Task DTDBLogin_SetData()
         {
             //Arrange
             var svc = DTTestOrganizer.DB() as DTDBDataService;
@@ -31,7 +31,7 @@ namespace DanTechDBTests.Models
             Assert.AreEqual(login.Message, DTTestConstants.TestString4);
         }
         [TestMethod]
-        public void DTDBLogin_SetLoginTest()
+        public async Task DTDBLogin_SetLoginTest()
         {
             //Arrange
             var svc = DTTestOrganizer.DB() as DTDBDataService;
@@ -49,7 +49,7 @@ namespace DanTechDBTests.Models
             svc.Delete(svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).ToList());
         }
         [TestMethod]
-        public void DTDBLogin_RejectLoginTest()
+        public async Task DTDBLogin_RejectLoginTest()
         {
             //Arrange
             var svc = DTTestOrganizer.DB() as DTDBDataService;
@@ -61,7 +61,7 @@ namespace DanTechDBTests.Models
             Assert.IsNull(login);
         }
         [TestMethod]
-        public void DTDBLogin_AddUserWithLoginTest()
+        public async Task DTDBLogin_AddUserWithLoginTest()
         {
             //Arrange
             var svc = DTTestOrganizer.DB();

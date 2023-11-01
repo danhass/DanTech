@@ -13,6 +13,7 @@ namespace DanTech.Data
         private static int _timezoneOffset = -10000;
         private static bool _initialized = false;
         public static Dictionary<int, string> StatusColors = new Dictionary<int, string>();
+        public static int TryAttemptsMax = 10;
 
         public static bool Initialized() { return _initialized; }
         public static int TZOffset

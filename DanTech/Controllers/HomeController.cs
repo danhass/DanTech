@@ -24,8 +24,8 @@ namespace DanTech.Controllers
     public class HomeController : DTController
     {
         protected IDTGoogleAuthService _google = null;
-        public HomeController(IConfiguration configuration, ILogger<HomeController> logger, IDTDBDataService data) : 
-            base(configuration, logger, data)
+        public HomeController(IConfiguration configuration, ILogger<HomeController> logger, IDTDBDataService data, dtdb dbctx) : 
+            base(configuration, logger, data, dbctx)
         {
         }
 
@@ -58,8 +58,8 @@ namespace DanTech.Controllers
         [DisableCors]
         public IActionResult GoogleSignin(string code)
         { 
-            dtMisc testDatum = new dtMisc() { title = "Google Signin Code", value = code};
-            _db.Log(testDatum);
+            //dtMisc testDatum = new dtMisc() { title = "Google Signin Code", value = code};
+            //_db.Log(testDatum);
             string domain = Request.Scheme + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
             var googleAuthService = new DTGoogleAuthService();
             googleAuthService.SetConfig(_configuration);

@@ -35,7 +35,7 @@ namespace DanTechTests.Data
             {
                 var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
                 optionsBuilder.UseMySQL(_conn);
-                _db = new dtdb(optionsBuilder.Options);
+                _db = new dtdb(_conn);
             }
         }
 
@@ -46,7 +46,7 @@ namespace DanTechTests.Data
             {
                 var optionsBuilder = new DbContextOptionsBuilder<dtdb>();
                 optionsBuilder.UseMySQL(_conn);
-                var db = new dtdb(optionsBuilder.Options);
+                var db = new dtdb(_conn);
                 _db = db;
             }
             return _db;

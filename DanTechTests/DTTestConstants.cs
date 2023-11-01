@@ -5,6 +5,7 @@
         public const bool TestControl_GetAuthCode_with_code = false;
         public const bool TestControl_EstablishSession_with_code = false;
         public const bool TestControl_SkipAllGoogleAuth = true;
+        public const int TryCt = 10;
 
         public const string AuthTokensNeedToBeResetKey = "Auth tokens need to be reset";
         public const int DefaultNumberOfTestPropjects = 3;

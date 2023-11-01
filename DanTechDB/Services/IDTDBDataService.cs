@@ -29,7 +29,7 @@ namespace DanTech.Services
         List<dtTestDatum> TestData { get; }
         List<dtType> Types { get; }
         List<dtUser> Users { get; }
-
+        Task<List<dtUser>> UsersAsync {  get; }
 
         // DTO Data Access
         dtColorCodeModel ColorCodeDTO(dtColorCode colorCode);

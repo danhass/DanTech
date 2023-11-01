@@ -22,7 +22,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTGoogleAuth", "DTGoogleAut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTGoogleAuthTests", "DTGoogleAuthTests\DTGoogleAuthTests.csproj", "{FB0ACFA2-DECF-41D9-A400-858A2D7A7915}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTGmail", "DTGmail\DTGmail.csproj", "{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTGmail", "DTGmail\DTGmail.csproj", "{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
