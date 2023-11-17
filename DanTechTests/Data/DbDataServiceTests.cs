@@ -23,7 +23,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task ColorCode_List()
+        public void ColorCode_List()
         {
             //Arrange
             var numColorCodes = _db.ColorCodes.Count;
@@ -36,14 +36,14 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task DBAccessible()
+        public void DBAccessible()
         {
             var statusCt = _db.Stati.Count;
             Assert.IsTrue(statusCt > 0);
         }
 
         [TestMethod]
-        public async Task DBUserCRUD()
+        public void DBUserCRUD()
         {
             //Arrange
             var userCt = _db.Users.Count;
@@ -76,13 +76,13 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task InstantiateDB()
+        public void InstantiateDB()
         {
             Assert.IsNotNull(_db);
         }
 
         [TestMethod]
-        public async Task PlanItemAddRecurrence()
+        public void PlanItemAddRecurrence()
         {
             /*
             //Arrange
@@ -112,7 +112,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task PlanItem_ClearPastDue()
+        public void PlanItem_ClearPastDue()
         {
             /*
             //Arrange
@@ -175,7 +175,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task PlanItemSet_MinimumItem()
+        public void PlanItemSet_MinimumItem()
         {
             /*
             //Arrange
@@ -223,7 +223,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task PlanItemAdd_NoEndDate()
+        public void PlanItemAdd_NoEndDate()
         {
             /*
             //Arrange
@@ -263,7 +263,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task PlanItemDelete()
+        public void PlanItemDelete()
         {
             /*
             //Arrange
@@ -291,7 +291,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task PlanItemAddRecurrenceWith_TTh_Filter()
+        public void PlanItemAddRecurrenceWith_TTh_Filter()
         {
 
             //Arrange
@@ -321,7 +321,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task ProjectsListByUser()
+        public void ProjectsListByUser()
         {
 
             //Arrange
@@ -339,7 +339,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task Project_Set()
+        public void Project_Set()
         {
 
             //Arrange
@@ -377,7 +377,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task Recurrences_List()
+        public void Recurrences_List()
         {
             //Arrange
             var numRecurrences = _db.RecurrenceDTOs().ToList().Count;
@@ -390,7 +390,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task SetPW_Success()
+        public void SetPW_Success()
         {
             
             //Arrange
@@ -411,7 +411,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task SetTestingFlag()
+        public void SetTestingFlag()
         {
             //Arrange
 
@@ -444,7 +444,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task Statuses_List()
+        public void Statuses_List()
         {
             //Arrange
             dtdb db = _db.dtdb();
@@ -458,7 +458,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task UserModelForSession_NotLoggedIn()
+        public void UserModelForSession_NotLoggedIn()
         {
             //Arrange 
         }

@@ -11,6 +11,7 @@
         public const int DefaultNumberOfTestPropjects = 3;
         public const string LocalProtocol = "https";
         public const string LocalHostDomain = "localhost:44324";
+        public const string LocatHostIP = "127.0.0.1";
         public const string GoogleSigninHandler = "Home/GoogleSignin";
         public const int RecurrenceId_Daily = 1; //This is not expected to change.
         public const string SessionCookieKey = "dtSessionId";

@@ -8,7 +8,7 @@ namespace DTGoogleAuthTests
     public class DTGoogleAuthTests
     {
         [TestMethod]
-        public async Task DTGoogleAuth_SetConfigTest()
+        public void DTGoogleAuth_SetConfigTest()
         {
             //Arrange
             var svc = new DTGoogleAuthService();
@@ -21,7 +21,7 @@ namespace DTGoogleAuthTests
         }
 
         [TestMethod]
-        public async Task DTGoogleAuth_AuthServiceTest()
+        public void DTGoogleAuth_AuthServiceTest()
         {
             //Arrange 
             var svc = new DTGoogleAuthService();
@@ -37,7 +37,7 @@ namespace DTGoogleAuthTests
         }
 
         [TestMethod]
-        public async Task DTGoogleAuth_AuthTokenTest()
+        public void DTGoogleAuth_AuthTokenTest()
         {
             if (DTTestConstants.NoTestGoogleCodes) Assert.Inconclusive("Test Google Tokens not set");
             //Arrange
@@ -51,13 +51,13 @@ namespace DTGoogleAuthTests
         }
 
         [TestMethod]
-        public async Task DTGoogleAuth_UserInfoTest()
+        public void DTGoogleAuth_UserInfoTest()
         {
             if (DTTestConstants.NoTestGoogleCodes) Assert.Inconclusive("Test Google Tokens not set");
             //Arrange
             var svc = DTTestOrganizer.Service();
             //Act
-            var userInfo = svc.GetUserInfo(DTTestConstants.TestGoogleAuth, DTTestConstants.TestGoogleRefresh);
+            var userInfo = svc.GetUserInfo(DTTestConstants.TestGoogleAuth!, DTTestConstants.TestGoogleRefresh!);
 
             //Assert
             Assert.IsNotNull(userInfo);
@@ -65,14 +65,14 @@ namespace DTGoogleAuthTests
         }
 
         [TestMethod]
-        public async Task DTGoogleAuth_RefreshAuthTest()
+        public void DTGoogleAuth_RefreshAuthTest()
         {
             if (DTTestConstants.NoTestGoogleCodes) Assert.Inconclusive("Test Google Tokens not set");
             //Arrange
             var svc = DTTestOrganizer.Service();  
 
             //Act
-            DTTestConstants.TestGoogleAuth = svc.RefreshAuthToken(DTTestConstants.TestGoogleRefresh, new List<string>() { DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleCalendarScope });
+            DTTestConstants.TestGoogleAuth = svc.RefreshAuthToken(DTTestConstants.TestGoogleRefresh!, new List<string>() { DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleCalendarScope });
         
             //Assert
             Assert.IsNotNull(DTTestConstants.TestGoogleAuth);

@@ -30,13 +30,13 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task AdminController_InstantiateDefault()
+        public void AdminController_InstantiateDefault()
         {
             Assert.IsNotNull(_controller, "Did not instantiate admin controller.");
         }
 
         [TestMethod]
-        public async Task AdminController_Index()
+        public void AdminController_Index()
         {
             //Act
             var res = _controller.Index();
@@ -47,7 +47,7 @@ namespace DanTechTests.Controllers
 
         /*
         [TestMethod]
-        public async Task AdminController_SetPW()
+        public void AdminController_SetPW()
         {
             //Arrange
             if (_db == null) _db = DTDB.getDB();

@@ -88,9 +88,9 @@ namespace DanTechDBTests
         {
             _db.Delete(_db.PlanItems.Where(x => x.user == DTTestConstants.TestUser.id && x.title.StartsWith("DTDB Test") && x.parent != null).ToList());
             _db.Delete(_db.PlanItems.Where(x => x.user == DTTestConstants.TestUser.id && x.title.StartsWith("DTDB Test") && x.parent == null).ToList());
-            _db.Delete(DTTestConstants.TestPlanItem);
-            _db.Delete(DTTestConstants.TestProject);
-            _db.Delete(DTTestConstants.TestUser);
+            if (DTTestConstants.TestPlanItem != null) _db.Delete(DTTestConstants.TestPlanItem!);
+            if (DTTestConstants.TestProject != null) _db.Delete(DTTestConstants.TestProject!);
+            if (DTTestConstants.TestUser != null) _db.Delete(DTTestConstants.TestUser!);
             Debug.WriteLine("Cleaned up resources used in testing");
         }
     }

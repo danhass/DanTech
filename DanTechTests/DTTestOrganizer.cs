@@ -83,6 +83,7 @@ namespace DanTechTests
                 GoodUser = _db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
             }
             GoodGoogleTokens["AccessToken"] = GoodUser != null ? GoodUser.token: string.Empty;
+            GoodGoogleTokens["RefreshToken"] = GoodUser != null ? GoodUser.refreshToken: string.Empty;
             if (GoodUserSession == null && GoodUser != null)
             {
                 GoodUserSession = _db.Sessions.Where(x => x.user == GoodUser.id && x.hostAddress == DTTestConstants.LocalHostDomain).FirstOrDefault();
@@ -215,7 +216,7 @@ namespace DanTechTests
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
-            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(string.IsNullOrEmpty(ipAddress) ? DTTestConstants.TestRemoteHostAddress : ipAddress);
+            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(string.IsNullOrEmpty(ipAddress) ? DTTestConstants.LocatHostIP : ipAddress);
             return httpContext;
         }
 

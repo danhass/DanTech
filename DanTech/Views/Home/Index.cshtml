@@ -39,8 +39,12 @@
     <form action="/Home/TestGmail" method="post">
         <button>Test</button>
     </form>
-
-
+<!--
+    <br />
+    <form action="/Home/SigninForGitHub" method="post">
+        <button>Sign In with GitHub</button>
+    </form>
+-->
     @if (Model != null && Model.TestEnvironment)
     {
         <form action="/Home/ToggleTestState" method="post">

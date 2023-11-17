@@ -18,6 +18,8 @@ using System.Web.Http;
 using EASendMail;
 using System.Threading.Tasks;
 using System;
+using System.Web;
+using Activity = System.Diagnostics.Activity;
 
 namespace DanTech.Controllers
 {
@@ -53,13 +55,44 @@ namespace DanTech.Controllers
             var v = VM;
             return View(VM);
         }
-                
+        /*
+        [ServiceFilter(typeof(DTAuthenticate))]
+        [DisableCors]
+        public async void GitHubSignin(string code)
+        {
+            string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
+            string rUrl = "https://" + domain + "/Home/GitHubSignin";
+            var client = new HttpClient();
+            string clientId = _configuration.GetValue<string>("GitHub:ClientId");
+            string clientSecret = _configuration.GetValue<string>("GitHub:ClientSecret");
+            var parameters = new Dictionary<string, string>
+            {
+                {"client_id", clientId },
+                {"client_secret", clientSecret },
+                {"code", code },
+                {"redirect_url", rUrl }
+            };
+            var content = new FormUrlEncodedContent(parameters);
+            var response = await client.PostAsync("https://github.com/login/oauth/access_token", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var values = HttpUtility.ParseQueryString(responseContent);
+            var access_token = values["access_token"];
+            var client1 = new GitHubClient(new Octokit.ProductHeaderValue("DanTech"));
+            var tokenAuth = new Credentials(access_token);
+            client1.Credentials = tokenAuth;
+            var user = await client1.User.Current();
+            var email = user.Email;
+            RedirectToAction("Index", "Home");
+            return;
+        }
+        */
         [ServiceFilter(typeof(DTAuthenticate))]
         [DisableCors]
         public IActionResult GoogleSignin(string code)
-        { 
+        {
             //dtMisc testDatum = new dtMisc() { title = "Google Signin Code", value = code};
             //_db.Log(testDatum);
+            string hostAddress = HttpContext.Connection.RemoteIpAddress.ToString();
             string domain = Request.Scheme + "://" + Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
             var googleAuthService = new DTGoogleAuthService();
             googleAuthService.SetConfig(_configuration);
@@ -70,7 +103,7 @@ namespace DanTech.Controllers
                 HttpClientInitializer = cred
             });
             var userInfo = oauthSerivce.Userinfo.Get().Execute();
-            var login = _db.SetLogin(userInfo.Email, userInfo.GivenName, userInfo.FamilyName, domain, 1, tokens["AccessToken"], tokens["RefreshToken"]);
+            var login = _db.SetLogin(userInfo.Email, userInfo.GivenName, userInfo.FamilyName, hostAddress, 1, tokens["AccessToken"], tokens["RefreshToken"]);
             SetVM(login.Session);
             Response.Cookies.Delete("dtSessionId");
             Response.Cookies.Append("dtSessionId", login.Session);  
@@ -104,11 +137,11 @@ namespace DanTech.Controllers
         [DisableCors]
         public IActionResult SaveGoogleCode(string code)
         {
-            dtMisc? testDatum = _db.Misces.Where(x => x.title == "Google Signin Code").FirstOrDefault();
+            dtMisc testDatum = _db.Misces.Where(x => x.title == "Google Signin Code").FirstOrDefault();
             if (testDatum == null) testDatum = new dtMisc() { title = "Google Signin Code", value = code };
             else testDatum.value = code;
             _db.Set(testDatum);
-            dtUser? testUser = _db.Users.Where(x => x.email == DTControllerConstants.EmailUsedForTesting).FirstOrDefault();
+            dtUser testUser = _db.Users.Where(x => x.email == DTControllerConstants.EmailUsedForTesting).FirstOrDefault();
             if (testUser != null)
             {
                 testUser.token = "";
@@ -159,7 +192,6 @@ namespace DanTech.Controllers
             }
             var hostAddress = this.HttpContext.Request.Host.Value;
 
-            string sessionId = "None";
             var googleAuthService = _google == null ? new DTGoogleAuthService() : _google;
             googleAuthService.SetConfig(_configuration);
             var tokens = googleAuthService.AuthToken(code, domain, new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope}, _configuration, "/google");
@@ -186,9 +218,8 @@ namespace DanTech.Controllers
         {
             Response.Headers.Add("Access-Control-Allow-Origin", "*");
             string sessionId = Request.Cookies["dtSessionId"];
-            string log = "";
             string addr = HttpContext.Request.Host.Value;
-            dtLogin? login = null; 
+            dtLogin login = null; 
             var session = _db.Sessions.Where(x => x.session == sessionId).FirstOrDefault();
             if (session != null)
             {
@@ -207,11 +238,15 @@ namespace DanTech.Controllers
         public JsonResult Login(string sessionId)
         {
             //Response.Headers.Add("Access-Control-Allow-Origin", "*");
-            string log = "";
 
-            string addr = HttpContext.Request.Host.Value;
-            dtSession? session = _db.Sessions.Where(x => x.session == sessionId).FirstOrDefault();
-            var json = Json(session == null ? null : _db.SetLogin(session.userNavigation.email, addr));
+            string addr = HttpContext.Connection.RemoteIpAddress.ToString();
+            dtSession session = _db.Sessions.Where(x => x.session == sessionId).FirstOrDefault();
+            dtUser user = null;
+            if (session != null)
+            {
+                user = _db.Users.Where(x => x.id == session.user).FirstOrDefault();
+            }
+            var json = Json(user == null ? null : _db.SetLogin(user.email, addr));
             return json;
         } 
         
@@ -246,6 +281,14 @@ namespace DanTech.Controllers
             var google = new DTGoogleAuthService();
             google.SetConfig(_configuration);
             return Redirect(google.AuthService(domain, "Home/GoogleSignin", new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope}));
+        }
+
+        [DisableCors]
+        public IActionResult SignInForGitHub()
+        {
+            string domain = Request.Headers["host"] + (string.IsNullOrEmpty(Request.Headers["port"]) ? "" : ":" + Request.Headers["port"]);
+            var url = "https://github.com/login/oauth/authorize?client_id=" + _configuration.GetValue<string>("GitHub:ClientId") + "&scope=user";
+            return Redirect(url);
         }
 
         [DisableCors]

@@ -19,7 +19,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task ColorCode_List()
+        public void ColorCode_List()
         {
             //Arrange
             var numColorCodes = _db.ColorCodes.Count;
@@ -32,14 +32,14 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task DBAccessible()
+        public void DBAccessible()
         {
             var statusCt = _db.Stati.Count;
             Assert.IsTrue(statusCt > 0);
         }
 
         [TestMethod]
-        public async Task DBUserCRUD()
+        public void DBUserCRUD()
         {
             //Arrange
             var userCt = _db.Users.Count;
@@ -48,7 +48,7 @@ namespace DanTechDBTests.Service
             var specUserCt = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).ToList().Count;
 
             //Act
-            dtUser u = new dtUser() { fName = classTestName, lName = classTestName, type = 1 };
+            dtUser? u = new dtUser() { fName = classTestName, lName = classTestName, type = 1 };
             u = _db.Set(u);
             var userCtAfterInsert = _db.Users.Count;
             var specUserCtAfterInsert = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).ToList().Count;
@@ -57,7 +57,7 @@ namespace DanTechDBTests.Service
             u.suspended = 1;
             _db.Save();
             u = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).FirstOrDefault();
-            _db.Delete(u);
+            if (u != null) _db.Delete(u!);
             var userCtAfterRemove = _db.Users.Count;
             var specUserCtAfterRemove = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).ToList().Count;
 
@@ -72,13 +72,13 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task InstantiateDB()
+        public void InstantiateDB()
         {
             Assert.IsNotNull(_db);
         }
 
         [TestMethod]
-        public async Task PlanItemAddRecurrence()
+        public void PlanItemAddRecurrence()
         {
             //Arrange
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
@@ -106,7 +106,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task PlanItem_ClearPastDue()
+        public void PlanItem_ClearPastDue()
         {
             //Arrange
             var testUser = DTTestConstants.TestUser;
@@ -167,7 +167,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task PlanItemSet_MinimumItem()
+        public void PlanItemSet_MinimumItem()
         {
             //Arrange
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
@@ -213,7 +213,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task PlanItemAdd_NoEndDate()
+        public void PlanItemAdd_NoEndDate()
         {
             //Arrange
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
@@ -238,7 +238,7 @@ namespace DanTechDBTests.Service
 
             //Act
             var item = _db.Set(model);
-            var ts = item.duration;
+            var ts = item.duration!;
             var tsExpected = TimeSpan.Parse("2:05");
 
             //Assert
@@ -251,7 +251,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task PlanItemDelete()
+        public void PlanItemDelete()
         {
             //Arrange
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
@@ -277,7 +277,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task PlanItemAddRecurrenceWith_TTh_Filter()
+        public void PlanItemAddRecurrenceWith_TTh_Filter()
         {
             //Arrange
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
@@ -306,7 +306,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task ProjectsListByUser()
+        public void ProjectsListByUser()
         {
             //Arrange
             var db = _db.dtdb();
@@ -323,7 +323,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task Project_Set()
+        public void Project_Set()
         {
             //Arrange
             var testUser = _db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
@@ -363,7 +363,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task Recurrences_List()
+        public void Recurrences_List()
         {
             //Arrange
             var numRecurrences = _db.RecurrenceDTOs().ToList().Count;
@@ -376,7 +376,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task SetPW_Success()
+        public void SetPW_Success()
         {
             //Arrange
             string testPW = DTTestConstants.TestString;
@@ -395,7 +395,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task SetTestingFlag()
+        public void SetTestingFlag()
         {
             //Arrange
 
@@ -428,7 +428,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task Statuses_List()
+        public void Statuses_List()
         {
             //Arrange
             dtdb db = _db.dtdb();
@@ -442,7 +442,7 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
-        public async Task UserModelForSession_NotLoggedIn()
+        public void UserModelForSession_NotLoggedIn()
         {
             //Arrange 
         }

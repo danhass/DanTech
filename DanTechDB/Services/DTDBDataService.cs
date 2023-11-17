@@ -34,6 +34,7 @@ namespace DanTech.Services
             _conn = cfg.GetConnectionString("DG").ToString();
             _dbi = dbctx;
             _db = dbctx;
+            if (!DTDBConstants.Initialized()) DTDBConstants.Init(_db!);
         }
 
         public DTDBDataService(string conn)
@@ -46,7 +47,13 @@ namespace DanTech.Services
 
         public bool PendingChanges()
         {
-            return (_db.ChangeTracker.Entries().ToList().Count > 0);
+            try
+            {
+                return (_db.ChangeTracker.Entries().ToList().Count > 0);
+            } catch (Exception) 
+            {
+                return false; 
+            }
         }
         private Idtdb InstantiateDB()
         {
@@ -97,7 +104,7 @@ namespace DanTech.Services
             {
                 _db.SaveChanges();
             }
-            catch (Exception ex) { }
+            catch (Exception ex) { if (!string.IsNullOrEmpty(ex.Message)) Debug.WriteLine(ex.Message); }
         }
         public void ToggleTestFlag()
         {
@@ -348,7 +355,7 @@ namespace DanTech.Services
             dtUserModel mappedUser = new dtUserModel();
             if (!string.IsNullOrEmpty(session))
             {
-                var sessionRecord = (from x in _db.dtSessions where x.session == session select x).FirstOrDefault();
+                var sessionRecord = (from x in _db.dtSessions where x.session == session && x.hostAddress == hostAddress select x).FirstOrDefault();
                 if (sessionRecord == null || sessionRecord.expires < DateTime.Now)
                 {
                     if (sessionRecord != null)
@@ -369,6 +376,8 @@ namespace DanTech.Services
                         var config = dtUserModel.mapperConfiguration;
                         var mapper = new Mapper(config);
                         mappedUser = mapper.Map<dtUserModel>(user);
+                        mappedUser.token = "";
+                        mappedUser.refreshToken = "";
                         sessionRecord.expires = DateTime.Now.AddDays(7);
                     }
                 }
@@ -889,9 +898,9 @@ namespace DanTech.Services
 
             return userToSave;
         }
-        public void SetConnString(string conn)
+        public void SetConnString(string? conn)
         {
-            _conn = conn;
+            if (conn != null) _conn = conn;
         }
         public bool SetIfTesting(string key, string value)
         {
@@ -922,7 +931,7 @@ namespace DanTech.Services
             RemoveOutOfDateSessions();
             var user = Users.Where(x => x.email == email).FirstOrDefault();
             if (user == null) return null;
-            var session = Sessions.Where(x => x.user == user.id).FirstOrDefault();
+            var session = Sessions.Where(x => x.user == user.id && x.hostAddress == hostAddress).FirstOrDefault();
             if (session == null)
             {
                 session = Set(new dtSession() { user = user.id, hostAddress = hostAddress, expires = DateTime.Now.AddDays(7), session = Guid.NewGuid().ToString() });

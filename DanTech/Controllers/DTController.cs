@@ -41,7 +41,10 @@ namespace DanTech.Controllers
          }
         ~DTController()
         {
-            if (_db.PendingChanges()) _db.Save();
+            try
+            {
+                if (_db.PendingChanges()) _db.Save();
+            } catch (Exception) { }
         }
         protected void SetVM(string sessionId)
         {
@@ -51,10 +54,12 @@ namespace DanTech.Controllers
             {
                 var user = session.userNavigation;
                 if (user != null)
-                {
+                {                    
                     var config = dtUserModel.mapperConfiguration;
                     var mapper = new Mapper(config);
                     VM.User = mapper.Map<dtUserModel>(user);
+                    VM.User.refreshToken = "";
+                    VM.User.token = "";
                 }
             }
         }

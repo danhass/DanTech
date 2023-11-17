@@ -33,6 +33,8 @@ namespace DanTech.Data.Models
             status = proj.status;
             Mapper userMap = new Mapper(dtUserModel.mapperConfiguration);
             user = userMap.Map<dtUserModel>(proj.userNavigation);
+            user.refreshToken = "";
+            user.token = "";            
         }
 
         public static MapperConfiguration mapperConfiguration

@@ -38,7 +38,7 @@ namespace DanTech.Services
                 if (i > 0) r += " ";
                 r += scopes[i];
             }
-            string clientId = gmail ? _config.GetValue<string>("Gmail:ClientId") : _config.GetValue<string>("Google:ClientId");
+            string? clientId = gmail ? _config.GetValue<string>("Gmail:ClientId") : _config.GetValue<string>("Google:ClientId");
             r += "&state=google_signin" +
                 "&redirect_uri=https://" + returnDomain + (returnHandler.StartsWith('/') ? "" : "/") + returnHandler +
                 "&access_type=offline" +
@@ -84,8 +84,8 @@ namespace DanTech.Services
             Dictionary<string, string> res = new Dictionary<string, string>();
             var clientSecrets = new ClientSecrets
             {
-                ClientId = gmail ? _config.GetValue<string>("Gmail:ClientId") : _config.GetValue<string>("Google:ClientId"),
-                ClientSecret = gmail ? _config.GetValue<string>("Gmail:ClientSecret") : _config.GetValue<string>("Google:ClientSecret")
+                ClientId = gmail ? _config!.GetValue<string>("Gmail:ClientId") : _config!.GetValue<string>("Google:ClientId"),
+                ClientSecret = gmail ? _config!.GetValue<string>("Gmail:ClientSecret") : _config!.GetValue<string>("Google:ClientSecret")
             };
 
             var credential = new GoogleAuthorizationCodeFlow(
@@ -124,7 +124,7 @@ namespace DanTech.Services
             {
                 HttpClientInitializer = cred
             });
-            Userinfo userInfo = null;
+            Userinfo? userInfo = null;
             try
             {
                 userInfo  = oauthSerivce.Userinfo.Get().Execute();

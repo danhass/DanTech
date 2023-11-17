@@ -16,10 +16,9 @@ namespace DanTech.Controllers
         public PlannerController(IConfiguration configuration, ILogger<PlannerController> logger, IDTDBDataService data, dtdb dbctx) : base(configuration, logger, data, dbctx)
         {
         }
-        private List<dtPlanItemModel> GetPlanItemDTOs(int user, int daysback, bool includeCompleted, bool getAll, int onlyProject)
+        private List<dtPlanItemModel>? GetPlanItemDTOs(int user, int daysback, bool includeCompleted, bool getAll, int onlyProject)
         {
-            List<dtPlanItemModel> list = null;
-            list = _db.PlanItemDTOs(user, daysback, includeCompleted, getAll, onlyProject);
+            List<dtPlanItemModel>? list = _db.PlanItemDTOs(user, daysback, includeCompleted, getAll, onlyProject);
             return list;
         }
         [ServiceFilter(typeof(DTAuthenticate))]

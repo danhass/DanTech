@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using DanTech.Services;
 using System.Threading.Tasks;
 using DanTech.Data;
+using Org.BouncyCastle.Utilities.Net;
 
 namespace DanTechTests
 {
@@ -25,37 +26,23 @@ namespace DanTechTests
     public class DTAuthenticateTests
     {
 
-        private IDTDBDataService _db = null;
         private IConfiguration _config = null;
 
         public DTAuthenticateTests()
         {
             if (_config == null) _config = DTTestOrganizer.InitConfiguration();
-            if (_db == null)
-            {
-                var cfg = DTTestOrganizer.InitConfiguration();
-                _db = DTTestOrganizer.DataService();
-            }
-        }
-        private IDTDBDataService GetDB()
-        {
-            if (_config == null) _config = DTTestOrganizer.InitConfiguration();
-            if (_db == null)
-            {
-                var cfg = DTTestOrganizer.InitConfiguration();
-                _db = DTTestOrganizer.DataService();
-            }
-            return _db;
         }
         private DTController ExecuteWithLoggedInUser(string host)
         {
+            dtdb dbctx = new dtdb(_config.GetConnectionString("DG"));
+            var db = new DTDBDataService(_config, dbctx);
             var controller = DTTestOrganizer.InitializeDTController(true);
             var httpContext = DTTestOrganizer.InitializeContext(host, true);
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(_config, _db);
+            var actionFilter = new DTAuthenticate(_config, db);
 
             //Act
             actionFilter.OnActionExecuting(ctx);
@@ -73,7 +60,7 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task ActionExecutingTest_SetTestEnv()
+        public void ActionExecutingTest_SetTestEnv()
         {
             
             //Arrange
@@ -90,14 +77,14 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task ActionExecutingTest_SetNotTestEnv()
+        public void ActionExecutingTest_SetNotTestEnv()
         {
             
             //Arrange
  
             //Act
-            var controller = ExecuteWithLoggedInUser(IPAddress.Loopback.ToString());
-            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
+            var controller = ExecuteWithLoggedInUser(System.Net.IPAddress.Loopback.ToString());
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"][0];
 
             //Clean up
             RemoveTestSession();
@@ -110,17 +97,16 @@ namespace DanTechTests
 
 
         [TestMethod]
-        public async Task ActionExecutingTest_UserLoggedIn()
+        public void ActionExecutingTest_UserLoggedIn()
         {
             
             //Arrange
-            var db = DTDB.getDB();
 
             //Act
             var controller = ExecuteWithLoggedInUser(DTTestConstants.LocalHostDomain);
 
             //Clean up db - test user is left in place
-            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"][0];
 
             //Assert
             Assert.IsNotNull(controller.VM, "Controller's VM not set.");
@@ -131,16 +117,18 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task ActionExecutingTest_SessionInPostData()
+        public void ActionExecutingTest_SessionInPostData()
         {
-            
+
             //Arrange
-            var config = DTTestOrganizer.InitConfiguration();
-            var db = _db;
+            var config = _config;
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));
+            var db = new DTDBDataService(_config, dbctx);
             var controller = DTTestOrganizer.InitializeDTController(true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.LocalHostDomain);    
             httpContext.Request.Headers.Add(HeaderNames.ContentType, new StringValues("application/x-www-form-urlencoded"));
+            httpContext.Connection.RemoteIpAddress = System.Net.IPAddress.Parse(DTTestConstants.LocatHostIP);
             var form = new Dictionary<string, StringValues>();
             StringValues val = new StringValues(DTTestOrganizer.TestSession.session);
             form["sessionId"] = val;
@@ -152,7 +140,7 @@ namespace DanTechTests
             var actionFilter = new DTAuthenticate(config, db);
 
             actionFilter.OnActionExecuting(ctx);
-            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"][0];
 
             //Assert
             Assert.IsNotNull(controller.VM.User, "Could not set user from post data.");
@@ -161,16 +149,18 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task ActionExecutingTest_SessionOnQueryString()
+        public void ActionExecutingTest_SessionOnQueryString()
         {
-            
+
             //Arrange 
-            var config = DTTestOrganizer.InitConfiguration();
-            var db = _db;
+            var config = _config;
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));
+            var db = new DTDBDataService(_config, dbctx);
             var controller = DTTestOrganizer.InitializeDTController(true);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.LocalHostDomain);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + DTTestOrganizer.TestSession.session);
+            httpContext.Connection.RemoteIpAddress = System.Net.IPAddress.Parse(DTTestConstants.LocatHostIP);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
@@ -178,7 +168,7 @@ namespace DanTechTests
 
             //Action
             actionFilter.OnActionExecuting(ctx);
-            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"][0];
 
             //Assert
             Assert.IsNotNull(controller.VM.User, "Coult not set user from query string");
@@ -187,16 +177,18 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task ActionExectutingTest_SessionQueryStringWithInvalid()
+        public void ActionExectutingTest_SessionQueryStringWithInvalid()
         {
-            
+
             //Arrange
-            var config = DTTestOrganizer.InitConfiguration();
-            var db = _db;
+            var config = _config;
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));
+            var db = new DTDBDataService(_config, dbctx);
             var controller = DTTestOrganizer.InitializeDTController(true, null);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + Guid.Empty.ToString());
+            httpContext.Connection.RemoteIpAddress = System.Net.IPAddress.Parse(DTTestConstants.LocatHostIP);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
@@ -204,7 +196,7 @@ namespace DanTechTests
 
             //Action
             actionFilter.OnActionExecuting(ctx);
-            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"][0];
 
             //Assert
             Assert.AreEqual(0,controller.VM.User.id, "Invalid user from query string.");
@@ -213,11 +205,14 @@ namespace DanTechTests
         }
 
         [TestMethod]
-        public async Task ActionExecutingTest_UserNotLoggedIn()
+        public void ActionExecutingTest_UserNotLoggedIn()
         {
             
             //Arrange            
             var testUser = DTTestOrganizer.TestUser;
+            var config = _config;
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));
+            var db = new DTDBDataService(_config, dbctx);
 
             //Remove any session for this user
             var testSession = DTTestOrganizer.TestUserSession;
@@ -232,22 +227,19 @@ namespace DanTechTests
             featureCollection.Set<IHttpRequestFeature>(requestFeature);
             var cookiesFeature = new RequestCookiesFeature(featureCollection);
             httpContext.Request.Cookies = cookiesFeature.Cookies;
-            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
+            httpContext.Connection.RemoteIpAddress = System.Net.IPAddress.Parse(DTTestConstants.TestRemoteHostAddress);
 
             //Set up controller
-            var config = DTTestOrganizer.InitConfiguration();
             var logger = DTTestOrganizer.InitLogger();
-            var dbctx = new dtdb(config.GetConnectionString("DG"));
-            var db = new DTDBDataService(config, dbctx);
             var controller = new DTController(config, logger, db, dbctx);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
             controller.ControllerContext = new ControllerContext(actionContext);
-            var actionFilter = new DTAuthenticate(config, _db);
+            var actionFilter = new DTAuthenticate(config, db);
 
             //Act
             actionFilter.OnActionExecuting(ctx);
-            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"];
+            var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"][0];
 
             //Assert
             Assert.IsNotNull(controller.VM, "Controller's VM not set.");

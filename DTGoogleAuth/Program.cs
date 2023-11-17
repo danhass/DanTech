@@ -1,4 +1,4 @@
-﻿namespace DanTech
+﻿namespace DanTech.DTGoogleAuth
 {
     public class Program
     {

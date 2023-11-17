@@ -63,7 +63,7 @@ namespace DanTechGoogleAuthTests
 
         public static void SetTokens()
         {
-            var tokens = _svc.AuthToken(DTTestConstants.TestGoogleCode!, DTTestConstants.TestReturnDomain, new List<string>() { DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleCalendarScope }, DTTestOrganizer.GetConfiguration(), DTTestConstants.TestReturnEndPoint);
+            var tokens = _svc.AuthToken(DTTestConstants.TestGoogleCode!, DTTestConstants.TestReturnDomain, new List<string>() { DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleCalendarScope }, DTTestOrganizer.GetConfiguration()!, DTTestConstants.TestReturnEndPoint);
             if (tokens != null && !string.IsNullOrEmpty(tokens["AccessToken"]))
             {
                 DTTestConstants.TestGoogleAuth = tokens["AccessToken"];

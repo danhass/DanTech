@@ -14,7 +14,7 @@ namespace DanTech.Services
         Idtdb Instantiate(IConfiguration cfg);
         bool PendingChanges();
         void Save();
-        void SetConnString(string conn);
+        void SetConnString(string? conn);
         void SetUser(int userId);
         bool SetUserPW(string pw);
         void ToggleTestFlag();
@@ -76,7 +76,7 @@ namespace DanTech.Services
         dtUser Set(dtUser aUser);
         dtSession Set(dtSession aSession);
 
-        dtLogin SetLogin(string email, string hostAddress);
+        dtLogin? SetLogin(string email, string hostAddress);
         public dtLogin? SetLogin(string email, string fname, string lname, string hostAddress, int userType, string accessToken, string refreshToken);
         int UpdateRecurrences(int userId, int sourceItem = 0, bool force = false);       
     }

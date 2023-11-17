@@ -29,7 +29,6 @@ namespace DanTechTests.Controllers
         private static dtUser _testUser = null;
         // Valid values for tests
         private int _numberOfPlanItems = 4;
-        private List<dtColorCode> _colorCodes = null;
 
         public PlannerTests()
         {
@@ -63,7 +62,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task ColorCodes()
+        public void ColorCodes()
         {
 
             //Arrange
@@ -81,7 +80,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task ControllerInitialized()
+        public void ControllerInitialized()
         {
             
             Assert.IsNotNull(_controller, "Planner controller not correctly initialized.");
@@ -89,7 +88,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_Adjust()
+        public void PlanItem_Adjust()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -127,7 +126,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_Adjust_PriorityFocused()
+        public void PlanItem_Adjust_PriorityFocused()
         {
             // Going to have five items.
             // #1 Starts at a fixed time 10 minutes with a 60 minute duration from now.
@@ -189,7 +188,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_Adjust_With_Fixed()
+        public void PlanItem_Adjust_With_Fixed()
         {
             // Going to have four items.
             // #1: Starting in 5 minutes and lasting an hour.
@@ -245,7 +244,7 @@ namespace DanTechTests.Controllers
             
         }
         [TestMethod]
-        public async Task PlanItem_AllRecurrences()
+        public void PlanItem_AllRecurrences()
         {
             // This tests the ability to retrieve recurrences through the api
             // We are going to set four recurrences.
@@ -292,7 +291,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_ColorStatus_Complete()
+        public void PlanItem_ColorStatus_Complete()
         {
 
             //Arrange
@@ -320,7 +319,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_ColorStatus_Conflict()
+        public void PlanItem_ColorStatus_Conflict()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -346,7 +345,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_ColorStatus_Current()
+        public void PlanItem_ColorStatus_Current()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -371,7 +370,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_ColorStatus_Future()
+        public void PlanItem_ColorStatus_Future()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -396,7 +395,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_ColorStatus_OutOfDate()
+        public void PlanItem_ColorStatus_OutOfDate()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -421,7 +420,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_ColorStatus_Pastdue()
+        public void PlanItem_ColorStatus_Pastdue()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -448,7 +447,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_ColorStatus_Subitem()
+        public void PlanItem_ColorStatus_Subitem()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -476,7 +475,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_ColorStatus_Working()
+        public void PlanItem_ColorStatus_Working()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -503,7 +502,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_Get()
+        public void PlanItem_Get()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -566,7 +565,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItemSet_FixedStart()
+        public void PlanItemSet_FixedStart()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -590,7 +589,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_Delete()
+        public void PlanItem_Delete()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -612,7 +611,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_Delete_KeepChildren()
+        public void PlanItem_Delete_KeepChildren()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -637,7 +636,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_Delete_RecurrenceAndChildren()
+        public void PlanItem_Delete_RecurrenceAndChildren()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -659,7 +658,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_RecurrenceNotCurrent()
+        public void PlanItem_RecurrenceNotCurrent()
         {
             // If a recurrence is set for a previous date, when the plan items are retrieved, there should be items populated for the next 30 days.
 
@@ -689,7 +688,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItemSet_DailyRecurrence_TTh_Filter()
+        public void PlanItemSet_DailyRecurrence_TTh_Filter()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -715,7 +714,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItemSet_Monthly_nth_Monday_past()
+        public void PlanItemSet_Monthly_nth_Monday_past()
         {
             // Setting a recurrence of 3rd M & F in a month => 3:-*---*-. We are setting the start date equal to 14 days previous to today.
 
@@ -770,7 +769,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItemSet_MonthlyRecurrence()
+        public void PlanItemSet_MonthlyRecurrence()
         {
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -790,7 +789,7 @@ namespace DanTechTests.Controllers
                 numberOfChildrenExpected--;
                 no1st = true;
             }
-            if (DateTime.Now.Day == 16 && dateAfter30days.Day < 16) 
+            if (DateTime.Now.Day == 16 && dateAfter30days.Day < 15) 
             {
                 numberOfChildrenExpected--;
                 no15th = true;
@@ -819,7 +818,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_SemiMonthlyRecurrence()
+        public void PlanItem_SemiMonthlyRecurrence()
         {            
             // Setting a recurrence with a 3 week cycle on M & F => 3:-*---*-. We are setting the start date equal to 14 days previous to today.
             // This means that we are beginning the 3rd week, and we expect to see entries on the next Monday and Friday, and then again in 3 weeks.
@@ -852,7 +851,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_SemiMonthlyRecurrence_Future()
+        public void PlanItem_SemiMonthlyRecurrence_Future()
         {            
             // Setting a recurrence with a 3 week cycle on M & F => 3:-*---*-. We are setting the start date equal to 14 days in the future.
             // This means that it is 2 weeks until the beginning the 3rd week, and we expect to see entries on the next Monday and Friday after,
@@ -887,7 +886,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task PlanItem_SetWithDailyRecurrence()
+        public void PlanItem_SetWithDailyRecurrence()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -906,7 +905,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task Project_Delete_DeleteItemsToo()
+        public void Project_Delete_DeleteItemsToo()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -934,7 +933,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task Project_Delete_KeepItems()
+        public void Project_Delete_KeepItems()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -966,7 +965,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task Project_Delete_XferItems()
+        public void Project_Delete_XferItems()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -1007,7 +1006,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task Propagate_FromChild()
+        public void Propagate_FromChild()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -1049,7 +1048,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task Propagate_Recurrence()
+        public void Propagate_Recurrence()
         {            
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
             var today = DateTime.Parse(DateTime.Now.ToShortDateString());
@@ -1090,7 +1089,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task Recurrences()
+        public void Recurrences()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -1109,7 +1108,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task SetProject()
+        public void SetProject()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -1142,7 +1141,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task Stati()
+        public void Stati()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -1158,7 +1157,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task UpdateRecurrence_PopulatesMissing()
+        public void UpdateRecurrence_PopulatesMissing()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -1205,7 +1204,7 @@ namespace DanTechTests.Controllers
         }
 
         [TestMethod]
-        public async Task UpdateRecurrence_PopulatesMissingUsingMFMask()
+        public void UpdateRecurrence_PopulatesMissingUsingMFMask()
         {            
             //Arrange
             var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
@@ -1253,7 +1252,7 @@ namespace DanTechTests.Controllers
 
         /*
         [TestMethod]
-        public async Task BadProp()
+        public void BadProp()
         {
             SetControllerQueryString("8a5815c2-7497-42f6-b691-06578c9467f5");
             var user = (from x in db.dtUsers where x.id == 2 select x).FirstOrDefault();
