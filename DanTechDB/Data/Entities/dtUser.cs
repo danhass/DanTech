@@ -29,6 +29,8 @@ public partial class dtUser
 
     public string? pw { get; set; }
 
+    public sbyte? doNotSetPW { get; set; }
+
     public virtual ICollection<dtAuthorization> dtAuthorizations { get; set; } = new List<dtAuthorization>();
 
     public virtual ICollection<dtConfig> dtConfigs { get; set; } = new List<dtConfig>();

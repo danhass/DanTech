@@ -368,7 +368,7 @@ namespace DanTech.Services
                     var user = (from x in _db.dtUsers where x.id == sessionRecord.user select x).FirstOrDefault();
                     if (user == null)
                     {
-                        Log(new dtMisc() { title = "UserModelForSession data: ", value = "User is null." });
+                        //Log(new dtMisc() { title = "UserModelForSession data: ", value = "User is null." });
                         _db.dtSessions.Remove(sessionRecord);
                     }
                     else

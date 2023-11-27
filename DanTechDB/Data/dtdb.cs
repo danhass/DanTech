@@ -305,6 +305,7 @@ public partial class dtdb : DbContext, Idtdb
             entity.HasIndex(e => e.type, "fk_users_type_ddttypes_idx");
 
             entity.Property(e => e.id).HasColumnType("int(11)");
+            entity.Property(e => e.doNotSetPW).HasColumnType("tinyint(4)");
             entity.Property(e => e.email).HasMaxLength(100);
             entity.Property(e => e.fName).HasMaxLength(100);
             entity.Property(e => e.lName).HasMaxLength(100);
