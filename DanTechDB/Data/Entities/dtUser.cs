@@ -23,13 +23,13 @@ public partial class dtUser
 
     public DateTime? lastLogin { get; set; }
 
-    public sbyte? suspended { get; set; }
+    public bool? suspended { get; set; }
 
     public DateTime? updated { get; set; }
 
     public string? pw { get; set; }
 
-    public sbyte? doNotSetPW { get; set; }
+    public bool? doNotSetPW { get; set; }
 
     public virtual ICollection<dtAuthorization> dtAuthorizations { get; set; } = new List<dtAuthorization>();
 

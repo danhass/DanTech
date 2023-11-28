@@ -16,6 +16,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\**" />
+    <Content Remove="Services\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <None Remove="Services\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
   
@@ -54,10 +61,6 @@
     <ProjectReference Include="..\DanTechDB\DanTechDB.csproj" />
     <ProjectReference Include="..\DTGmail\DTGmail.csproj" />
     <ProjectReference Include="..\DTGoogleAuth\DTGoogleAuth.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

@@ -58,7 +58,7 @@ namespace DanTechTests
             var specUserCtAfterInsert = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).ToList().Count;
             u = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).FirstOrDefault();
             var flagBeforeSuspension = u.suspended;
-            u.suspended = 1;
+            u.suspended = true;
             _db.Save();
             u = _db.Users.Where(x => x.fName == classTestName && x.lName == classTestName && x.type == 1).FirstOrDefault();
             _db.Delete(u);
@@ -71,7 +71,7 @@ namespace DanTechTests
             Assert.AreEqual(specUserCt + 1, specUserCtAfterInsert, "Adding a spec users should increase the count of spec users.");
             Assert.IsNotNull(u, "Inserted user not found.");
             Assert.IsNull(flagBeforeSuspension, "Suspension flag wrongly set.");
-            Assert.AreEqual(u.suspended, (SByte)1, "Suspension flag should be set.");
+            Assert.AreEqual(u.suspended, true, "Suspension flag should be set.");
             Assert.AreEqual(specUserCt, specUserCtAfterRemove, "Removing spec users should have reduced user count.");
         }
 

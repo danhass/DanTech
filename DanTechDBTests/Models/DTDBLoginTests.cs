@@ -54,7 +54,7 @@ namespace DanTechDBTests.Models
             //Arrange
             var svc = DTTestOrganizer.DB() as DTDBDataService;
             var usr = svc.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
-            usr.doNotSetPW = (sbyte)1;
+            usr.doNotSetPW = true;
             svc.Set(usr);
 
             //Act
@@ -64,7 +64,7 @@ namespace DanTechDBTests.Models
             Assert.IsNotNull(login);
             Assert.AreEqual(login.Email, DTTestConstants.TestUserEmail);
             Assert.AreEqual(login.Session, svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).FirstOrDefault().session);
-            Assert.IsTrue((bool) login.DoNotSetPW);
+            Assert.IsTrue(login.DoNotSetPW);
 
             //Cleanup
             svc.Delete(svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).ToList());

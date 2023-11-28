@@ -945,7 +945,7 @@ namespace DanTech.Services
                 login.Email = user.email;
                 login.FName = user.fName;
                 login.LName = user.lName;
-                if (user.doNotSetPW != null) login.DoNotSetPW = user.doNotSetPW == 1 ? true : false;
+                if (user.doNotSetPW != null) login.DoNotSetPW = user.doNotSetPW;
                 session.expires = DateTime.Now.AddDays(7);
                 session.hostAddress = hostAddress;
                 session = Set(session);
@@ -976,12 +976,17 @@ namespace DanTech.Services
         {
             _userId = userId;
         }
-        public bool SetUserPW(string pw)
+        public bool SetUserPW(string? pw)
         {
             if (_db == null) throw new Exception("DB not set");
             var usr = (from x in _db.dtUsers where x.id == _userId select x).FirstOrDefault();
             if (usr == null) return false;
-            usr.pw = pw;
+            if (pw != null) usr.pw = pw;
+            else
+            {
+                usr.pw = null;
+                usr.doNotSetPW = true;
+            }
             Save();
             return true;
         }

@@ -11,12 +11,10 @@ public partial class dtdb : DbContext, Idtdb
     public dtdb()
     {
     }
-
     public dtdb(string connection)
     {
         _connection = connection;
     }
-
     public dtdb(DbContextOptions<dtdb> options, IConfiguration cfg)
         : base(options)
     {
@@ -312,7 +310,6 @@ public partial class dtdb : DbContext, Idtdb
             entity.Property(e => e.otherName).HasMaxLength(100);
             entity.Property(e => e.pw).HasMaxLength(100);
             entity.Property(e => e.refreshToken).HasColumnType("text");
-            entity.Property(e => e.suspended).HasColumnType("tinyint(4)");
             entity.Property(e => e.token).HasColumnType("text");
             entity.Property(e => e.type).HasColumnType("int(11)");
             entity.Property(e => e.updated).HasColumnType("datetime");
