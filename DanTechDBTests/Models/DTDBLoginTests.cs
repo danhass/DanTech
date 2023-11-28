@@ -44,12 +44,31 @@ namespace DanTechDBTests.Models
             Assert.IsNotNull(login);
             Assert.AreEqual(login.Email, DTTestConstants.TestUserEmail);
             Assert.AreEqual(login.Session, svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).FirstOrDefault().session);
-            Assert.IsNull(login.DoNotSetPW);
 
             //Cleanup
             svc.Delete(svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).ToList());
         }
+        [TestMethod]
+        public void DTDBLogin_SetDoNotSetPWFlag()
+        {
+            //Arrange
+            var svc = DTTestOrganizer.DB() as DTDBDataService;
+            var usr = svc.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            usr.doNotSetPW = (sbyte)1;
+            svc.Set(usr);
 
+            //Act
+            var login = svc.SetLogin(DTTestConstants.TestUserEmail, DTTestConstants.TestReturnDomain);
+
+            //Assert
+            Assert.IsNotNull(login);
+            Assert.AreEqual(login.Email, DTTestConstants.TestUserEmail);
+            Assert.AreEqual(login.Session, svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).FirstOrDefault().session);
+            Assert.IsTrue((bool) login.DoNotSetPW);
+
+            //Cleanup
+            svc.Delete(svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).ToList());
+        }
 
         [TestMethod]
         public void DTDBLogin_RejectLoginTest()

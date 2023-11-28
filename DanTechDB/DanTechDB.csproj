@@ -8,14 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="dtdb.cs" />
-    <Compile Remove="DTDBConstants.cs" />
-    <Compile Remove="DTEnums.cs" />
-    <Compile Remove="Idtdb.cs" />
-    <Compile Remove="Program.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="appsettings.db.json" />
   </ItemGroup>
 
