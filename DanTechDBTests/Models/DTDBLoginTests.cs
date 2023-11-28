@@ -44,10 +44,13 @@ namespace DanTechDBTests.Models
             Assert.IsNotNull(login);
             Assert.AreEqual(login.Email, DTTestConstants.TestUserEmail);
             Assert.AreEqual(login.Session, svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).FirstOrDefault().session);
+            Assert.IsNull(login.DoNotSetPW);
 
             //Cleanup
             svc.Delete(svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).ToList());
         }
+
+
         [TestMethod]
         public void DTDBLogin_RejectLoginTest()
         {

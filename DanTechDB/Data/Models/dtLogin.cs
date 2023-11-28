@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DanTech.Data.Models
 {
@@ -12,6 +13,9 @@ namespace DanTech.Data.Models
         public string FName { get; set; }
         [AllowNull]
         public string LName { get; set; }
+        [AllowNull]
+        [DefaultValue(null)]
+        public bool? DoNotSetPW { get; set; }         
         [AllowNull]
         public string Message { get; set; }
     }

@@ -23,6 +23,8 @@ namespace DanTech.Data.Models
         public string refreshToken { get; set; }
         public DateTime? lastLogin { get; set; }
         public byte? suspended { get; set; }
+
+        public byte? doNotSetPW { get; set; }
   
         public static MapperConfiguration mapperConfiguration
         {

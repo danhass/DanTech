@@ -234,7 +234,10 @@ namespace DanTech.Services
             var mapper = new Mapper(config);
             foreach (var p in ps)
             {
-                projects.Add(mapper.Map<dtProjectModel>(p));
+                var mdl = mapper.Map<dtProjectModel>(p);
+                mdl.user.refreshToken = "";
+                mdl.user.token = "";
+                projects.Add(mdl);
             }
             Save();
             return projects;
