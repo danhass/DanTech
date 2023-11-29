@@ -135,6 +135,8 @@ namespace DanTechTests.Controllers
         [TestMethod]
         public void HomeController_EstablishSession_GoogleCode()
         {
+            if (DTTestConstants.NoTestGoogleCodes) Assert.Inconclusive("Test Google Tokens not set");
+
             //Arrange
             //if (!DTTestConstants.TestControl_EstablishSession_with_code) Assert.Inconclusive("AuthTokenTest_GetAuthToken is not run because the auth tokens need to be reset for a valid test.");
             //var datum = (from x in db.dtTestData where x.title == "Google code" select x).FirstOrDefault();

@@ -16,7 +16,9 @@
         public const int RecurrenceId_Daily = 1; //This is not expected to change.
         public const string SessionCookieKey = "dtSessionId";
         public const string TestElementKey = "Test data element";
-        public const string TestGoogleCode = "TEST GOOGLE CODE";
+        public static string? TestGoogleCode = null;
+        public static bool NoTestGoogleCodes = false;
+        public static readonly string TestGoogleCodeKey = "Google Signin Code";
         public const string TestGoogleCodeTitle = "Google code";
         public const string TestGoogleCodeMistTitle = "Google code - testing";
         public const string TestRemoteHost = "testdomain.com";

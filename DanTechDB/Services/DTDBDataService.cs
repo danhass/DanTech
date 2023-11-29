@@ -946,6 +946,7 @@ namespace DanTech.Services
                 login.FName = user.fName;
                 login.LName = user.lName;
                 if (user.doNotSetPW != null) login.DoNotSetPW = user.doNotSetPW;
+                if ((!string.IsNullOrEmpty(user.pw) || !string.IsNullOrWhiteSpace(user.pw)) && user.doNotSetPW == null) login.DoNotSetPW = true;
                 session.expires = DateTime.Now.AddDays(7);
                 session.hostAddress = hostAddress;
                 session = Set(session);

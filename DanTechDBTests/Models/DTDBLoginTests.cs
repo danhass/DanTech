@@ -36,6 +36,9 @@ namespace DanTechDBTests.Models
             //Arrange
             var svc = DTTestOrganizer.DB() as DTDBDataService;
             var usr = svc.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            usr.pw = null;
+            usr.doNotSetPW = null;
+            svc.Set(usr);
 
             //Act
             var login = svc.SetLogin(DTTestConstants.TestUserEmail, DTTestConstants.TestReturnDomain);
@@ -44,6 +47,30 @@ namespace DanTechDBTests.Models
             Assert.IsNotNull(login);
             Assert.AreEqual(login.Email, DTTestConstants.TestUserEmail);
             Assert.AreEqual(login.Session, svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).FirstOrDefault().session);
+            Assert.AreEqual(login.DoNotSetPW, null);
+
+            //Cleanup
+            svc.Delete(svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).ToList());
+        }
+        [TestMethod]
+        public void DTDBLogin_SetLoginWitPW()
+        {
+            //Arrange
+            var svc = DTTestOrganizer.DB() as DTDBDataService;
+            var usr = svc.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            usr.pw = "123TESTTEST321";
+            usr.doNotSetPW = null;
+            svc.Set(usr);
+            bool expectedFlag = true;
+
+            //Act
+            var login = svc.SetLogin(DTTestConstants.TestUserEmail, DTTestConstants.TestReturnDomain);
+
+            //Assert
+            Assert.IsNotNull(login);
+            Assert.AreEqual(login.Email, DTTestConstants.TestUserEmail);
+            Assert.AreEqual(login.Session, svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).FirstOrDefault().session);
+            Assert.AreEqual(login.DoNotSetPW, expectedFlag);
 
             //Cleanup
             svc.Delete(svc.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.TestReturnDomain).ToList());

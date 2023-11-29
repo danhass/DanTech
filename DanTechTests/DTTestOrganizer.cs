@@ -35,6 +35,7 @@ namespace DanTechTests
         public static IDTGoogleAuthService Google() { if (_google == null) _google = new Mock<IDTGoogleAuthService>(); return _google.Object; }
         public static string Conn = string.Empty;
         public static dtUser GoodUser = null;
+        public static bool NoTestGoogleCodes = false;
         public static dtUser TestUser = null;
         public static dtSession GoodUserSession = null;
         public static dtSession TestUserSession = null;
@@ -74,7 +75,10 @@ namespace DanTechTests
             }
             SetGoodUserData();
             Sessions = _db.Sessions;
-  
+            var allTestCodes = _db.Misces.Where(x => x.title == DTTestConstants.TestGoogleCodeKey).OrderByDescending(x => x.id).ToList();
+            if (allTestCodes.Count > 0) DTTestConstants.TestGoogleCode = allTestCodes[0].value;
+            else DTTestConstants.NoTestGoogleCodes = true;
+
         }
         public static void SetGoodUserData()
         {
