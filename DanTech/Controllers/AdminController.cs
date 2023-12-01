@@ -22,12 +22,12 @@ namespace DanTech.Controllers
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
-        public IActionResult SetPW(string sessionId, string pw)
+        public JsonResult SetPW(string sessionId, string pw)
         {
             if (VM == null || VM.User == null) return Json(null);
             _db.SetUser(VM.User.id);
             _db.SetUserPW(pw);
-            return View(VM);
+            return Json("Password set");
         }
 
         [ServiceFilter(typeof(DTAuthenticate))]
