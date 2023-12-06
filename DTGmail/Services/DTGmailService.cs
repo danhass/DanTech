@@ -64,9 +64,7 @@ namespace DanTech.Services
             {
                 throw new Exception(string.Format("Failed to send email with the following error: {0}", ex.Message));
             }
-
             return true;
-
         }
     }
 }

@@ -24,6 +24,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTGoogleAuthTests", "DTGoog
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTGmail", "DTGmail\DTGmail.csproj", "{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTUserManagement", "DanTechUserManagement\DTUserManagement.csproj", "{B570598E-89E9-44B9-9120-ABB2EEE34322}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTUserManagementTests", "DTUserManagementTests\DTUserManagementTests.csproj", "{990CA8EA-3415-4D8F-A3F7-6FB29D59FC9C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +66,14 @@ Global
 		{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CC6202B-5F4A-4B00-9C39-66D1136CFC69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B570598E-89E9-44B9-9120-ABB2EEE34322}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B570598E-89E9-44B9-9120-ABB2EEE34322}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B570598E-89E9-44B9-9120-ABB2EEE34322}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B570598E-89E9-44B9-9120-ABB2EEE34322}.Release|Any CPU.Build.0 = Release|Any CPU
+		{990CA8EA-3415-4D8F-A3F7-6FB29D59FC9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{990CA8EA-3415-4D8F-A3F7-6FB29D59FC9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{990CA8EA-3415-4D8F-A3F7-6FB29D59FC9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{990CA8EA-3415-4D8F-A3F7-6FB29D59FC9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
