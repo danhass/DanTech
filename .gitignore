@@ -371,3 +371,13 @@ FodyWeavers.xsd
 /DTGoogleAuth/appsettings.GoogleAuth.json
 /DTGoogleAuthTests/appsettings.GoogleAuth.json
 /DTGmail/appsetting.Gmail.json
+/DTGmailTests/appsetting.Gmail.json
+/DanTechUserManagement/appsetting.UserManagementl.json
+/DTUserManagementTests/appsetting.UserManagementl.json
+/DTGmailTests/appsetting.Gmail.json
+/DTGmail/appsettings.Gmail.json
+/DTGmailTests/appsettings.Gmail.json
+/DanTechUserManagement/appsettings.UserManagementl.json
+/DTUserManagementTests/appsettings.UserManagementl.json
+/DTUserManagementTests/appsettings.UserManagement.json
+/DanTechUserManagement/appsettings.UserManagement.json
