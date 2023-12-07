@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -18,13 +18,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DanTechDB\DanTechDB.csproj" />
-    <ProjectReference Include="..\DanTechUserManagement\DTUserManagement.csproj" />
     <ProjectReference Include="..\DTGmail\DTGmail.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="appsettings.UserManagement.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="appsettings.Gmail.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

@@ -12,4 +12,10 @@
     <ProjectReference Include="..\DTGmail\DTGmail.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.UserManagement.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
