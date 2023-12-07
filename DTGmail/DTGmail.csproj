@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="EAGetMail" Version="5.3.1.7" />
     <PackageReference Include="EASendMail" Version="7.9.1.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
@@ -22,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DanTechDB\DanTechDB.csproj" />
+    <ProjectReference Include="..\DTGoogleAuth\DTGoogleAuth.csproj" />
   </ItemGroup>
 
 </Project>

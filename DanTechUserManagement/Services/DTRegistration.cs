@@ -8,5 +8,9 @@ namespace DTUserManagement.Services
 {
     public class DTRegistration : IDTRegistration
     {
+        public bool SendRegistration(string email)
+        {
+            return true;
+        }
     }
 }

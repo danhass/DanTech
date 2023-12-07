@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Lareji111Kbwr3voCqCUGrx7Ub7un0xiEu+FBsX/ubGdlsaf6Q8hwBNUm48Lx6qwpf0tQzgMT110/6P4Jga+9A==",
+  "dgSpecHash": "4i0H3iocNUBiMR9FF5XiYC7cX8sP9PScRtqjJFwkNBVV19LAChCu2Kc8aLWMA0Z2s4QBTkM+Si0InY6l0Ft9Rw==",
   "success": true,
   "projectFilePath": "G:\\My Drive\\Projects\\DP\\api\\DanTechTests\\DanTechTests.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,7 @@
     "C:\\Users\\hassd\\.nuget\\packages\\bouncycastle.cryptography\\2.2.1\\bouncycastle.cryptography.2.2.1.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\castle.core\\5.0.0\\castle.core.5.0.0.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\coverlet.collector\\3.1.2\\coverlet.collector.3.1.2.nupkg.sha512",
+    "C:\\Users\\hassd\\.nuget\\packages\\eagetmail\\5.3.1.7\\eagetmail.5.3.1.7.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\easendmail\\7.9.1.9\\easendmail.7.9.1.9.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\google.apis\\1.57.0\\google.apis.1.57.0.nupkg.sha512",
     "C:\\Users\\hassd\\.nuget\\packages\\google.apis.auth\\1.57.0\\google.apis.auth.1.57.0.nupkg.sha512",

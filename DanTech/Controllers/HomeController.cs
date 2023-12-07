@@ -168,9 +168,15 @@ namespace DanTech.Controllers
                 var gmailSvc = new DTGmailService();
                 gmailSvc.SetConfig(_configuration);
                 gmailSvc.SetAuthToken(User.token);
+                gmailSvc.SetRefreshToken(User.refreshToken);
                 gmailSvc.SetMailMessage("TryIt", User.email, new List<string>() { "hass.dan@gmail.com" }, "Test email from DTGmailService", "", "<b>Test</b> body (html)", new List<string>() { @"C:\Users\hassd\Documents\AT&T.pdf", @"C:\Users\hassd\Documents\WF.0723.pdf" });
-                gmailSvc.Send();
-                Result = "Email was sent successfully!";
+                var sent = gmailSvc.Send();
+                if (gmailSvc.GetAuthToken() != User.token) 
+                {
+                    User.token = gmailSvc.GetAuthToken();
+                    _db.Set(User);
+                }
+                Result = sent ? "Email was sent successfully!" : "Email was not confirmed";
             }
             catch (Exception ep)
             {

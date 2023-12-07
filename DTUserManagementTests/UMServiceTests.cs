@@ -2,7 +2,7 @@ using DTUserManagement.Services;
 namespace DTUserManagementTests
 {
     [TestClass]
-    public class UnitTest1
+    public class UMServiceTests
     {
         [TestMethod]
         public void ServiceInstantiate()

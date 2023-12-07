@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace DTUserManagement.Services
 {
-    internal interface IDTRegistration
+    public interface IDTRegistration
     {
+        public bool SendRegistration(string email);
     }
 }

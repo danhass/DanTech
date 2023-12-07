@@ -59,6 +59,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\DanTechDB\DanTechDB.csproj" />
+    <ProjectReference Include="..\DanTechUserManagement\DTUserManagement.csproj" />
     <ProjectReference Include="..\DTGmail\DTGmail.csproj" />
     <ProjectReference Include="..\DTGoogleAuth\DTGoogleAuth.csproj" />
   </ItemGroup>
