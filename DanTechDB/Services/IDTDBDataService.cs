@@ -29,6 +29,7 @@ namespace DanTech.Services
         List<dtTestDatum> TestData { get; }
         List<dtType> Types { get; }
         List<dtUser> Users { get; }
+        List<dtRegistration> Registrations { get; }
         Task<List<dtUser>> UsersAsync {  get; }
 
         // DTO Data Access
@@ -58,10 +59,12 @@ namespace DanTech.Services
         bool Delete(dtPlanItem item);
         bool Delete(dtMisc item);
         bool Delete(dtProject project);
+        bool Delete(dtRegistration item);
         bool Delete(dtSession session);
         bool Delete(dtUser user);
         bool Delete(List<dtPlanItem> planItems);
         bool Delete(List<dtProject> projects);
+        bool Delete(List<dtRegistration> registrations);
         bool Delete(List<dtSession> sessions);
         bool Delete(List<dtTestDatum> testData);
         bool DeletePlanItem(int planItemId, int userId, bool deleteChildren = false);
@@ -73,6 +76,7 @@ namespace DanTech.Services
         dtProject Set(dtProject project);
         dtPlanItem Set(dtPlanItem planItem);
         dtPlanItem Set(dtPlanItemModel planItem);
+        dtRegistration Set(dtRegistration item);
         dtUser Set(dtUser aUser);
         dtSession Set(dtSession aSession);
 

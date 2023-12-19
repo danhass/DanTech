@@ -28,7 +28,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTUserManagement", "DanTech
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTUserManagementTests", "DTUserManagementTests\DTUserManagementTests.csproj", "{990CA8EA-3415-4D8F-A3F7-6FB29D59FC9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTGmailTests", "DTGmailTests\DTGmailTests.csproj", "{81ED7676-7AC2-4EF3-BC67-1F7E6F317B39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTGmailTests", "DTGmailTests\DTGmailTests.csproj", "{81ED7676-7AC2-4EF3-BC67-1F7E6F317B39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

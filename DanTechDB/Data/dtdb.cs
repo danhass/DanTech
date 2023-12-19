@@ -11,10 +11,12 @@ public partial class dtdb : DbContext, Idtdb
     public dtdb()
     {
     }
+
     public dtdb(string connection)
     {
         _connection = connection;
     }
+
     public dtdb(DbContextOptions<dtdb> options, IConfiguration cfg)
         : base(options)
     {
@@ -37,6 +39,8 @@ public partial class dtdb : DbContext, Idtdb
 
     public virtual DbSet<dtRecurrence> dtRecurrences { get; set; }
 
+    public virtual DbSet<dtRegistration> dtRegistrations { get; set; }
+
     public virtual DbSet<dtSession> dtSessions { get; set; }
 
     public virtual DbSet<dtStatus> dtStatuses { get; set; }
@@ -48,7 +52,7 @@ public partial class dtdb : DbContext, Idtdb
     public virtual DbSet<dtUser> dtUsers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySQL(_connection);
+         => optionsBuilder.UseMySQL(_connection);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -234,6 +238,18 @@ public partial class dtdb : DbContext, Idtdb
             entity.Property(e => e.note).HasColumnType("text");
             entity.Property(e => e.stops).HasColumnType("date");
             entity.Property(e => e.title).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<dtRegistration>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("PRIMARY");
+
+            entity.ToTable("dtRegistration");
+
+            entity.Property(e => e.id).HasColumnType("int(11)");
+            entity.Property(e => e.created).HasColumnType("datetime");
+            entity.Property(e => e.email).HasMaxLength(100);
+            entity.Property(e => e.regKey).HasMaxLength(45);
         });
 
         modelBuilder.Entity<dtSession>(entity =>

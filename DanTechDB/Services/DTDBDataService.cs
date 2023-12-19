@@ -156,6 +156,14 @@ namespace DanTech.Services
                 return (from x in _db.dtProjects select x).ToList();
             }
         }
+        public List<dtRegistration> Registrations
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtRegistrations select x).ToList();
+            }
+        }
         public List<dtSession> Sessions
         {
             get
@@ -480,6 +488,14 @@ namespace DanTech.Services
             Save();
             return true;
         }
+        public bool Delete(dtRegistration item)
+        {
+            if (item == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtRegistrations.Remove(item);
+            Save();
+            return true;
+        }
         public bool Delete(dtSession session)
         {
             if (session == null) return false;
@@ -511,6 +527,14 @@ namespace DanTech.Services
             if (projects == null || projects.Count == 0) return false;
             if (_db == null) throw new Exception("DB not set");
             _db.dtProjects.RemoveRange(projects);
+            Save();
+            return true;
+        }
+        public bool Delete(List<dtRegistration> registrations)
+        {
+            if (registrations == null || registrations.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtRegistrations.RemoveRange(registrations);
             Save();
             return true;
         }
@@ -860,6 +884,21 @@ namespace DanTech.Services
             }
 
             return item;
+        }
+        public dtRegistration Set(dtRegistration item)
+        {
+            if (item == null) return null;
+            if (_db == null) _db = InstantiateDB() as dtdb;
+
+            dtRegistration regToSave = null; ;
+            if (item.id > 0) regToSave = (from x in _db.dtRegistrations where x.id == item.id select x).FirstOrDefault();
+            if (regToSave == null) regToSave = new dtRegistration();
+            regToSave.email = item.email;
+            regToSave.created = DateTime.Now;
+            regToSave.regKey = item.regKey;
+            if (regToSave.id <= 0) _db.dtRegistrations.Add(regToSave);
+            Save();
+            return regToSave;
         }
         public dtSession Set(dtSession aSession)
         {

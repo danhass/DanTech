@@ -78,6 +78,29 @@ namespace DanTechDBTests.Service
         }
 
         [TestMethod]
+        public void RegistrationCRUDTests()
+        {
+            //Arrange
+            var regCt = _db.Registrations.Count;
+            dtRegistration testReg = new dtRegistration();
+            testReg.email = "test@test.com";
+            testReg.regKey = "123456";
+
+            //Act
+            var setReg = _db.Set(testReg);
+            var regCtAfterSet = _db.Registrations.Count;
+            _db.Delete(setReg);
+            var regCtAfterDel = _db.Registrations.Count;
+
+            //Assert
+            Assert.AreEqual(regCt + 1, regCtAfterSet);
+            Assert.AreEqual(setReg.email, testReg.email);
+            Assert.AreEqual(setReg.email, "test@test.com");
+            Assert.AreEqual(setReg.regKey, testReg.regKey);
+            Assert.AreEqual(regCt, regCtAfterDel);
+        }
+
+        [TestMethod]
         public void PlanItemAddRecurrence()
         {
             //Arrange

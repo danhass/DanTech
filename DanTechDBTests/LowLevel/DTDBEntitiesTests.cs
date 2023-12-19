@@ -27,6 +27,7 @@ namespace DanTechDBTests.LowLevel
             var db = svc.db() as dtdb;
 
             //Assert
+            Assert.IsNotNull(db.dtRegistrations, "db's dtRegistrations is null");
             Assert.IsNotNull(db.dtAuthorizations, "db's dtAuthorizations is null");
             Assert.IsNotNull(db.dtColorCodes, "db's dtColorCodes is null");
             Assert.IsNotNull(db.dtConfigs, "db's dtConfigs is null");

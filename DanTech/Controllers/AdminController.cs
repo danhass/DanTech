@@ -41,5 +41,10 @@ namespace DanTech.Controllers
             _db.Set(u);
             return Json("Do Not Set Flag adjustment successfully completed.");
         }
+
+        public JsonResult CompleteRegistration(string email, string regKey)
+        {
+            return Json("Registration Complete");
+        }
     }
 }
