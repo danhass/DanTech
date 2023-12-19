@@ -41,8 +41,8 @@ namespace DTUserManagementTests
             svc.SetConfig(DTTestOrganizer.GetConfiguration());
 
             //Act
-            //var regKey = svc.SendRegistration(_targetEmail, _baseUrl);
-            var regSent = svc.SendRegistration(_targetEmail, "https://localhost:44324");
+            var regKey = svc.SendRegistration(_targetEmail);
+            //var regSent = svc.SendRegistration(_targetEmail, "https://localhost:44324");
         
             //Assert
             var db = DTTestOrganizer.DB();

@@ -17,6 +17,61 @@ namespace DanTech.Services
         private static string _refreshToken = string.Empty;
         private static SmtpMail? _message = null;
 
+        public int DeleteFromFolder(string folderName = "Sent Mail")
+        {
+            if (_config == null) throw new Exception("Config not set!");
+            if (string.IsNullOrEmpty(_authToken)) throw new Exception("Authorization token not set!");
+            int ct = 0;
+            bool done = false;
+            bool refreshed = false;
+            while (!done)
+            {
+
+                try
+                {
+                    MailServer oServer = new MailServer("imap.gmail.com",
+                                    _config.GetValue<string>("Gmail:Email"),
+                                    _authToken,
+                                    EAGetMail.ServerProtocol.Imap4);
+                    oServer.AuthType = ServerAuthType.AuthXOAUTH2;
+
+                    // Enable SSL connection.
+                    oServer.SSLConnection = true;
+
+                    // Set 993 SSL port
+                    oServer.Port = 993;
+
+                    MailClient oClient = new MailClient("TryIt");
+                    oClient.Connect(oServer);
+                    Imap4Folder[] folders = oClient.GetFolders();
+                    var folder = FindFolder(folderName, folders);
+                    oClient.SelectFolder(folder);
+
+                    var trashFolder = FindFolder("Trash", folders);
+
+                    MailInfo[] infos = oClient.GetMailInfos();
+                    string buf = string.Empty;
+
+                    for (int i = 0; i < infos.Length; i++)
+                    {
+                        oClient.Move(infos[i], trashFolder);
+                        ct++;
+                    }
+                    done = true;
+                }
+                catch (Exception ex)
+                {
+                    if (refreshed || string.IsNullOrEmpty(_refreshToken)) throw new Exception(string.Format("Could not delete from folder: {0}", ex.Message));
+                }
+
+                if (!done)
+                {
+                    refreshed = RefreshToken();
+                }
+            }
+            return ct;
+        }
+
         public void SetConfig(IConfiguration? cfg)
         {
             _config = cfg;
@@ -67,6 +122,17 @@ namespace DanTech.Services
             // No folder found
             return null;
         }
+        private bool RefreshToken()
+        {
+            try
+            {
+                var auth = new DTGoogleAuthService();
+                auth.SetConfig(_config);
+                _authToken = auth.RefreshAuthToken(_refreshToken, new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope, DTGoogleAuthService.GoogleMailScope, DTGoogleAuthService.GoogleGmailSendScope, DTGoogleAuthService.GoogleGmailModifyScope }, true);
+            }
+            catch (Exception ex) { throw new Exception(string.Format("Unable to refresh auth token: {0}", ex.Message)); }
+            return true;
+        }
         public bool Send()
         {
             if (_config == null) throw new Exception("Config not set!");
@@ -97,14 +163,7 @@ namespace DanTech.Services
 
                 if (!done)
                 {
-                    try
-                    {
-                        var auth = new DTGoogleAuthService();
-                        auth.SetConfig(_config);
-                        _authToken = auth.RefreshAuthToken(_refreshToken, new List<string>() { DTGoogleAuthService.GoogleUserInfoEmailScope, DTGoogleAuthService.GoogleUserInfoProfileScope, DTGoogleAuthService.GoogleCalendarScope, DTGoogleAuthService.GoogleMailScope, DTGoogleAuthService.GoogleGmailSendScope, DTGoogleAuthService.GoogleGmailModifyScope }, true);
-                        refreshed = true;
-                    }
-                    catch (Exception ex) { throw new Exception(string.Format("Unable to refresh auth token: {0}", ex.Message)); }
+                    refreshed = RefreshToken();
                 }
             }        
 

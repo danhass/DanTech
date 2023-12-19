@@ -8,6 +8,7 @@ namespace DanTech.Services
 {
     public interface IDTGmailService
     {
+        int DeleteFromFolder(string folderName);
         void SetConfig(IConfiguration cfg);
         string GetAuthToken();
         void SetAuthToken(string authToken);

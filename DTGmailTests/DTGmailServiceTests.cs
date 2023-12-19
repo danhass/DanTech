@@ -43,5 +43,24 @@ namespace DTGmailTests
             //Assert
             Assert.IsTrue(sent);
         }
+        [TestMethod]
+        public void DeleteEmailTests()
+        {
+            //Arrange
+            var svc = new DTGmailService();
+            var config = DTTestOrganizer.GetConfiguration();
+            svc.SetConfig(config);
+            var userEmail = config.GetValue<string>("Gmail:Email");
+            var db = DTTestOrganizer.DB();
+            var gmailUser = db.Users.Where(x => x.email == userEmail).FirstOrDefault();
+            svc.SetAuthToken(gmailUser.token);
+            svc.SetRefreshToken(gmailUser.refreshToken);
+
+            //Act
+            var res = svc.DeleteFromFolder();
+
+            //Assert
+            Assert.IsTrue(res >= 0);
+        }
     }
 }
