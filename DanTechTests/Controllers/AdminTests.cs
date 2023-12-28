@@ -25,7 +25,6 @@ namespace DanTechTests.Controllers
         private AdminController _controller = null;
         private static dtUser _testUser = null;
 
-
         public AdminTests()
         {            
             var serviceProvider = new ServiceCollection()

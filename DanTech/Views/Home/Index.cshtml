@@ -9,7 +9,7 @@
     <p><label>Caller:</label>@ViewBag.ipAddress</p>
     <p><label>Host:</label>@ViewBag.host</p>
     <p><label>Time:</label>@DateTime.Now.ToLongDateString() @DateTime.Now.ToLongTimeString() (@TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow))</p>
-    <p><label>Build:</label>1.4.0</p>
+    <p><label>Build:</label>2.1.0</p>
 
     @if (Model == null || Model.User == null)
     {

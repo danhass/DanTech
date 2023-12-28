@@ -37,20 +37,20 @@ namespace DTUserManagementTests
         public void SendRegMessageTest()
         {
             //Arrange
-            var svc = new DTRegistration(DTTestOrganizer.DB());
-            svc.SetConfig(DTTestOrganizer.GetConfiguration());
+            var svc = new DTRegistration(DTTestOrganizer.DB()!);
+            svc.SetConfig(DTTestOrganizer.GetConfiguration()!);
 
             //Act
-            var regKey = svc.SendRegistration(_targetEmail);
-            //var regSent = svc.SendRegistration(_targetEmail, "https://localhost:44324");
+            var result = svc.SendRegistration(_targetEmail);
+            //var result = svc.SendRegistration(_targetEmail, "https://localhost:44324");
         
             //Assert
             var db = DTTestOrganizer.DB();
             var reg = db.Registrations.Where(x => x.email == _targetEmail).FirstOrDefault();
-            Assert.IsTrue(regSent.regKey.Length == 6);
-            Assert.AreEqual(regSent.email, _targetEmail);
+            Assert.IsTrue(result.regKey.Length == 6);
+            Assert.AreEqual(result.email, _targetEmail);
             Assert.AreEqual(reg.email, _targetEmail);
-            Assert.AreEqual(regSent.regKey, reg.regKey);
+            Assert.AreEqual(result.regKey, reg.regKey);
 
             //Cleanup
             db.Delete(reg);

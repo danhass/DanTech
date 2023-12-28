@@ -55,7 +55,6 @@ namespace DTUserManagement.Services
                     _db.Set(reg);
                 }
             }
-
             return reg;
         }
         public string RegistrationKey()

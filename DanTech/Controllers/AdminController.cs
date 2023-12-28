@@ -9,8 +9,7 @@ namespace DanTech.Controllers
 {
     public class AdminController : DTController
     {
-        public AdminController(IConfiguration configuration, ILogger<AdminController> logger, IDTDBDataService data, dtdb dbctx) :
-        base(configuration, logger, data, dbctx)
+        public AdminController(IConfiguration configuration, ILogger<AdminController> logger, IDTDBDataService data, dtdb dbctx) : base(configuration, logger, data, dbctx)
         {
         }
 

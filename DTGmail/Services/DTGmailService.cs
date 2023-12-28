@@ -29,8 +29,9 @@ namespace DanTech.Services
 
                 try
                 {
+                    string configEmail = _config.GetValue<string>("Gmail:Email") ?? "";
                     MailServer oServer = new MailServer("imap.gmail.com",
-                                    _config.GetValue<string>("Gmail:Email"),
+                                    configEmail,
                                     _authToken,
                                     EAGetMail.ServerProtocol.Imap4);
                     oServer.AuthType = ServerAuthType.AuthXOAUTH2;
@@ -113,14 +114,15 @@ namespace DanTech.Services
                 }
 
                 folder = FindFolder(folderName, folder.SubFolders);
-                if (folder != null)
+                if (folder != null && folder.Name == folderName)
                 {
                     return folder;
                 }
             }
 
-            // No folder found
-            return null;
+            // No folder found; return "null" folder
+            Imap4Folder f = new Imap4Folder();
+            return f;
         }
         private bool RefreshToken()
         {
@@ -170,7 +172,7 @@ namespace DanTech.Services
             try
             {
                 MailServer oServer = new MailServer("imap.gmail.com",
-                                _config.GetValue<string>("Gmail:Email"),
+                                _config.GetValue<string>("Gmail:Email") ?? "",
                                 _authToken,
                                 EAGetMail.ServerProtocol.Imap4);
                 oServer.AuthType = ServerAuthType.AuthXOAUTH2;
@@ -185,6 +187,7 @@ namespace DanTech.Services
                 oClient.Connect(oServer);
                 Imap4Folder[] folders = oClient.GetFolders();
                 var folder = FindFolder("Sent Mail", folders);
+                if (folder == null || folder.Name != "Sent Mail") throw new Exception(string.Format("Cannot find Sent Mail folder."));
                 oClient.SelectFolder(folder);
 
                 MailInfo[] infos = oClient.GetMailInfos();

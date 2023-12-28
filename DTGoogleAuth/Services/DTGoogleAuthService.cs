@@ -25,7 +25,7 @@ namespace DanTech.Services
 
         private IConfiguration? _config = null;
 
-        public void SetConfig(IConfiguration config) { _config = config; }
+        public void SetConfig(IConfiguration? config) { _config = config; }
  
         public string AuthService(string returnDomain, string returnHandler, List<string> scopes, bool gmail = false)
         {
