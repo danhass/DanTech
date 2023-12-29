@@ -580,7 +580,15 @@ namespace DanTech.Services
             if (user == null) return false;
             if (_db == null) throw new Exception("DB not set");
             var u = _db.dtUsers.Where(x => x.id == user.id).Include(x => x.dtPlanItems).FirstOrDefault();
-             _db.dtUsers.Remove(user);
+            _db.dtUsers.Remove(user);
+            Save();
+            return true;
+        }
+        public bool Delete(List<dtUser> users)
+        {
+            if (users == null || users.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+             _db.dtUsers.RemoveRange(users);
             Save();
             return true;
         }

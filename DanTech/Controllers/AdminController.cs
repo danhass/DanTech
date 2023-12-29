@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using DanTech.Services;
 using DanTech.Data;
 using System.Linq;
+using DTUserManagement.Services;
 
 namespace DanTech.Controllers
 {
@@ -43,7 +44,14 @@ namespace DanTech.Controllers
 
         public JsonResult CompleteRegistration(string email, string regKey)
         {
-            return Json("Registration Complete");
+            string addr = HttpContext.Connection.RemoteIpAddress.ToString();
+            var svc = new DTRegistration(_db);
+            var session = svc.CompleteRegistration(email, regKey, addr);
+            if (!string.IsNullOrEmpty(session))
+            {
+                HttpContext.Response.Cookies.Append("dtSession", session);
+            }
+            return Json(new { session });
         }
     }
 }

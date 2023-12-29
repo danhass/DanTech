@@ -12,6 +12,7 @@ namespace DTUserManagement.Services
     {
         public string RegistrationKey();
         public void SetConfig(IConfiguration config);
-        public dtRegistration SendRegistration(string email, string baseUrl);
+        public dtRegistration? SendRegistration(string email, string baseUrl);
+        public string CompleteRegistration(string email, string regKey, string hostAddress);
     }
 }

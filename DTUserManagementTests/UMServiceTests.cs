@@ -1,13 +1,10 @@
-using DanTechGoogleAuthTests;
+using DanTech.Data;
 using DTUserManagement.Services;
 namespace DTUserManagementTests
 {
     [TestClass]
     public class UMServiceTests
     {
-        private static string _targetEmail = "hass.dan@gmail.com";
-        private static string _baseUrl = @"https://7822-54268.el-alt.com/";
-
         [TestMethod]
         public void ServiceInstantiate()
         {
@@ -41,19 +38,44 @@ namespace DTUserManagementTests
             svc.SetConfig(DTTestOrganizer.GetConfiguration()!);
 
             //Act
-            var result = svc.SendRegistration(_targetEmail);
-            //var result = svc.SendRegistration(_targetEmail, "https://localhost:44324");
+            var result = svc.SendRegistration(DTTestConstants.TestTargetEmail );
         
             //Assert
             var db = DTTestOrganizer.DB();
-            var reg = db.Registrations.Where(x => x.email == _targetEmail).FirstOrDefault();
+            var reg = db.Registrations.Where(x => x.email == DTTestConstants.TestTargetEmail).FirstOrDefault();
             Assert.IsTrue(result.regKey.Length == 6);
-            Assert.AreEqual(result.email, _targetEmail);
-            Assert.AreEqual(reg.email, _targetEmail);
+            Assert.AreEqual(result.email, DTTestConstants.TestTargetEmail);
+            Assert.AreEqual(reg.email, DTTestConstants.TestTargetEmail);
             Assert.AreEqual(result.regKey, reg.regKey);
 
             //Cleanup
             db.Delete(reg);
+        }
+        [TestMethod]
+        public void CompleteRegistrationTest()
+        {
+            //Arrange
+            var db = DTTestOrganizer.DB()!;
+            var svc = new DTRegistration(db);
+            svc.SetConfig(DTTestOrganizer.GetConfiguration()!);
+            var regKey = svc.RegistrationKey();
+            dtRegistration reg = new() { email = DTTestConstants.TestFictionalEmail, regKey = regKey, created = DateTime.Now.AddHours(-1) };
+            reg = db.Set(reg);
+
+            //Act
+            var session = svc.CompleteRegistration(DTTestConstants.TestFictionalEmail, regKey, DTTestConstants.LocatHostIP);
+
+            //Assert
+            Assert.IsFalse(string.IsNullOrEmpty(session));
+            Assert.IsNull(db.Registrations.Where(x => x.email == DTTestConstants.TestFictionalEmail &&  x.regKey == regKey).FirstOrDefault());
+            Assert.IsNotNull(db.Sessions.Where(x => x.session == session).FirstOrDefault());
+            Assert.IsNotNull(db.Users.Where(x => x.email == DTTestConstants.TestFictionalEmail).FirstOrDefault());
+            Assert.IsTrue(db.Users.Where(x => x.email == DTTestConstants.TestFictionalEmail).FirstOrDefault().id == db.Sessions.Where(x => x.session == session).FirstOrDefault().user);
+
+            //Cleanup
+            if (db.Sessions.Where(x => x.session == session).FirstOrDefault() != null) db.Delete(db.Sessions.Where(x => x.session == session).FirstOrDefault()!);
+            if (db.Users.Where(x => x.email == DTTestConstants.TestFictionalEmail).FirstOrDefault() != null) db.Delete(db.Users.Where(x => x.email == DTTestConstants.TestFictionalEmail).FirstOrDefault()!);
+            if (db.Registrations.Where(x => x.email == DTTestConstants.TestFictionalEmail).FirstOrDefault() != null) db.Delete(db.Registrations.Where(x => x.email == DTTestConstants.TestFictionalEmail).FirstOrDefault()!);
         }
     }
 }

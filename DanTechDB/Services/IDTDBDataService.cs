@@ -67,7 +67,6 @@ namespace DanTech.Services
         bool Delete(dtRegistration item);
         bool Delete(dtSession session);
         bool Delete(dtUnitOfMeasure measure);
-        bool Delete(dtUser user);
         bool Delete(List<dtFood> items);
         bool Delete(List<dtFoodLog> items);
         bool Delete(List<dtPlanItem> planItems);
@@ -76,6 +75,8 @@ namespace DanTech.Services
         bool Delete(List<dtSession> sessions);
         bool Delete(List<dtTestDatum> testData);
         bool Delete(List<dtUnitOfMeasure> items);
+        bool Delete(dtUser user);
+        bool Delete(List<dtUser> users);
         bool DeletePlanItem(int planItemId, int userId, bool deleteChildren = false);
         bool DeleteProject(int projectId, int userId, bool deleteProjItems = true, int transferProject = 0);
         dtMisc Log(dtMisc aLogEntry);

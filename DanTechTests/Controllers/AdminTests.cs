@@ -15,6 +15,10 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Linq;
 using K4os.Hash.xxHash;
+using System;
+using DTUserManagement.Services;
+using System.Net;
+using System.Collections.Generic;
 
 namespace DanTechTests.Controllers
 {
@@ -52,6 +56,7 @@ namespace DanTechTests.Controllers
             if (string.IsNullOrEmpty(sessionId)) sessionId = DTTestOrganizer.TestSession.session;
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Host = new HostString(DTTestConstants.TestRemoteHost);
+            httpContext.Connection.RemoteIpAddress = IPAddress.Parse(DTTestConstants.LocatHostIP);
             httpContext.Request.QueryString = new QueryString("?sessionId=" + sessionId);
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             _controller.ControllerContext = new ControllerContext(actionContext);
@@ -71,9 +76,7 @@ namespace DanTechTests.Controllers
 
             //Assert
             Assert.IsNotNull(res, "Could not instantiate admin index view");
-        }
-
-        
+        }        
         [TestMethod]
         public void AdminController_SetPW()
         {
@@ -133,6 +136,33 @@ namespace DanTechTests.Controllers
             //Assert
             dbctx.Entry(usr).Reload();
             Assert.IsNull(usr.doNotSetPW);
+        }
+        [TestMethod]
+        public void AdminController_CompleteRegistration()
+        {
+            //Arrange
+            var dbctx = new dtdb(_config.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_config, dbctx);
+            var svc = new DTRegistration(db);
+            svc.SetConfig(_config);
+            var regKey = svc.RegistrationKey();
+            dtRegistration reg = new() { email = DTTestConstants.TestUserEmail, regKey = regKey, created = DateTime.Now.AddHours(-1) };
+            reg = db.Set(reg);
+            SetControllerQueryString();
+
+            //Act
+            var result = _controller.CompleteRegistration(DTTestConstants.TestUserEmail, regKey);
+
+            //Assert
+            var usr = db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var session = db.Sessions.Where(x => x.user == usr.id).FirstOrDefault();
+            var test = result.Value.ToString().Split("=")[1].Replace("}", "").Trim();
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(usr);
+            Assert.IsNotNull(session);
+            Assert.AreEqual(test, session.session);
+
+            //Cleanup
         }
     }
 }
