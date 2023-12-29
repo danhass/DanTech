@@ -22,12 +22,15 @@ public partial class dtdb : DbContext, Idtdb
     {
         if (cfg != null) _connection = cfg.GetConnectionString("DG")!;
     }
-
     public virtual DbSet<dtAuthorization> dtAuthorizations { get; set; }
 
     public virtual DbSet<dtColorCode> dtColorCodes { get; set; }
 
     public virtual DbSet<dtConfig> dtConfigs { get; set; }
+
+    public virtual DbSet<dtFood> dtFoods { get; set; }
+
+    public virtual DbSet<dtFoodLog> dtFoodLogs { get; set; }
 
     public virtual DbSet<dtKey> dtKeys { get; set; }
 
@@ -49,10 +52,12 @@ public partial class dtdb : DbContext, Idtdb
 
     public virtual DbSet<dtType> dtTypes { get; set; }
 
+    public virtual DbSet<dtUnitOfMeasure> dtUnitOfMeasures { get; set; }
+
     public virtual DbSet<dtUser> dtUsers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-         => optionsBuilder.UseMySQL(_connection);
+            => optionsBuilder.UseMySQL(_connection);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -119,6 +124,64 @@ public partial class dtdb : DbContext, Idtdb
                 .HasForeignKey(d => d.user)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_config_user");
+        });
+
+        modelBuilder.Entity<dtFood>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("PRIMARY");
+
+            entity.ToTable("dtFood");
+
+            entity.HasIndex(e => e.owner, "FK_Owner_User_idx");
+
+            entity.HasIndex(e => e.unitType, "_idx");
+
+            entity.Property(e => e.id).HasColumnType("int(11)");
+            entity.Property(e => e.carb).HasPrecision(6);
+            entity.Property(e => e.fat).HasPrecision(6);
+            entity.Property(e => e.fiber).HasPrecision(6);
+            entity.Property(e => e.owner).HasColumnType("int(11)");
+            entity.Property(e => e.protein).HasPrecision(6);
+            entity.Property(e => e.servingSize).HasPrecision(6);
+            entity.Property(e => e.title).HasMaxLength(200);
+            entity.Property(e => e.unitType).HasColumnType("int(11)");
+
+            entity.HasOne(d => d.ownerNavigation).WithMany(p => p.dtFoods)
+                .HasForeignKey(d => d.owner)
+                .HasConstraintName("FK_Owner_User");
+
+            entity.HasOne(d => d.unitTypeNavigation).WithMany(p => p.dtFoods)
+                .HasForeignKey(d => d.unitType)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Food_UnitOfMeasure");
+        });
+
+        modelBuilder.Entity<dtFoodLog>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("PRIMARY");
+
+            entity.ToTable("dtFoodLog");
+
+            entity.HasIndex(e => e.food, "FK_FoodLog_Food_idx");
+
+            entity.HasIndex(e => e.owner, "FK_FoodLog_User_idx");
+
+            entity.Property(e => e.id).HasColumnType("int(11)");
+            entity.Property(e => e.food).HasColumnType("int(11)");
+            entity.Property(e => e.note).HasMaxLength(1000);
+            entity.Property(e => e.owner).HasColumnType("int(11)");
+            entity.Property(e => e.quantity).HasPrecision(6);
+            entity.Property(e => e.ts).HasColumnType("datetime");
+
+            entity.HasOne(d => d.foodNavigation).WithMany(p => p.dtFoodLogs)
+                .HasForeignKey(d => d.food)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_FoodLog_Food");
+
+            entity.HasOne(d => d.ownerNavigation).WithMany(p => p.dtFoodLogs)
+                .HasForeignKey(d => d.owner)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_FoodLog_User");
         });
 
         modelBuilder.Entity<dtKey>(entity =>
@@ -308,6 +371,17 @@ public partial class dtdb : DbContext, Idtdb
             entity.Property(e => e.id).HasColumnType("int(11)");
             entity.Property(e => e.description).HasColumnType("text");
             entity.Property(e => e.title).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<dtUnitOfMeasure>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("PRIMARY");
+
+            entity.ToTable("dtUnitOfMeasure");
+
+            entity.Property(e => e.id).HasColumnType("int(11)");
+            entity.Property(e => e.abbrev).HasMaxLength(45);
+            entity.Property(e => e.title).HasMaxLength(45);
         });
 
         modelBuilder.Entity<dtUser>(entity =>

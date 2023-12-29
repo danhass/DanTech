@@ -132,6 +132,22 @@ namespace DanTech.Services
                 return (from x in _db.dtColorCodes select x).ToList();
             }
         }
+        public List<dtFood> Foods
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtFoods select x).ToList();
+            }
+        }
+        public List<dtFoodLog> FoodLogs
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtFoodLogs select x).ToList();
+            }
+        }
         public List<dtMisc> Misces
         {
             get
@@ -196,6 +212,14 @@ namespace DanTech.Services
                 return (from x in _db.dtTypes select x).ToList();
             }
         }
+        public List<dtUnitOfMeasure> UnitOfMeasures
+        {
+            get
+            {
+                if (_db == null) throw new Exception("DB not set");
+                return (from x in _db.dtUnitOfMeasures select x).ToList();
+            }
+        }
         public Task<List<dtUser>> UsersAsync
         {
             get
@@ -204,7 +228,6 @@ namespace DanTech.Services
                 return Task.Run(() => (from x in _db.dtUsers select x).ToList());
             }
         }
-
         public List<dtUser> Users
         {
             get
@@ -464,6 +487,38 @@ namespace DanTech.Services
             }
             return true;
         }
+        public bool Delete(dtFood food)
+        {
+            if (food == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtFoods.Remove(food);
+            Save();
+            return true;
+        }
+        public bool Delete(List<dtFood> foods)
+        {
+            if (foods == null | foods.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtFoods.RemoveRange(foods);
+            Save();
+            return true;
+        }
+        public bool Delete(dtFoodLog item)
+        {
+            if (item == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtFoodLogs.Remove(item);
+            Save();
+            return true;
+        }
+        public bool Delete(List<dtFoodLog> items)
+        {
+            if (items == null | items.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtFoodLogs.RemoveRange(items);
+            Save();
+            return true;
+        }
         public bool Delete(dtMisc item)
         {
             if (item == null) return false;
@@ -501,6 +556,22 @@ namespace DanTech.Services
             if (session == null) return false;
             if (_db == null) throw new Exception("DB not set");
             _db.dtSessions.Remove(session);
+            Save();
+            return true;
+        }
+        public bool Delete(dtUnitOfMeasure item)
+        {
+            if (item == null) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtUnitOfMeasures.Remove(item);
+            Save();
+            return true;
+        }
+        public bool Delete(List<dtUnitOfMeasure> items)
+        {
+            if (items == null || items.Count == 0) return false;
+            if (_db == null) throw new Exception("DB not set");
+            _db.dtUnitOfMeasures.RemoveRange(items);
             Save();
             return true;
         }
@@ -786,6 +857,79 @@ namespace DanTech.Services
             }
             Save();
             return result;
+        }
+        public dtFood Set(dtFood item)
+        {
+            if (_db == null) _db = InstantiateDB() as dtdb;
+            dtFood? existing = null;
+            if (item.id > 0)
+            {
+                existing = (from x in _db.dtFoods where x.id == item.id select x).FirstOrDefault();
+            }
+            if (existing == null)
+            {
+                existing = item;
+            }
+            else
+            {
+                existing.title = item.title;
+                existing.owner = item.owner;
+                existing.fat = item.fat;
+                existing.unitType = item.unitType;
+                existing.servingSize = item.servingSize;
+                existing.fat = item.fat;
+                existing.protein = item.protein;
+                existing.carb = item.carb;
+            }
+            if (existing.id < 1) _db.dtFoods.Add(existing);
+            Save();
+            return existing;
+        }
+        public dtFoodLog Set(dtFoodLog item)
+        {
+            if (_db == null) _db = InstantiateDB() as dtdb;
+            dtFoodLog? existing = null;
+            if (item.id > 0)
+            {
+                existing = (from x in _db.dtFoodLogs where x.id == item.id select x).FirstOrDefault();
+            }
+            if (existing == null)
+            {
+                existing = item;
+            }
+            else
+            {
+                existing.food = item.food;
+                existing.owner = item.owner;
+                existing.quantity = item.quantity;
+                existing.ts = item.ts;
+                existing.note = item.note;
+            }
+            if (existing.id < 1) _db.dtFoodLogs.Add(existing);
+            Save();
+            return existing;
+        }
+        public dtUnitOfMeasure Set(dtUnitOfMeasure item)
+        {
+            if (_db == null) _db = InstantiateDB() as dtdb;
+            dtUnitOfMeasure? existing = null;
+            if (item.id > 0)
+            {
+                existing = (from x in _db.dtUnitOfMeasures where x.id == item.id select x).FirstOrDefault();
+            }
+            if (existing == null)
+            {
+                existing = item;
+            }
+            else
+            {
+                existing.title = item.title;
+                existing.abbrev = item.abbrev;
+            }
+            if (existing.id < 1) _db.dtUnitOfMeasures.Add(existing);
+            Save();
+            return existing;
+
         }
         public dtMisc Set(dtMisc item)
         {

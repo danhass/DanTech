@@ -21,6 +21,8 @@ namespace DanTech.Services
 
         // Accessors for data lists
         List<dtColorCode> ColorCodes { get; }
+        List<dtFood> Foods { get; }
+        List<dtFoodLog> FoodLogs { get; }
         List<dtPlanItem> PlanItems { get; }
         List<dtProject> Projects { get; }
         List<dtMisc> Misces { get; }
@@ -28,6 +30,7 @@ namespace DanTech.Services
         List<dtStatus> Stati { get; }
         List<dtTestDatum> TestData { get; }
         List<dtType> Types { get; }
+        List<dtUnitOfMeasure> UnitOfMeasures { get; }
         List<dtUser> Users { get; }
         List<dtRegistration> Registrations { get; }
         Task<List<dtUser>> UsersAsync {  get; }
@@ -57,21 +60,30 @@ namespace DanTech.Services
         // Data Manipulation
         bool Adjust(int userId);
         bool Delete(dtPlanItem item);
+        bool Delete(dtFood food);
+        bool Delete(dtFoodLog item);
         bool Delete(dtMisc item);
         bool Delete(dtProject project);
         bool Delete(dtRegistration item);
         bool Delete(dtSession session);
+        bool Delete(dtUnitOfMeasure measure);
         bool Delete(dtUser user);
+        bool Delete(List<dtFood> items);
+        bool Delete(List<dtFoodLog> items);
         bool Delete(List<dtPlanItem> planItems);
         bool Delete(List<dtProject> projects);
         bool Delete(List<dtRegistration> registrations);
         bool Delete(List<dtSession> sessions);
         bool Delete(List<dtTestDatum> testData);
+        bool Delete(List<dtUnitOfMeasure> items);
         bool DeletePlanItem(int planItemId, int userId, bool deleteChildren = false);
         bool DeleteProject(int projectId, int userId, bool deleteProjItems = true, int transferProject = 0);
         dtMisc Log(dtMisc aLogEntry);
         bool Propagate(int itemId, int userId);
         void RemoveOutOfDateSessions();
+        dtFood Set(dtFood item);
+        dtFoodLog Set(dtFoodLog item);
+        dtUnitOfMeasure Set(dtUnitOfMeasure item);
         dtMisc Set(dtMisc item);
         dtProject Set(dtProject project);
         dtPlanItem Set(dtPlanItem planItem);

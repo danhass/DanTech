@@ -99,6 +99,59 @@ namespace DanTechDBTests.Service
             Assert.AreEqual(setReg.regKey, testReg.regKey);
             Assert.AreEqual(regCt, regCtAfterDel);
         }
+        [TestMethod]
+        public void FoodLogCRUD()
+        {
+            //Arrange
+            dtFood newFood = new dtFood();
+            newFood.title = "Test Food Name";
+            newFood.servingSize = 100;
+            newFood.unitType = 1;
+            newFood.fat = 2;
+            newFood.protein = 3;
+            var initFoodLogCt = _db.FoodLogs.Count;
+            newFood = _db.Set(newFood);
+            dtFoodLog log = new dtFoodLog();
+            log.food = newFood.id;
+            log.ts = DateTime.Now; ;
+            log.owner = DTTestConstants.TestUser.id;
+
+            //Act
+            var setLog = _db.Set(log);
+            var foodLogCtAfterSet = _db.FoodLogs.Count;
+            _db.Delete(setLog);
+            var foodLogCtAfterDel = _db.FoodLogs.Count;
+
+            //Assert
+            Assert.AreEqual(initFoodLogCt + 1, foodLogCtAfterSet);
+            Assert.AreEqual(log.food, newFood.id);
+            Assert.IsTrue(log.food > 0);
+            Assert.IsTrue(setLog.id > 0);
+            Assert.AreEqual(initFoodLogCt, foodLogCtAfterDel);
+        }
+        [TestMethod]
+        public void FoodCRUD()
+        {
+            //Arrange
+            dtFood newFood = new dtFood();
+            newFood.title = "Test Food Name";
+            newFood.servingSize = 1;
+            newFood.unitType = 1;
+            newFood.fat = 2;
+            newFood.protein = 3;
+            var initFoodCt = _db.Foods.Count;
+
+            //Act
+            var setFood = _db.Set(newFood);
+            var foodCtAfterSet = _db.Foods.Count;
+            _db.Delete(setFood);
+            var foodCtAfterDel = _db.Foods.Count;
+
+            //Assert
+            Assert.AreEqual(initFoodCt + 1, foodCtAfterSet);
+            Assert.AreEqual(setFood.title, newFood.title);
+            Assert.AreEqual(initFoodCt, foodCtAfterDel);
+        }
 
         [TestMethod]
         public void PlanItemAddRecurrence()

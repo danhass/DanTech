@@ -28,6 +28,9 @@ namespace DanTechDBTests.LowLevel
 
             //Assert
             Assert.IsNotNull(db.dtRegistrations, "db's dtRegistrations is null");
+            Assert.IsNotNull(db.dtFoods, "db's dtFoods is null");
+            Assert.IsNotNull(db.dtFoodLogs, "db's dtFoodLogs is null");
+            Assert.IsNotNull(db.dtUnitOfMeasures, "db's dtUnitOfMeasures is null");
             Assert.IsNotNull(db.dtAuthorizations, "db's dtAuthorizations is null");
             Assert.IsNotNull(db.dtColorCodes, "db's dtColorCodes is null");
             Assert.IsNotNull(db.dtConfigs, "db's dtConfigs is null");

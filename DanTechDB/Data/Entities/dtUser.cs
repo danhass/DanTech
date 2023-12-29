@@ -35,6 +35,10 @@ public partial class dtUser
 
     public virtual ICollection<dtConfig> dtConfigs { get; set; } = new List<dtConfig>();
 
+    public virtual ICollection<dtFoodLog> dtFoodLogs { get; set; } = new List<dtFoodLog>();
+
+    public virtual ICollection<dtFood> dtFoods { get; set; } = new List<dtFood>();
+
     public virtual ICollection<dtPlanItem> dtPlanItems { get; set; } = new List<dtPlanItem>();
 
     public virtual ICollection<dtProject> dtProjects { get; set; } = new List<dtProject>();
