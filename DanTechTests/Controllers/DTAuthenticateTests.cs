@@ -36,8 +36,10 @@ namespace DanTechTests
         {
             dtdb dbctx = new dtdb(_config.GetConnectionString("DG"));
             var db = new DTDBDataService(_config, dbctx);
+            var usr = db.Users.Where(x => x.email == DTTestConstants.TestKnownGoodUserEmail).FirstOrDefault();
+            var session = db.Sessions.Where(x => x.user == usr.id && x.hostAddress == DTTestConstants.LocatHostIP).FirstOrDefault();
             var controller = DTTestOrganizer.InitializeDTController(true);
-            var httpContext = DTTestOrganizer.InitializeContext(host, true);
+            var httpContext = DTTestOrganizer.InitializeContext(host, true, session.session);
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ControllerActionDescriptor(), new ModelStateDictionary());
             var ctx = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), controller);
@@ -103,7 +105,7 @@ namespace DanTechTests
             //Arrange
 
             //Act
-            var controller = ExecuteWithLoggedInUser(DTTestConstants.LocalHostDomain);
+            var controller = ExecuteWithLoggedInUser(DTTestConstants.LocatHostIP);
 
             //Clean up db - test user is left in place
             var corsFlag = controller.Response.Headers["Access-Control-Allow-Origin"][0];

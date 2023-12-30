@@ -85,7 +85,7 @@ namespace DanTechTests.Controllers
             var dbctx = new dtdb(_cfg.GetConnectionString("DG"));  // Each thread needs its own context.
             var db = new DTDBDataService(_cfg, dbctx);
             var controller = DTTestOrganizer.InitializeHomeController(_knownGoodSession == null, "", _knownGoodSession == null ? "" : _knownGoodSession.session);
-            _knownGoodSession = _db.Sessions.Where(x => x.user == _knownGoodUser.id).FirstOrDefault();
+            _knownGoodSession = _db.Sessions.Where(x => x.user == _knownGoodUser.id && x.hostAddress == DTTestConstants.LocatHostIP).FirstOrDefault();
             Console.WriteLine("Good session: " + _knownGoodSession.id);
 
             //Act

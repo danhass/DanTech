@@ -146,15 +146,16 @@ namespace DanTechTests.Controllers
             var svc = new DTRegistration(db);
             svc.SetConfig(_config);
             var regKey = svc.RegistrationKey();
-            dtRegistration reg = new() { email = DTTestConstants.TestUserEmail, regKey = regKey, created = DateTime.Now.AddHours(-1) };
+            string email = "complete_reg_" + DTTestConstants.TestUserEmail;
+            dtRegistration reg = new() { email = email, regKey = regKey, created = DateTime.Now.AddHours(-1) };
             reg = db.Set(reg);
             SetControllerQueryString();
 
             //Act
-            var result = _controller.CompleteRegistration(DTTestConstants.TestUserEmail, regKey);
+            var result = _controller.CompleteRegistration(email, regKey);
 
             //Assert
-            var usr = db.Users.Where(x => x.email == DTTestConstants.TestUserEmail).FirstOrDefault();
+            var usr = db.Users.Where(x => x.email == email).FirstOrDefault();
             var session = db.Sessions.Where(x => x.user == usr.id).FirstOrDefault();
             var test = result.Value.ToString().Split("=")[1].Replace("}", "").Trim();
             Assert.IsNotNull(result);
@@ -163,6 +164,8 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(test, session.session);
 
             //Cleanup
+            if (session != null) db.Delete(session);
+            if (usr != null) db.Delete(usr);
         }
     }
 }
