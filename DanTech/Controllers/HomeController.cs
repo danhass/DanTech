@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using System;
 using System.Web;
 using Activity = System.Diagnostics.Activity;
+using DTUserManagement.Services;
 
 namespace DanTech.Controllers
 {
@@ -254,8 +255,34 @@ namespace DanTech.Controllers
             }
             var json = Json(user == null ? null : _db.SetLogin(user.email, addr));
             return json;
-        } 
-        
+        }
+        [Microsoft.AspNetCore.Mvc.Route("/directLogin")]
+        [DisableCors]
+        public JsonResult Login(string email, string password)
+        {
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            dtLogin login = new dtLogin();
+            string addr = HttpContext.Connection.RemoteIpAddress.ToString();
+            var usr = _db.Users.Where(x => x.email == email && x.pw == password && !string.IsNullOrEmpty(x.pw)).FirstOrDefault();
+            if (usr != null) login = _db.SetLogin(email, addr);
+            return Json(login);
+        }
+        [Microsoft.AspNetCore.Mvc.Route("/directRegister")]
+        [DisableCors]
+        public JsonResult Register(string email, string password, string firstName, string lastName, string otherName)
+        {
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            dtLogin login = new dtLogin();
+            var svc = new DTRegistration(_db);
+            svc.SetConfig(_configuration);
+
+            string addr = HttpContext.Connection.RemoteIpAddress.ToString();
+            string host = HttpContext.Request.Host.Value;
+            var session = svc.Register(email, password, host, addr, firstName, lastName, otherName);
+            var usr = _db.Users.Where(x => x.email == email && x.pw == password && !string.IsNullOrEmpty(x.pw)).FirstOrDefault();
+            if (usr != null) login = _db.SetLogin(email, addr);
+            return Json(login);
+        }
         [Microsoft.AspNetCore.Mvc.Route("/ping")]
         [ServiceFilter(typeof(DTAuthenticate))]
         public JsonResult Ping(string sessionId)

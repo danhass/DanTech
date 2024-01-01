@@ -63,8 +63,11 @@ namespace DTUserManagementTests
         [AssemblyCleanup]
         public static void Cleanup()
         {
-            var registrations = _db.Registrations.Where(x => x.email == DTTestConstants.TestFictionalEmail).ToList();
-            foreach (var registration in registrations) _db.Delete(registration);
+            var registrations = _db.Registrations.Where(x => x.email == DTTestConstants.TestFictionalEmail 
+                                                          || x.email == DTTestConstants.TestTargetEmail 
+                                                          || x.email == "register_test_" + DTTestConstants.TestTargetEmail
+                                                          ).ToList();
+            _db.Delete(registrations);
             foreach(var u in _db.Users.Where(x => x.email == DTTestConstants.TestFictionalEmail).ToList())
             {
                 _db.Delete(_db.Sessions.Where(x => x.user == u.id).ToList());

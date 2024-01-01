@@ -58,7 +58,38 @@ namespace DanTechTests.Controllers
             Assert.AreEqual(_knownGoodUser.email, res.Email, "Login email is incorrect.");
             Assert.AreEqual(_knownGoodSession.session, res.Session, "Session guid is incorrect.");
             Assert.AreEqual(corsFlag, "*", "CORS flag not set");            
-        }                
+        }
+        [TestMethod]
+        public void DTControllerTest_directRegister()
+        {
+            //Arrange
+            var dbctx = new dtdb(_cfg.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_cfg, dbctx);
+            var controller = DTTestOrganizer.InitializeHomeController(false);
+            var testEmail = "direct_reg_test_" + DTTestConstants.TestUserEmail;
+            var testPW = "123DirectReg321";
+
+            //Act
+            var result = controller.Register(testEmail, testPW, "First", "Last", "");
+
+            //Assert
+            Assert.IsNotNull(result);
+            dtLogin login = (dtLogin)result.Value;
+            Assert.IsNotNull(login);
+            var usrs = db.Users.Where(x => x.email == testEmail).ToList();
+            Assert.IsTrue(usrs.Count == 1);
+            Assert.AreEqual(login.Email, usrs[0].email);
+            var sessions = db.Sessions.Where(x => x.user == usrs[0].id).ToList();
+            Assert.IsTrue(sessions.Count == 1);
+            Assert.IsTrue(login.Session == sessions[0].session);
+            var reges = db.Registrations.Where(x => x.email == usrs[0].email).ToList();
+            Assert.IsTrue(reges.Count == 1);
+
+            //Cleanup
+            db.Delete(reges);
+            db.Delete(sessions);
+            db.Delete(usrs);
+        }
         [TestMethod]
         public void HomeController_LoginFromMultipleLocations()
         {
@@ -131,6 +162,33 @@ namespace DanTechTests.Controllers
             Assert.IsFalse(string.IsNullOrEmpty(login.Session), "EstablishSession did not return a session.");
             Assert.AreEqual(login.Session, cookie, "Session not properly set on cookie.");
             Assert.AreEqual(cookieCount, 1, "More than one dtSessionId cookie.");            
+        }
+        [TestMethod]
+        public void HomeController_Login_EmailAndPW()
+        {
+            //Arrange
+            var dbctx = new dtdb(_cfg.GetConnectionString("DG"));  // Each thread needs its own context.
+            var db = new DTDBDataService(_cfg, dbctx);
+            string testEmail = "test.for.successful.login.w.pw@test.com";
+            string testPW = "Tesst123";
+            dtUser testUser = new dtUser() { email = testEmail, type = 1, pw = testPW };
+            testUser = db.Set(testUser);
+            var controller = DTTestOrganizer.InitializeHomeController(false);
+
+            //Act
+            var sessionJson = controller.Login(testEmail, testPW);
+            var login = (dtLogin)(sessionJson.Value);
+            var expectedSession = login.Session;
+            var storedSession = db.Sessions.Where(x => x.user == testUser.id && x.hostAddress == DTTestConstants.LocatHostIP).FirstOrDefault();
+
+            //Assert
+            Assert.IsNotNull(sessionJson);
+            Assert.IsFalse(string.IsNullOrEmpty(expectedSession));
+            Assert.AreEqual(expectedSession, storedSession.session);
+
+            //Cleanup
+            if (storedSession != null) db.Delete(storedSession);
+            if (testUser != null) db.Delete(testUser);
         }
         [TestMethod]
         public void HomeController_EstablishSession_GoogleCode()

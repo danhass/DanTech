@@ -34,7 +34,8 @@
         Admin = 2,
         Guest = 3,
         dtPlaner = 4,
-        gmail = 5
+        gmail = 5,
+        unconfirmed = 6
     }
 
     public enum DtAuthorizationKey

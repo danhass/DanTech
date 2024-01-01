@@ -15,7 +15,7 @@ namespace DTUserManagement.Services
     {
         IDTDBDataService? _db = null;
         private static IConfiguration? _config = null;
-        private static readonly string _defaultBaseUrl = @"https://7822-54268.el-alt.com";
+        private static readonly string _defaultBaseUrl = @"https://7822-54268.el-alt.com/Admin/CompleteRegistrtation";
 
         public DTRegistration() { }
         public DTRegistration(IDTDBDataService db)
@@ -51,10 +51,52 @@ namespace DTUserManagement.Services
             _db.Delete(reg);
             return session;
         }
+        public string Register(string email, string password, string baseUrl, string hostAddress, string firstName, string lastName, string otherName)
+        {
+            string session = "";
+            if (_db == null) throw new Exception("No db specified.");
+            if (_config == null) throw new Exception("No config file specified");
+
+            var user = _db.Users.Where(x => x.email == email).FirstOrDefault();
+            if (user == null)
+            {
+                user = new dtUser()
+                {
+                    email = email,
+                    pw = password,
+                    type = (int)DtUserType.unconfirmed
+                };
+                if (!string.IsNullOrEmpty(firstName)) { user.fName = firstName; }
+                if (!string.IsNullOrEmpty(lastName)) { user.lName = lastName; }
+                if (!string.IsNullOrEmpty(otherName)) { user.otherName = otherName; }
+                user = _db.Set(user);
+            }
+            if (user != null && user.pw == password)
+            {
+                if (user.type == (int)DtUserType.unconfirmed) 
+                {
+                    SendRegistration(email, baseUrl);
+                }
+                var userSession = _db.Sessions.Where(x => x.user == user.id && x.hostAddress == hostAddress).FirstOrDefault();
+                if (userSession == null)
+                {
+                    userSession = new dtSession()
+                    {
+                        session = Guid.NewGuid().ToString(),
+                        user = user.id,
+                        hostAddress = hostAddress,
+                        expires = DateTime.Now.AddDays(7)
+                    };
+                    userSession = _db.Set(userSession);
+                }
+                session = userSession.session;
+            }
+            return session;
+        }
         private string RegistrationMessage(string baseUrl, string targetEmail, string regKey)
         {
             string message = "To complete your registration to DanTech's platform, click on the following link: " +
-                baseUrl + "/Admin/CompleteRegistrtation?email=" + targetEmail + "&regKey=" + regKey;
+                baseUrl + "?email=" + targetEmail + "&regKey=" + regKey;
             return message;
         }
         public void SetConfig(IConfiguration config) { _config = config;  }
@@ -77,8 +119,12 @@ namespace DTUserManagement.Services
                 svc.SetMailMessage("TryIt", gmailUser.email!, new List<string>() { email }, "DanTech Registration", message, message, new List<string>());
                 if (svc.Send())
                 {
-                    reg = new dtRegistration(); 
-                    reg.email = email;
+                    reg = _db.Registrations.Where(x => x.email == email).FirstOrDefault();
+                    if (reg == null)
+                    {
+                        reg = new dtRegistration();
+                        reg.email = email;
+                    }
                     reg.regKey = regKey;
                     reg.created = DateTime.Now; ;
                     _db.Set(reg);

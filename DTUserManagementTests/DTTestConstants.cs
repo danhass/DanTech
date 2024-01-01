@@ -28,7 +28,8 @@ namespace DTUserManagementTests
         public static readonly string TestGoogleCodeKey = "Google Signin Code";
         public static readonly string TestTargetEmail = "hass.dan@gmail.com";
         public static readonly string TestFictionalEmail = "test@test.com";
-        public static readonly string TestBaseUrl = @"https://7822-54268.el-alt.com/";
+        public static readonly string TestBaseUrl = @"https://7822-54268.el-alt.com";
+        public static readonly string TestBaseUIUrl = @"https://danhass.github.io";
 
 
         public static Guid TestGuid() { if (_testGuid == Guid.Empty) _testGuid = Guid.NewGuid(); return _testGuid; }

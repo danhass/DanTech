@@ -52,6 +52,61 @@ namespace DTUserManagementTests
             db.Delete(reg);
         }
         [TestMethod]
+        public void ResendRegMessageTest()
+        {
+            //Arrange
+            var svc = new DTRegistration(DTTestOrganizer.DB()!);
+            svc.SetConfig(DTTestOrganizer.GetConfiguration()!);
+            var db = DTTestOrganizer.DB();
+            dtRegistration firstReg = new() { email = DTTestConstants.TestTargetEmail, regKey = svc.RegistrationKey(), created = DateTime.Now.AddHours(-3) };
+            firstReg = db.Set(firstReg);
+
+            //Act
+            var result = svc.SendRegistration(DTTestConstants.TestTargetEmail);
+
+            //Assert
+            var endRegs = db.Registrations.Where(x => x.email == DTTestConstants.TestTargetEmail).ToList();
+            Assert.IsNotNull(result);
+            Assert.IsTrue(endRegs.Count == 1);
+            Assert.IsTrue(endRegs[0].id == firstReg.id);
+            Assert.IsTrue(firstReg.id == result.id);
+            Assert.IsTrue(result.email ==  DTTestConstants.TestTargetEmail);
+
+            //Cleanup
+            db.Delete(result);
+        }
+        [TestMethod]
+        public void RegisterTest()
+        {
+            //Arrange
+            var svc = new DTRegistration(DTTestOrganizer.DB()!);
+            svc.SetConfig(DTTestOrganizer.GetConfiguration()!);
+            var db = DTTestOrganizer.DB();
+            var testEmail = "register_test_" + DTTestConstants.TestTargetEmail;
+            var testPW = "321RegisterTest123";
+
+            //Act
+            var session = svc.Register(testEmail, testPW, DTTestConstants.TestBaseUIUrl, DTTestConstants.LocatHostIP, "A", "Tester", "");
+
+            //Assert
+            var usrs = db.Users.Where(x => x.email == testEmail).ToList();
+            Assert.IsTrue(usrs.Count == 1);
+            Assert.IsTrue(usrs[0].email == testEmail);
+            Assert.IsTrue(usrs[0].pw == testPW);
+            Assert.IsTrue(usrs[0].type == (int)DtUserType.unconfirmed);
+            var sessions = db.Sessions.Where(x => x.user == usrs[0].id).ToList();
+            Assert.IsTrue(sessions.Count == 1);
+            Assert.IsTrue(sessions[0].session == session);
+            Assert.IsTrue(sessions[0].hostAddress == DTTestConstants.LocatHostIP);
+            var reges = db.Registrations.Where(x => x.email == testEmail).ToList();
+            Assert.IsTrue(reges.Count == 1);
+
+            //Cleanup
+            db.Delete(reges);
+            db.Delete(sessions);
+            db.Delete(usrs);
+        }
+        [TestMethod]
         public void CompleteRegistrationTest()
         {
             //Arrange
