@@ -131,6 +131,28 @@ namespace DanTech.Controllers
                                      )
         {
             if (VM == null) return Json(null);
+
+            if (this.Request.Form.Keys.Count > 0)
+            {
+                foreach (var k in this.Request.Form.Keys)
+                {
+                    string[] kv = k.Replace("{","").Replace("}","").Replace("&","@@┤@@").Trim().Split(":");
+                    if(kv.Length > 1)
+                    {
+                        if (kv[0] == "note")
+                        {
+                            note = "";
+                            for (int i = 1; i < kv.Length; i++)
+                            {
+                                if (note.Length > 0) note += ":";
+                                note += kv[i];
+                            }
+                            note = note.Replace("@@┤@@", "&");
+                        }
+                    }
+                }
+            }
+
             // Trap and correct common caller errors
             if (!string.IsNullOrEmpty(recurrenceData) && recurrenceData == "null") recurrenceData = null;
             _db.SetConnString(_configuration.GetConnectionString("dg"));
