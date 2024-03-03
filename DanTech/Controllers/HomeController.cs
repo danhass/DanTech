@@ -154,36 +154,41 @@ namespace DanTech.Controllers
 
         [ServiceFilter(typeof(DTAuthenticate))]
         [DisableCors]
-        public IActionResult TestGmail()
+        public IActionResult TestGmail(string TestValue)
         {
             ViewBag.Message = "Sending test email";
 
-            ViewBag.Email = _configuration.GetValue<string>("Gmail:Email");
-
-            var User = _db.Users.Where(x => x.email == ViewBag.Email).FirstOrDefault();
-            ViewBag.Token = User != null ? User.token : "Not found";
-
-            string Result = "";
-            try
+            if (1 == 0)
             {
-                var gmailSvc = new DTGmailService();
-                gmailSvc.SetConfig(_configuration);
-                gmailSvc.SetAuthToken(User.token);
-                gmailSvc.SetRefreshToken(User.refreshToken);
-                gmailSvc.SetMailMessage("TryIt", User.email, new List<string>() { "hass.dan@gmail.com" }, "Test email from DTGmailService", "", "<b>Test</b> body (html)", new List<string>() { @"C:\Users\hassd\Documents\AT&T.pdf", @"C:\Users\hassd\Documents\WF.0723.pdf" });
-                var sent = gmailSvc.Send();
-                if (gmailSvc.GetAuthToken() != User.token) 
+
+                ViewBag.Email = _configuration.GetValue<string>("Gmail:Email");
+
+                var User = _db.Users.Where(x => x.email == ViewBag.Email).FirstOrDefault();
+                ViewBag.Token = User != null ? User.token : "Not found";
+
+                string Result = "";
+                try
                 {
-                    User.token = gmailSvc.GetAuthToken();
-                    _db.Set(User);
+                    var gmailSvc = new DTGmailService();
+                    gmailSvc.SetConfig(_configuration);
+                    gmailSvc.SetAuthToken(User.token);
+                    gmailSvc.SetRefreshToken(User.refreshToken);
+                    gmailSvc.SetMailMessage("TryIt", User.email, new List<string>() { "hass.dan@gmail.com" }, "Test email from DTGmailService", "", "<b>Test</b> body (html)", new List<string>() { @"C:\Users\hassd\Documents\AT&T.pdf", @"C:\Users\hassd\Documents\WF.0723.pdf" });
+                    var sent = gmailSvc.Send();
+                    if (gmailSvc.GetAuthToken() != User.token)
+                    {
+                        User.token = gmailSvc.GetAuthToken();
+                        _db.Set(User);
+                    }
+                    Result = sent ? "Email was sent successfully!" : "Email was not confirmed";
                 }
-                Result = sent ? "Email was sent successfully!" : "Email was not confirmed";
+                catch (Exception ep)
+                {
+                    Result = String.Format("Failed to send email with the following error: {0}", ep.Message);
+                }
+
+                ViewBag.Result = Result;
             }
-            catch (Exception ep)
-            {
-                Result = String.Format("Failed to send email with the following error: {0}", ep.Message);
-            }
-            ViewBag.Result = Result;
             var v = VM;
             return View(VM);
         }
